@@ -45,7 +45,7 @@ def split_interval_equidistant_points(lower: float, upper: float, number_of_poin
 class TestSplitInterval(unittest.TestCase):
     def random_lower_upper_and_number_of_points(self):
         num_vals = random.randint(2, 400)
-        lower = random.uniform(0.0, 10.0)
+        lower = random.uniform(-10.0, 10.0)
         upper = lower + random.uniform(0.0, 5.0) # Upper has to be greater than lower
 
         return lower, upper, num_vals
@@ -91,6 +91,23 @@ class TestSplitInterval(unittest.TestCase):
             split_interval_equidistant_points(lower, upper, number_of_points)
         except Exception as e:
             self.fail(f"ERROR! This function should not raise exception with {number_of_points} number of points")
+
+    def test_raise_when_upper_not_greater_than_lower(self):
+        lower = 1
+        upper = 0
+        number_of_points = 100
+        with self.assertRaises(Exception) as context:
+            split_interval_equidistant_points(lower, upper, number_of_points)
+        self.assertEqual("upper has to be greater than lower", str(context.exception))
+
+        lower = 1
+        upper = -1
+        number_of_points = 100
+        with self.assertRaises(Exception) as context:
+            split_interval_equidistant_points(lower, upper, number_of_points)
+        self.assertEqual("upper has to be greater than lower", str(context.exception))
+
+
 
     def test_upper_and_lower_in_result(self):
         self.number_of_tests = 1000
