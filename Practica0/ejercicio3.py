@@ -86,11 +86,6 @@ def plot_three_functions(values, sin_values, cos_values, complex_function_values
     plt.plot(values, complex_function_values, "--r")
     plt.show()
 
-
-def wait_for_user_input():
-    input("Press ENTER to continue...")
-
-
 def set_x_axis_scale_to_pi():
     """
     Sets x axis to display 1/2Pi, 1Pi, 3/2PI, 2Pi, ... instead of 1, 2, 3...
