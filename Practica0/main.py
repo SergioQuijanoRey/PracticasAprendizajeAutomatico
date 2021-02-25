@@ -1,6 +1,3 @@
-import numpy as np
-import matplotlib
-import sklearn
 import ejercicio3
 
 if __name__ == "__main__":
