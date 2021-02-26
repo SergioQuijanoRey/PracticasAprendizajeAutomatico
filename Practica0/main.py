@@ -1,4 +1,5 @@
 import ejercicio1
+import ejercicio2
 import ejercicio3
 
 if __name__ == "__main__":
@@ -9,6 +10,7 @@ if __name__ == "__main__":
 
     print("Ejercicio 2")
     print("=" * 80)
+    ejercicio2.run()
     print("")
 
     print("Ejercicio 3")
