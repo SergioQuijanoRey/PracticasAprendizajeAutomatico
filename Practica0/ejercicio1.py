@@ -1,12 +1,11 @@
-"""Module to implement exercise 3 functionality"""
-
 from sklearn import datasets
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as pltcols
 
 
 def run():
+    """Ejecuta las funciones necesarias para resolver el primer ejercicio"""
+
     print("Leyendo datos de la base de datos iris desde scikit-learn")
     data, classes = read_iris_data()
     plot_iris_dataset(data, classes)

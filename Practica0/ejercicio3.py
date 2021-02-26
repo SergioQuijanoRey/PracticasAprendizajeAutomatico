@@ -1,61 +1,37 @@
-"""Module to implement exercise 3 functionality"""
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 
 def run():
-    """Runs the tasks in order to solve exercise 3"""
+    """Corre el codigo necesario para resolver el ejercicio 3"""
 
-    # Exercise parameters
+    # Parametros para el ejercicio
     lower = 0
     upper = 4 * math.pi
     number_of_points = 100
 
     print(
-        f"Splitting [{lower}, {upper}] interval in {number_of_points} equidistant points")
+        f"Separando el intervalo [{lower}, {upper}] en {number_of_points} puntos equidistantes")
     values = np.linspace(lower, upper, number_of_points)
 
-    print(f"Mapping values to the three functions")
+    print(f"Mapeando los valores a las tres funciones dadas")
     sin_values, cos_values, complex_function_values = map_values_to_functions(
         values)
 
-    print(f"Values are: {values}")
-    print(f"Sin values are: {sin_values}\n")
-    print(f"Cos values are: {cos_values}\n")
-    print(f"tanh(sin + cos) values are: {complex_function_values}\n")
+    print(f"Los valores son are: {values}")
+    print(f"Valores en el seno: {sin_values}\n")
+    print(f"Valores en el coseno: {cos_values}\n")
+    print(f"Valores en tanh(sin + cos): {complex_function_values}\n")
 
-    print("Plotting values")
+    print("Mostrando la grafica de los valores")
     plot_three_functions(values, sin_values, cos_values,
                          complex_function_values)
 
-
-def split_interval_equidistant_points(lower: float, upper: float, number_of_points: int) -> list[float]:
-    """
-    Splits [lower, upper] in number_of_points points which are equidistant
-    lower and upper are included in the returned list
-    upper has to be greater than lower
-    number_of_points has to be greater or equal 2
-    """
-
-    # Safety checks
-    if number_of_points <= 1:
-        raise Exception(
-            "Number of points has to be a positive non-cero integer")
-    if upper < lower:
-        raise Exception("upper has to be greater than lower")
-
-    values = []
-    step = (upper - lower) / (number_of_points - 1)
-    for i in range(0, number_of_points):
-        current_value = lower + step * i
-        values.append(current_value)
-
-    return values
-
-
 def map_values_to_functions(values):
-    """Map values (which are x_values) to the three given functions in exercise
-    specification"""
+    """
+    Evalua las tres funciones dadas en los valores pasados como parametro
+    Devuelve las tres listas sin_values, cos_values, tanh(sin + cos)
+    """
 
     sin_values = [np.sin(x) for x in values]
     cos_values = [np.cos(x) for x in values]
@@ -66,14 +42,15 @@ def map_values_to_functions(values):
 
 def plot_three_functions(values, sin_values, cos_values, complex_function_values):
     """
-    Plot the three functions as specified
+    Grafica las tres funciones como se especifica en el ejercicio
 
-    I read on matplotlib's documentation how to change colors and line style
-    https://matplotlib.org/2.1.1/api/_as_gen/matplotlib.pyplot.plot.html
+    Para cambiar los colores y el estilo de linea he leido el siguiente enlace
+    de la documentacion oficial de matplotlib:
+        https://matplotlib.org/2.1.1/api/_as_gen/matplotlib.pyplot.plot.html
     """
 
-    # Change x axis values to trig values
-    # Docstring says from where I copied the function
+    # Cambio la escala del eje x a una trigonometrica
+    # En el docstring de la funcion indico de donde copio esta funcion
     set_x_axis_scale_to_pi()
 
     # En verde, con lineas discontinuas
@@ -88,15 +65,19 @@ def plot_three_functions(values, sin_values, cos_values, complex_function_values
 
 def set_x_axis_scale_to_pi():
     """
-    Sets x axis to display 1/2Pi, 1Pi, 3/2PI, 2Pi, ... instead of 1, 2, 3...
-    Useful for plotting trig functions
-    Code copied from: https://jakevdp.github.io/PythonDataScienceHandbook/04.10-customizing-ticks.html
+    Cambio el eje x a uno basado en fracciones de PI, mejor para graficar
+    funciones trigonometricas
+
+    El codigo lo copio de:
+        https://jakevdp.github.io/PythonDataScienceHandbook/04.10-customizing-ticks.html
     """
 
-    # To get the formatting
+    # Para formatear el eje X con multiplos de PI
     def format_func(value, tick_number):
-        # find number of multiples of pi/2
+        # Calcula el numero de multiplos de PI / 2
         N = int(np.round(2 * value / np.pi))
+
+        # Formatea acorde a este multiplo
         if N == 0:
             return "0"
         elif N == 1:
@@ -108,8 +89,10 @@ def set_x_axis_scale_to_pi():
         else:
             return r"${0}\pi$".format(N // 2)
 
+    # Toma el objeto ax para hacer manipulaciones complejas del plot
     _, ax = plt.subplots()
 
+    # Coloca los multiplos descritos
     ax.xaxis.set_major_locator(plt.MultipleLocator(np.pi / 2))
     ax.xaxis.set_minor_locator(plt.MultipleLocator(np.pi / 4))
     ax.xaxis.set_major_formatter(plt.FuncFormatter(format_func))
