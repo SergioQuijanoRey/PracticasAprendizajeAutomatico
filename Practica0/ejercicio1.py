@@ -25,6 +25,7 @@ def read_iris_data():
     iris_dataset = datasets.load_iris()
 
     # Separamos caracteristicas de las clases
+    # TODO -- el profesor hace X = data ; Y = target
     data = iris_dataset.data
     classes = iris_dataset.target
 

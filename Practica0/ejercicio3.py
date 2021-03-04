@@ -7,6 +7,7 @@ def run():
 
     # Parametros para el ejercicio
     lower = 0
+    # TODO -- cambiar por np.pi
     upper = 4 * math.pi
     number_of_points = 100
 
