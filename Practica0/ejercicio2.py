@@ -18,7 +18,10 @@ def run():
     training, test = split_data_set_matrix(data_set)
 
     # Muestro el resultado de separar los datos
-    print("Resultado en forma matricial")
+    print("FORMA MATRICIAL")
+    print("=" * 80)
+    print("")
+
     print(f"El training queda: {training}")
     print("")
     print(f"El test queda: {test}")
@@ -27,18 +30,22 @@ def run():
 
     # Ahora lo pruebo pero con los datos por separado
     # Para ello me quedo con todos los indices de fila y fijo la columna 0 o 1
-    print("Ahora separamos el dataset")
+    print("FORMA X, Y")
+    print("=" * 80)
+    print("")
+
     X = data_set[:,0]
     Y = data_set[:,1]
     print(f"Dataset: {data_set}")
     print(f"X: {X}")
     print(f"Y: {Y}")
+    print("")
 
     # Separo los datos con la funcion programada
     X_training, X_test, Y_training, Y_test = split_data_set_splitted(X, Y)
 
     # Muestro el resultado de separar los datos
-    print("Resultado en forma separada")
+    print("Resultados:")
     print(f"X_training: {X_training}")
     print(f"Y_training: {Y_training}")
     print(f"X_test: {X_test}")
