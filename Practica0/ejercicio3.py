@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -7,26 +6,25 @@ def run():
 
     # Parametros para el ejercicio
     lower = 0
-    # TODO -- cambiar por np.pi
-    upper = 4 * math.pi
+    upper = 4 * np.pi
     number_of_points = 100
 
-    print(
-        f"Separando el intervalo [{lower}, {upper}] en {number_of_points} puntos equidistantes")
+    print(f"Separando el intervalo [{lower}, {upper}] en {number_of_points} puntos equidistantes")
     values = np.linspace(lower, upper, number_of_points)
+    print("")
 
     print(f"Mapeando los valores a las tres funciones dadas")
-    sin_values, cos_values, complex_function_values = map_values_to_functions(
-        values)
+    sin_values, cos_values, complex_function_values = map_values_to_functions(values)
+    print("")
 
-    print(f"Los valores son are: {values}")
+    print(f"Los valores son: {values}\n")
     print(f"Valores en el seno: {sin_values}\n")
     print(f"Valores en el coseno: {cos_values}\n")
     print(f"Valores en tanh(sin + cos): {complex_function_values}\n")
+    print("")
 
     print("Mostrando la grafica de los valores")
-    plot_three_functions(values, sin_values, cos_values,
-                         complex_function_values)
+    plot_three_functions(values, sin_values, cos_values, complex_function_values)
 
 def map_values_to_functions(values):
     """
@@ -34,9 +32,12 @@ def map_values_to_functions(values):
     Devuelve las tres listas sin_values, cos_values, tanh(sin + cos)
     """
 
-    sin_values = [np.sin(x) for x in values]
-    cos_values = [np.cos(x) for x in values]
-    complex_function_values = [np.tanh(np.sin(x) + np.cos(x)) for x in values]
+    sin_values = np.sin(values)
+    cos_values = np.cos(values)
+
+    # Defino una nueva funcion anonima que uso para mapear values
+    complex_function = lambda x: np.tanh(np.sin(x) + np.cos(x))
+    complex_function_values = complex_function(values)
 
     return sin_values, cos_values, complex_function_values
 
@@ -54,6 +55,9 @@ def plot_three_functions(values, sin_values, cos_values, complex_function_values
     # En el docstring de la funcion indico de donde copio esta funcion
     set_x_axis_scale_to_pi()
 
+    # Pongo un titulo al grafico
+    plt.title("Gráfica de las tres funciones")
+
     # En verde, con lineas discontinuas
     plt.plot(values, sin_values, "--g")
 
@@ -62,6 +66,7 @@ def plot_three_functions(values, sin_values, cos_values, complex_function_values
 
     # En rojo, con lineas discontinuas
     plt.plot(values, complex_function_values, "--r")
+
     plt.show()
 
 def set_x_axis_scale_to_pi():
@@ -69,11 +74,15 @@ def set_x_axis_scale_to_pi():
     Cambio el eje x a uno basado en fracciones de PI, mejor para graficar
     funciones trigonometricas
 
-    El codigo lo copio de:
+    El codigo lo copio completamente, sin apenas cambios, de:
         https://jakevdp.github.io/PythonDataScienceHandbook/04.10-customizing-ticks.html
+
+    Lo unico que hago sobre la copia es comentar el codigo y definir una funcion
+    dentro de esta funcion para que no quede demasiado sucio el resto de mi codigo
     """
 
     # Para formatear el eje X con multiplos de PI
+    # Defino aqui la funcion para que no ensucie el resto del codigo
     def format_func(value, tick_number):
         # Calcula el numero de multiplos de PI / 2
         N = int(np.round(2 * value / np.pi))
