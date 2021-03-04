@@ -49,7 +49,7 @@ def plot_iris_dataset(data, classes, feature_names):
     # para poder poner leyendas y otras operaciones complejas
     _, ax = plt.subplots()
 
-    # Tomo los titulos de las caracteristicas
+    # Tomo los titulos de las caracteristicas y los asigno al grafico
     # Tomo la idea de: https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_iris_scatter.html
     x_legend = feature_names[0]
     y_legend = feature_names[1]
