@@ -64,3 +64,10 @@ def plot_iris_dataset(data, classes):
 
     # Mostramos el grafico
     plt.show()
+
+
+if __name__ == "__main__":
+    print("Lanzando solo el ejercicio 1")
+    print("Si quieres lanzar todos los ejercicios, ejecuta:")
+    print("\tpython main.py")
+    run()

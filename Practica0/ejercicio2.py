@@ -34,3 +34,9 @@ def split_data_set(data_set):
     # de los datos en los dos subconjuntos
     training, test = train_test_split(data_set, train_size = 0.75, test_size = 0.25)
     return training, test
+
+if __name__ == "__main__":
+    print("Lanzando solo el ejercicio 2")
+    print("Si quieres lanzar todos los ejercicios, ejecuta:")
+    print("\tpython main.py")
+    run()

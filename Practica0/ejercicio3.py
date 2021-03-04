@@ -97,3 +97,9 @@ def set_x_axis_scale_to_pi():
     ax.xaxis.set_major_locator(plt.MultipleLocator(np.pi / 2))
     ax.xaxis.set_minor_locator(plt.MultipleLocator(np.pi / 4))
     ax.xaxis.set_major_formatter(plt.FuncFormatter(format_func))
+
+if __name__ == "__main__":
+    print("Lanzando solo el ejercicio 3")
+    print("Si quieres lanzar todos los ejercicios, ejecuta:")
+    print("\tpython main.py")
+    run()
