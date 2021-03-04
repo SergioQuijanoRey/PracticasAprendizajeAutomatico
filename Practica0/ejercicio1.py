@@ -1,15 +1,16 @@
 from sklearn import datasets
 import matplotlib.pyplot as plt
 import matplotlib.colors as pltcols
+import numpy as np
 
 def run():
     """Ejecuta las funciones necesarias para resolver el primer ejercicio"""
 
     print("Leyendo datos de la base de datos iris desde scikit-learn")
-    data, classes = read_iris_data()
+    data, classes, feature_names = read_iris_data()
 
     print("Mostrando la grafica de los datos")
-    plot_iris_dataset(data, classes)
+    plot_iris_dataset(data, classes, feature_names)
 
 
 def read_iris_data():
@@ -25,27 +26,35 @@ def read_iris_data():
     iris_dataset = datasets.load_iris()
 
     # Separamos caracteristicas de las clases
-    # TODO -- el profesor hace X = data ; Y = target
     data = iris_dataset.data
     classes = iris_dataset.target
+    feature_names = iris_dataset.feature_names
 
     # Nos quedamos solo con la primera y tercera caracteristica que corresponden
     # a los indices 0 y 2
     data = [data[indx][0:3:2] for indx in range(len(data))]
 
-    return data, classes
+    return data, classes, feature_names
 
 
-def plot_iris_dataset(data, classes):
+def plot_iris_dataset(data, classes, feature_names):
     """Hacemos un scatter plot de los datos junto a las clases en las que estan divididos"""
 
     # Separamos los valores de x e y
-    x_values = [data[x][0] for x in range(len(data))]
-    y_values = [data[x][1] for x in range(len(data))]
+    data = np.array(data)
+    x_values = data[:, 0]
+    y_values = data[:, 1]
 
     # Tomamos la figura y ejes por separado en vez de hacer manipulaciones directas
     # para poder poner leyendas y otras operaciones complejas
     _, ax = plt.subplots()
+
+    # Tomo los titulos de las caracteristicas
+    # Tomo la idea de: https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_iris_scatter.html
+    x_legend = feature_names[0]
+    y_legend = feature_names[1]
+    plt.xlabel(x_legend)
+    plt.ylabel(y_legend)
 
     # Coloreamos las distintas clases segun los colores que se nos ha especificado
     # La parte de hacer ListedColormap la saco de: https://stackoverflow.com/questions/12487060/
@@ -64,7 +73,6 @@ def plot_iris_dataset(data, classes):
 
     # Mostramos el grafico
     plt.show()
-
 
 if __name__ == "__main__":
     print("Lanzando solo el ejercicio 1")
