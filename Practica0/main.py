@@ -50,7 +50,7 @@ def read_iris_data():
 
     return data, classes, feature_names
 
-
+# TODO -- mostrar en el label las etiquetas
 def plot_iris_dataset(data, classes, feature_names, title = "Grafica de las caracteristicas y sus clases"):
     """Hacemos un scatter plot de los datos junto a las clases en las que estan divididos"""
 
@@ -87,6 +87,7 @@ def plot_iris_dataset(data, classes, feature_names, title = "Grafica de las cara
 
     # Mostramos el grafico
     plt.show()
+    wait_for_user_input()
 
 # Ejercicio 2
 #===============================================================================
@@ -120,11 +121,9 @@ def run_ejercicio_2():
     # entrenamiento y cuando nos quedamos solo con los datos de test
     print("Gráfica con los datos de entrenamiento:")
     plot_iris_dataset(X_training, Y_training, feature_names, title = "Grafica con datos de entrenamiento")
-    wait_for_user_input()
 
     print("Grafica con los datos de test:")
     plot_iris_dataset(X_test, Y_test, feature_names, title = "Grafica con datos de test")
-    wait_for_user_input()
 
 
 # Escribo esta funcion porque no sabia si habia que separar el dataset de iris
@@ -192,6 +191,7 @@ def run_ejercicio_3():
     print(f"Valores en el coseno: {cos_values}\n")
     print(f"Valores en tanh(sin + cos): {complex_function_values}\n")
     print("")
+    wait_for_user_input()
 
     print("Mostrando la grafica de los valores")
     plot_three_functions(values, sin_values, cos_values, complex_function_values)
@@ -238,6 +238,7 @@ def plot_three_functions(values, sin_values, cos_values, complex_function_values
     plt.plot(values, complex_function_values, "--r")
 
     plt.show()
+    wait_for_user_input()
 
 def set_x_axis_scale_to_pi():
     """
