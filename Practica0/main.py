@@ -39,6 +39,7 @@ def read_iris_data():
     data = iris_dataset.data
     classes = iris_dataset.target
     feature_names = iris_dataset.feature_names  # Para saber el nombre de las caracteristicas
+                                                # Al final no uso estos datos para nada
 
     # Nos quedamos solo con la primera y tercera caracteristica que corresponden
     # a los indices 0 y 2
@@ -50,7 +51,6 @@ def read_iris_data():
 
     return data, classes, feature_names
 
-# TODO -- mostrar en el label las etiquetas
 def plot_iris_dataset(data, classes, feature_names, title = "Grafica de las caracteristicas y sus clases"):
     """Hacemos un scatter plot de los datos junto a las clases en las que estan divididos"""
 
