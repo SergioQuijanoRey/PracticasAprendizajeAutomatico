@@ -4,6 +4,12 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as pltcols
 import numpy as np
 
+
+# Funcionalidades auxiliares
+#===============================================================================
+def wait_for_user_input():
+    input("Pulse ENTER para continuar...")
+
 # Ejercicio 1
 #===============================================================================
 
@@ -32,16 +38,20 @@ def read_iris_data():
     # Separamos caracteristicas de las clases
     data = iris_dataset.data
     classes = iris_dataset.target
-    feature_names = iris_dataset.feature_names
+    feature_names = iris_dataset.feature_names  # Para saber el nombre de las caracteristicas
 
     # Nos quedamos solo con la primera y tercera caracteristica que corresponden
     # a los indices 0 y 2
     data = [data[indx][0:3:2] for indx in range(len(data))]
 
+    # Del mismo modo solo me quedo con los nombres de las caracteristicas con
+    # las que me quedo en el paso anterior
+    feature_names = [feature_names[0], feature_names[1]]
+
     return data, classes, feature_names
 
 
-def plot_iris_dataset(data, classes, feature_names):
+def plot_iris_dataset(data, classes, feature_names, title = "Grafica de las caracteristicas y sus clases"):
     """Hacemos un scatter plot de los datos junto a las clases en las que estan divididos"""
 
     # Separamos los valores de x e y
@@ -73,7 +83,7 @@ def plot_iris_dataset(data, classes, feature_names):
     ax.add_artist(legend)
 
     # Ponemos un titulo a la grafica
-    plt.title("Grafica de caracteristicas y sus clases")
+    plt.title(title)
 
     # Mostramos el grafico
     plt.show()
@@ -83,55 +93,43 @@ def plot_iris_dataset(data, classes, feature_names):
 def run_ejercicio_2():
     """Corre las operaciones necesarias para resolver el problema del ejercicio 2"""
 
-    print("Ejecutando ejercicio 2")
-
-    # Genero un data_set en formato array de pares para hacer una rapida comprobacion
-    # de que la funcion de separacion hace lo que tiene que hacer
-    size = 10
-
-    # (size, 2) para crear size entradas en el array de pares aleatorios
-    data_set = np.random.uniform(-10, 10, (size, 2))
-    data_set = np.array(data_set)
-
-    # Separo los datos con la funcion programada
-    training, test = split_data_set_matrix(data_set)
-
-    # Muestro el resultado de separar los datos
-    print("FORMA MATRICIAL")
-    print("=" * 80)
-    print("")
-
-    print(f"El training queda: {training}")
-    print("")
-    print(f"El test queda: {test}")
-    print("")
-
-
-    # Ahora lo pruebo pero con los datos por separado
-    # Para ello me quedo con todos los indices de fila y fijo la columna 0 o 1
-    print("FORMA X, Y")
-    print("=" * 80)
-    print("")
-
-    X = data_set[:,0]
-    Y = data_set[:,1]
-    print(f"Dataset: {data_set}")
-    print(f"X: {X}")
-    print(f"Y: {Y}")
-    print("")
+    # Tomo los datos de la base de datos iris, como en el anterior ejercicio
+    X, Y, feature_names = read_iris_data()
 
     # Separo los datos con la funcion programada
     X_training, X_test, Y_training, Y_test = split_data_set_splitted(X, Y)
 
-    # Muestro el resultado de separar los datos
+    # Muestro los resultados numericamente
     print("Resultados:")
     print(f"X_training: {X_training}")
     print(f"Y_training: {Y_training}")
     print(f"X_test: {X_test}")
     print(f"Y_test: {Y_test}")
+    print("")
+
+    # Muestro las longitudes de los vectores de datos para ver que hay una relacion
+    # aproximada de 75% training 25% test
+    print("Longitudes de los vectores de datos")
+    print(f"Len X_training: {len(X_training)}")
+    print(f"Len X_test: {len(X_test)}")
+    print(f"Len Y_training: {len(Y_training)}")
+    print(f"Len Y_test: {len(Y_test)}")
+    wait_for_user_input()
+
+    # Mostramos como quedan las graficas cuando nos quedamos solo con los datos de
+    # entrenamiento y cuando nos quedamos solo con los datos de test
+    print("Gráfica con los datos de entrenamiento:")
+    plot_iris_dataset(X_training, Y_training, feature_names, title = "Grafica con datos de entrenamiento")
+    wait_for_user_input()
+
+    print("Grafica con los datos de test:")
+    plot_iris_dataset(X_test, Y_test, feature_names, title = "Grafica con datos de test")
+    wait_for_user_input()
 
 
-
+# Escribo esta funcion porque no sabia si habia que separar el dataset de iris
+# o un dataset generico. Dejo la funcion aqui por si necesito usarla para otras
+# practicas
 def split_data_set_matrix(data_set):
     """
     Dado un data set en formato matricial lo separa en un 75% para training y un 25%
@@ -163,7 +161,12 @@ def split_data_set_splitted(X, Y):
     # Uso la funcion de scikitlearn para separar el data_set
     # Esta funcion por defecto mezcla los datos para asegurar la representacion
     # de los datos en los dos subconjuntos
-    X_training, X_test, Y_training, Y_test= train_test_split(X, Y, train_size = 0.75, test_size = 0.25)
+    #
+    # Blanca Cano Camarero me comenta que ponga el stratify = y porque asi se lo
+    # indica el profesor Pablo Mesejo en una consulta realizada. En la referencia
+    # que indico de scikitlearn tambine viene documentado este parametro
+    # Lo que hace es evitar que haya clases que queden infrarepresentadas
+    X_training, X_test, Y_training, Y_test= train_test_split(X, Y, train_size = 0.75, test_size = 0.25, stratify = Y)
     return X_training, X_test, Y_training, Y_test
 
 # Ejercicio 3
