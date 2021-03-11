@@ -17,11 +17,10 @@ def run_ejercicio_1():
     """Ejecuta las funciones necesarias para resolver el primer ejercicio"""
 
     print("Leyendo datos de la base de datos iris desde scikit-learn")
-    data, classes, feature_names = read_iris_data()
+    data, classes, feature_names, target_names = read_iris_data()
 
     print("Mostrando la grafica de los datos")
-    plot_iris_dataset(data, classes, feature_names)
-
+    plot_iris_dataset(data, classes, feature_names, target_names)
 
 def read_iris_data():
     """
@@ -39,7 +38,8 @@ def read_iris_data():
     data = iris_dataset.data
     classes = iris_dataset.target
     feature_names = iris_dataset.feature_names  # Para saber el nombre de las caracteristicas
-                                                # Al final no uso estos datos para nada
+    target_names = iris_dataset.target_names    # Los nombres de las flores que consideramos:
+                                                # Son los nombres de las clases
 
     # Nos quedamos solo con la primera y tercera caracteristica que corresponden
     # a los indices 0 y 2
@@ -49,45 +49,63 @@ def read_iris_data():
     # las que me quedo en el paso anterior
     feature_names = [feature_names[0], feature_names[1]]
 
-    return data, classes, feature_names
+    return data, classes, feature_names, target_names
 
-def plot_iris_dataset(data, classes, feature_names, title = "Grafica de las caracteristicas y sus clases"):
-    """Hacemos un scatter plot de los datos junto a las clases en las que estan divididos"""
+def plot_iris_dataset(data, classes, feature_names, target_names, title = "Grafica de las caracteristicas y sus clases"):
+    """
+    Hacemos un scatter plot de los datos junto a las clases en las que estan divididos
+    He consultado la documentacion oficial para mirar como hacer un scatter plot con
+    distintos elementos, asignando colores y etiquetas por separado a cada clase en:
+        https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/scatter_with_legend.html
+    """
 
-    # Separamos los valores de x e y
+    # Tomo las coordenadas de la matriz de datos, es decir, separo coordenadas
+    # x e y de una matriz de datos que contiene pares de coordenadas
     data = np.array(data)
     x_values = data[:, 0]
     y_values = data[:, 1]
 
-    # Tomamos la figura y ejes por separado en vez de hacer manipulaciones directas
-    # para poder poner leyendas y otras operaciones complejas
-    _, ax = plt.subplots()
+    # Colores que voy a utilizar para cada una de las clases
+    colormap = ['orange', 'black', 'green']
+
+    # Separacion de indices. Con esto, consigo la lista de los indices de la
+    # clase i-esima, cada uno en un vector distinto. Esto lo necesitare para
+    # colorear cada clase de un color y ponerle de label el nombre de la planta
+    first_class_indexes = np.where(classes == 0)
+    second_class_indexes = np.where(classes == 1)
+    third_class_indexes = np.where(classes == 2)
+
+    # Asi puedo referirme a la primera clase como splitted_indixes[0] en vez
+    # de usar el nombre de la variable (para acceder a los indices en el siguiente
+    # bucle)
+    splitted_indixes = [first_class_indexes, second_class_indexes, third_class_indexes]
+
+
+    # Tomo estos elementos para hacer graficas elaboradas
+    fig, ax = plt.subplots()
+
+    # Itero sobre las clases
+    for index, target_name in enumerate(target_names):
+
+        # Tomo las coordenadas de la clase index-esima
+        current_x = x_values[splitted_indixes[index]]
+        current_y = y_values[splitted_indixes[index]]
+
+        # Muestro la clase index-esima, con su color y su etiqueta correspondiente
+        ax.scatter(current_x, current_y, c=colormap[index], label=target_name)
+
+    # Titulo para la grafica
+    plt.title(title)
 
     # Tomo los titulos de las caracteristicas y los asigno al grafico
     # Tomo la idea de: https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_iris_scatter.html
     x_legend = feature_names[0]
     y_legend = feature_names[1]
-    plt.xlabel(x_legend)
-    plt.ylabel(y_legend)
+    ax.legend()
 
-    # Coloreamos las distintas clases segun los colores que se nos ha especificado
-    # La parte de hacer ListedColormap la saco de: https://stackoverflow.com/questions/12487060/
-    colormap = ['orange', 'black', 'green']
-    scatter = ax.scatter(x_values, y_values, c=classes,
-                         cmap=pltcols.ListedColormap(colormap))
-
-    # Asignamos las etiquetas a los colores
-    # Consultado de la documentacion oficial de matplotlib
-    # En concreto: https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/scatter_with_legend.html#automated-legend-creation
-    legend = ax.legend(*scatter.legend_elements(), title="Clases", loc = "upper left")
-    ax.add_artist(legend)
-
-    # Ponemos un titulo a la grafica
-    plt.title(title)
-
-    # Mostramos el grafico
     plt.show()
     wait_for_user_input()
+
 
 # Ejercicio 2
 #===============================================================================
@@ -95,7 +113,7 @@ def run_ejercicio_2():
     """Corre las operaciones necesarias para resolver el problema del ejercicio 2"""
 
     # Tomo los datos de la base de datos iris, como en el anterior ejercicio
-    X, Y, feature_names = read_iris_data()
+    X, Y, feature_names, target_names = read_iris_data()
 
     # Separo los datos con la funcion programada
     X_training, X_test, Y_training, Y_test = split_data_set_splitted(X, Y)
@@ -120,10 +138,10 @@ def run_ejercicio_2():
     # Mostramos como quedan las graficas cuando nos quedamos solo con los datos de
     # entrenamiento y cuando nos quedamos solo con los datos de test
     print("Gráfica con los datos de entrenamiento:")
-    plot_iris_dataset(X_training, Y_training, feature_names, title = "Grafica con datos de entrenamiento")
+    plot_iris_dataset(X_training, Y_training, feature_names, target_names, title = "Grafica con datos de entrenamiento")
 
     print("Grafica con los datos de test:")
-    plot_iris_dataset(X_test, Y_test, feature_names, title = "Grafica con datos de test")
+    plot_iris_dataset(X_test, Y_test, feature_names, target_names, title = "Grafica con datos de test")
 
 
 # Escribo esta funcion porque no sabia si habia que separar el dataset de iris
