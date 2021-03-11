@@ -8,6 +8,8 @@ import numpy as np
 # Funcionalidades auxiliares
 #===============================================================================
 def wait_for_user_input():
+    """Para que pare la ejecucion hasta que el usuario pulse una tecla"""
+
     input("Pulse ENTER para continuar...")
 
 # Ejercicio 1
@@ -80,7 +82,6 @@ def plot_iris_dataset(data, classes, feature_names, target_names, title = "Grafi
     # bucle)
     splitted_indixes = [first_class_indexes, second_class_indexes, third_class_indexes]
 
-
     # Tomo estos elementos para hacer graficas elaboradas
     fig, ax = plt.subplots()
 
@@ -118,7 +119,7 @@ def run_ejercicio_2():
     # Separo los datos con la funcion programada
     X_training, X_test, Y_training, Y_test = split_data_set_splitted(X, Y)
 
-    # Muestro los resultados numericamente
+    # Muestro los resultados mostrando los datos numericos
     print("Resultados:")
     print(f"X_training: {X_training}")
     print(f"Y_training: {Y_training}")
@@ -146,7 +147,7 @@ def run_ejercicio_2():
 
 # Escribo esta funcion porque no sabia si habia que separar el dataset de iris
 # o un dataset generico. Dejo la funcion aqui por si necesito usarla para otras
-# practicas
+# practicas, con datos en una matriz
 def split_data_set_matrix(data_set):
     """
     Dado un data set en formato matricial lo separa en un 75% para training y un 25%
@@ -179,9 +180,9 @@ def split_data_set_splitted(X, Y):
     # Esta funcion por defecto mezcla los datos para asegurar la representacion
     # de los datos en los dos subconjuntos
     #
-    # Blanca Cano Camarero me comenta que ponga el stratify = y porque asi se lo
+    # Blanca Cano Camarero me comenta que ponga el stratify = Y porque asi se lo
     # indica el profesor Pablo Mesejo en una consulta realizada. En la referencia
-    # que indico de scikitlearn tambine viene documentado este parametro
+    # que indico de scikitlearn tambien viene documentado este parametro
     # Lo que hace es evitar que haya clases que queden infrarepresentadas
     X_training, X_test, Y_training, Y_test= train_test_split(X, Y, train_size = 0.75, test_size = 0.25, stratify = Y)
     return X_training, X_test, Y_training, Y_test
@@ -223,7 +224,8 @@ def map_values_to_functions(values):
     sin_values = np.sin(values)
     cos_values = np.cos(values)
 
-    # Defino una nueva funcion anonima que uso para mapear values
+    # Defino una nueva funcion anonima que uso para mapear values a la funcion
+    # compleja que no puedo expresar de forma directa
     complex_function = lambda x: np.tanh(np.sin(x) + np.cos(x))
     complex_function_values = complex_function(values)
 
@@ -241,6 +243,7 @@ def plot_three_functions(values, sin_values, cos_values, complex_function_values
 
     # Cambio la escala del eje x a una trigonometrica
     # En el docstring de la funcion indico de donde copio esta funcion
+    # Esta funcion ESTA COPIADA DE INTERNET como especifico en la documentacion
     set_x_axis_scale_to_pi()
 
     # Pongo un titulo al grafico
@@ -263,7 +266,7 @@ def set_x_axis_scale_to_pi():
     Cambio el eje x a uno basado en fracciones de PI, mejor para graficar
     funciones trigonometricas
 
-    El codigo lo copio completamente, sin apenas cambios, de:
+    El codigo lo COPIO COMPLETAMENTE, sin apenas cambios, de:
         https://jakevdp.github.io/PythonDataScienceHandbook/04.10-customizing-ticks.html
 
     Lo unico que hago sobre la copia es comentar el codigo y definir una funcion
