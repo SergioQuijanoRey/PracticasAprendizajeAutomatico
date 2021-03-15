@@ -164,8 +164,6 @@ def gradient_descent_and_plot_error(starting_point, loss_function, gradient, lea
     # Por si necesitamos realizar otras operaciones con los resultados
     return weights, iterations, error_at_iteration, solution_at_iteration
 
-
-
 # Ejercicio 1
 #===============================================================================
 def ejercicio1_apartado2():
@@ -247,29 +245,29 @@ def ejercicio1_apartado3():
     # para que se consuman las iteraciones
     learning_rate = 0.01
     max_iterations = 50
-    target_error = -1
+    target_error = 1e-15
     starting_point = np.array([-1.0,1.0])
 
     # Lanzamos el descenso y mostramos la grafica con los resultados
     weights, iterations, error_at_iteration, solution_at_iteration = gradient_descent_and_plot_error(starting_point, f, gradient, learning_rate, max_iterations, target_error)
-    print(f"Hemos usado {iterations} iteraciones")
     print("")
 
-    # Salen resultados muy raros, asi que miramos como han avanzando los puntos
-    # del gradiente descendente
-    print("Grafica del error rara, porque tiene un pico, mostramos como ha avanzado el algoritmo")
-    birds_eye_gradient_descent(f, solution_at_iteration, -1.5, 1.5, -1.5, 1.5, 100)
+    # Mostramos la grafica de como avanza el algoritmo
+    print("Mostramos como avanza el algoritmo")
+    birds_eye_gradient_descent(f, solution_at_iteration, -1.5, -1, 0.5, 1.5, 100)
     print("")
 
     # Realizamos el mismo proceso pero modificando el valor del learning rate
     learning_rate = 0.1
     weights, iterations, error_at_iteration, solution_at_iteration = gradient_descent_and_plot_error(starting_point, f, gradient, learning_rate, max_iterations, target_error)
 
-    # De nuevo, salen resultados muy raros, asi que miramos como han avanzando
-    # los puntos del gradiente descendente
+    # La grafica del error fluctua demasiado, lo cual me parece raro
+    # Por tanto, cobra mas sentido mostrar esta grafica
     print("Grafica del error rara, porque tiene muchas fluctuaciones, mostramos como ha avanzado el algoritmo")
     birds_eye_gradient_descent(f, solution_at_iteration, -5, 5, -5, 5, 100)
     print("")
+    print("La fluctuacion se debe a que, con un learning_rate tan algo, nos salimos de los optimos locales")
+    wait_for_user_input()
 
     # Ahora buscamos los errores minimos y valores de la solucion cuando partimos
     # desde distintos valores de partida
