@@ -65,9 +65,6 @@ def gradient_descent_and_plot_error(starting_point, loss_function, gradient, lea
     # Por si necesitamos realizar otras operaciones con los resultados
     return weights, iterations, error_at_iteration, solution_at_iteration
 
-# TODO -- hay que implementar esta funcion
-def plot_gradient_space(gradient, x_interval, y_interval):
-    pass
 
 # Ejercicio 1
 #===============================================================================
@@ -94,6 +91,11 @@ def ejercicio1_apartado2():
     print("\t2* (u³ * exp(v−2) −2v² exp(−u)) * (u³ * exp(v-2) -4vexp(-u))")
     print("")
     wait_for_user_input()
+
+    # Mostramos la grafica de la funcion de error
+    print("Mostrando grafica de la funcion de error")
+    birds_eye_loss_plot(E, -5, 5, -5, 5, 1000)
+    print("")
 
     # Parametros para el gradiente descendente
     learning_rate = 0.1
@@ -127,6 +129,13 @@ def ejercicio1_apartado3():
     dfx = lambda x, y: 2.0 * (x - 2.0) + 4.0 * np.pi * np.sin(2.0 * np.pi * y) * np.cos(2.0 * np.pi * x)
     dfy = lambda x, y: 4.0 * (y - 2.0) + 4.0 * np.pi * np.sin(2.0 * np.pi * x) * np.cos(2.0 * np.pi * y)
     gradient = lambda x, y: np.array([dfx(x, y), dfy(x, y)])
+
+    # Muestro la funcion de error porque tuve algunos problemas con las graficas
+    # de errores (no bajaba el error de forma consistente) y necesitaba visualizar
+    # la forma de la funcion
+    print("Mostrando la grafica de la funcion de error")
+    birds_eye_loss_plot(f, -5, 5, -5, 5, 1_000)
+    print("")
 
     # Parametros para el gradiente descendiente
     # No se especifica el error que hay que alcanzar asi que lo pongo a cero
@@ -178,6 +187,42 @@ def ejercicio1_apartado3():
         print(f"\t(x, y): {weights}")
         print(f"\tError final: {error_at_iteration[-1]}")
         wait_for_user_input()
+
+def birds_eye_loss_plot(loss_function, lower_x: float = -1, upper_x: float = 1, lower_y: float = -1, upper_y: float = 1, points_pers_axis: int = 1000):
+    """
+    Muestro la grafica del error con un codigo de colores en 2D
+    Para poder estudiar lo que pasa cuando corremos ciertos algoritmos de descenso del gradiente de forma intuitiva
+
+    Consulto la funcion de la grafica de la documentacion oficial de matplotlib:
+        https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.contourf.html
+    y de aqui resuelvo mi duda sobre como saber que magnitud representa cada color:
+        https://matplotlib.org/3.3.4/gallery/images_contours_and_fields/contourf_demo.html
+    """
+
+    # Valores de las variables independientes
+    X_values = np.linspace(lower_x, upper_x, points_pers_axis)
+    Y_values = np.linspace(lower_y, upper_y, points_pers_axis)
+
+    # Matriz con los valores de los errores segun las dos variables independientes
+    # Hago un bucle for sobre la matriz inicializada a ceros porque no encuentro
+    # otra forma de hacer el mapeo que busco
+    loss_values_matrix = np.zeros(shape = (points_pers_axis, points_pers_axis))
+    for x_index in range(0, len(X_values)):
+        for y_index in range(0, len(Y_values)):
+            # Hago los indices invertidos porque el primer indice mueve la fila
+            # (mueve la direccion vertical) y el segundo indice mueve la columna
+            # (mueve la direccion horizontal)
+            loss_values_matrix[y_index][x_index] = loss_function(X_values[x_index], Y_values[y_index])
+
+    # Mostramos la grafica de los puntos
+    plt.title("Funcion de error")
+    plt.contourf(X_values, Y_values, loss_values_matrix)
+
+    # Para poder ver las magnitudes que representa cada color en la grafica
+    plt.colorbar()
+
+    plt.show()
+    wait_for_user_input()
 
 def ejercicio1():
     print("Ejecutando ejercicio 1")
