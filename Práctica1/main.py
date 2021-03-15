@@ -15,10 +15,12 @@ def wait_for_user_input():
 
 # Funciones para mostrar graficas
 #===============================================================================
-def birds_eye_loss_plot(loss_function, lower_x: float = -1, upper_x: float = 1, lower_y: float = -1, upper_y: float = 1, points_pers_axis: int = 1000):
+def __birds_eye_loss_plot_not_show(loss_function, lower_x: float = -1, upper_x: float = 1, lower_y: float = -1, upper_y: float = 1, points_pers_axis: int = 1000):
     """
-    Muestro la grafica del error con un codigo de colores en 2D
-    Para poder estudiar lo que pasa cuando corremos ciertos algoritmos de descenso del gradiente de forma intuitiva
+    Para no repetir codigo en birds_eye_loss_plot y birds_eye_gradient_descent
+
+    Hace el plot de la funcion de error en vista de pajaro, pero no la muestra (para
+    poder añadir puntos sobre dicha grafica)
 
     Consulto la funcion de la grafica de la documentacion oficial de matplotlib:
         https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.contourf.html
@@ -50,6 +52,17 @@ def birds_eye_loss_plot(loss_function, lower_x: float = -1, upper_x: float = 1, 
     # Para poder ver las magnitudes que representa cada color en la grafica
     plt.colorbar()
 
+def birds_eye_loss_plot(loss_function, lower_x: float = -1, upper_x: float = 1, lower_y: float = -1, upper_y: float = 1, points_pers_axis: int = 1000):
+    """
+    Muestro la grafica del error con un codigo de colores en 2D
+    Para poder estudiar lo que pasa cuando corremos ciertos algoritmos de descenso del gradiente de forma intuitiva
+
+    """
+
+    # Genera el grafico
+    __birds_eye_loss_plot_not_show(loss_function, lower_x, upper_x, lower_y, upper_y, points_pers_axis)
+
+    # Como no vamos a hacer mas manipulaciones, lo muestra
     plt.show()
     wait_for_user_input()
 
@@ -59,43 +72,42 @@ def birds_eye_gradient_descent(loss_function, solution_at_iteration, lower_x: fl
     No corre el algoritmo, asi que el procedimiento es correr primero el algoritmo
     y despues pasar los puntos a la funcion, para evitar repetir demasiados calculos
     Repite gran parte del codigo de birds_eye_loss_plot
+
+    El primer punto lo pinta en rosa, para saber que es el punto de partida
+    El ultimo punto lo pinta en naranja, para saber que es el punto de llegada
     """
 
-    # Repetimos el codigo de birds_eye_loss_plot
-    # Valores de las variables independientes
-    X_values = np.linspace(lower_x, upper_x, points_pers_axis)
-    Y_values = np.linspace(lower_y, upper_y, points_pers_axis)
-
-    # Matriz con los valores de los errores segun las dos variables independientes
-    # Hago un bucle for sobre la matriz inicializada a ceros porque no encuentro
-    # otra forma de hacer el mapeo que busco
-    loss_values_matrix = np.zeros(shape = (points_pers_axis, points_pers_axis))
-    for x_index in range(0, len(X_values)):
-        for y_index in range(0, len(Y_values)):
-            # Hago los indices invertidos porque el primer indice mueve la fila
-            # (mueve la direccion vertical) y el segundo indice mueve la columna
-            # (mueve la direccion horizontal)
-            loss_values_matrix[y_index][x_index] = loss_function(X_values[x_index], Y_values[y_index])
-
-    # Mostramos la grafica de los puntos
-    plt.title("Funcion de error")
-    plt.xlabel("Eje X de la funcion de error")
-    plt.ylabel("Eje Y del a funcion de error")
-    plt.contourf(X_values, Y_values, loss_values_matrix)
-
-    # Para poder ver las magnitudes que representa cada color en la grafica
-    plt.colorbar()
+    # Genera el grafico y realizamos mas manipulaciones a partir de este punto
+    __birds_eye_loss_plot_not_show(loss_function, lower_x, upper_x, lower_y, upper_y, points_pers_axis)
 
     # Separo las coordenadas de las soluciones para poder mostrarlas correctamente
+    # En este caso, como los datos vienen de la forma (x, y), no tengo que hacer
+    # el cambio de indices que si haciamos con la matriz
     solution_x_values = solution_at_iteration[:, 0]
-    solution_y_values = solution_at_iteration[:, :1]
+    solution_y_values = solution_at_iteration[:, 1]
+
+    # Me quedo con el primer y ultimo punto para pintarlos de otros colores
+    first_x = solution_x_values[0]
+    last_x = solution_x_values[-1]
+    first_y = solution_y_values[0]
+    last_y = solution_y_values[-1]
+
+    # Podria borrar estos dos puntos de los vectores pero como pinto por encima
+    # de ellos el efecto visual va a ser el mismo
 
     # Añadimos la grafica de los puntos solucion, como puntos rojos gordos: "ro"
     plt.plot(solution_x_values, solution_y_values, "ro")
 
+    # Pinto los puntos inicial y final por encima
+    # Uso este formato para especificar colores porque no se cual es el codigo
+    # de caracter para estos dos colores
+    # Ademas los mostramos con dos cruces para que la distincion sea todavia
+    # mas obvia
+    plt.plot(first_x, first_y, "x", c="pink")
+    plt.plot(last_x, last_y, "x", c="orange")
+
     plt.show()
     wait_for_user_input()
-
 
 
 # Algoritmos
@@ -117,7 +129,9 @@ def gradient_descent(starting_point, loss_function, gradient, learning_rate: flo
         solution_at_iteration = [starting_point]
 
     while current_iteration < max_iterations and loss_function(current_solution[0], current_solution[1]) > target_error:
+        # Calculamos la siguiente solucion usando el gradiente
         current_solution = current_solution - learning_rate * gradient(current_solution[0], current_solution[1])
+
         current_iteration = current_iteration + 1
 
         if verbose == True:
@@ -210,22 +224,22 @@ def ejercicio1_apartado2():
 
     # Mostramos la grafica de como han avanzados las soluciones junto a la funcion de error
     print("Mostrando como han avanzado las soluciones junto a la funcion de error")
-    birds_eye_gradient_descent(E, solution_at_iteration, 1.0, 1.2, 1.0, 1.2, 100)
+    birds_eye_gradient_descent(E, solution_at_iteration, 0.95, 1.2, 0.95, 1.2, 100)
     print("")
 
 def ejercicio1_apartado3():
     # Funcion de perdida que nos dan y calculo sus derivadas parciales
     # No muestro por pantalla las expresiones porque el enunciado no lo pide
     f = lambda x, y: np.power(x + 2.0, 2.0) + 2.0 * np.power(y - 2.0, 2.0) + 2 * np.sin(2.0 * np.pi * x) * np.sin(2.0 * np.pi * y)
-    dfx = lambda x, y: 2.0 * (x - 2.0) + 4.0 * np.pi * np.sin(2.0 * np.pi * y) * np.cos(2.0 * np.pi * x)
+    dfx = lambda x, y: 2.0 * (x + 2.0) + 4.0 * np.pi * np.sin(2.0 * np.pi * y) * np.cos(2.0 * np.pi * x)
     dfy = lambda x, y: 4.0 * (y - 2.0) + 4.0 * np.pi * np.sin(2.0 * np.pi * x) * np.cos(2.0 * np.pi * y)
     gradient = lambda x, y: np.array([dfx(x, y), dfy(x, y)])
 
     # Muestro la funcion de error porque tuve algunos problemas con las graficas
     # de errores (no bajaba el error de forma consistente) y necesitaba visualizar
-    # la forma de la funcion
+    # la forma de la funcion. El error estaba en un signo de la derivada mal pasasdo a ordenador
     print("Mostrando la grafica de la funcion de error")
-    birds_eye_loss_plot(f, -5, 5, -5, 5, 1_000)
+    birds_eye_loss_plot(f, -5, 5, -5, 5, 100)
     print("")
 
     # Parametros para el gradiente descendiente
@@ -233,15 +247,29 @@ def ejercicio1_apartado3():
     # para que se consuman las iteraciones
     learning_rate = 0.01
     max_iterations = 50
-    target_error = 0
+    target_error = -1
     starting_point = np.array([-1.0,1.0])
 
     # Lanzamos el descenso y mostramos la grafica con los resultados
-    gradient_descent_and_plot_error(starting_point, f, gradient, learning_rate, max_iterations, target_error)
+    weights, iterations, error_at_iteration, solution_at_iteration = gradient_descent_and_plot_error(starting_point, f, gradient, learning_rate, max_iterations, target_error)
+    print(f"Hemos usado {iterations} iteraciones")
+    print("")
+
+    # Salen resultados muy raros, asi que miramos como han avanzando los puntos
+    # del gradiente descendente
+    print("Grafica del error rara, porque tiene un pico, mostramos como ha avanzado el algoritmo")
+    birds_eye_gradient_descent(f, solution_at_iteration, -1.5, 1.5, -1.5, 1.5, 100)
+    print("")
 
     # Realizamos el mismo proceso pero modificando el valor del learning rate
     learning_rate = 0.1
-    gradient_descent_and_plot_error(starting_point, f, gradient, learning_rate, max_iterations, target_error)
+    weights, iterations, error_at_iteration, solution_at_iteration = gradient_descent_and_plot_error(starting_point, f, gradient, learning_rate, max_iterations, target_error)
+
+    # De nuevo, salen resultados muy raros, asi que miramos como han avanzando
+    # los puntos del gradiente descendente
+    print("Grafica del error rara, porque tiene muchas fluctuaciones, mostramos como ha avanzado el algoritmo")
+    birds_eye_gradient_descent(f, solution_at_iteration, -5, 5, -5, 5, 100)
+    print("")
 
     # Ahora buscamos los errores minimos y valores de la solucion cuando partimos
     # desde distintos valores de partida
@@ -279,13 +307,19 @@ def ejercicio1_apartado3():
         print(f"\tError final: {error_at_iteration[-1]}")
         wait_for_user_input()
 
+        print("Mostrando la grafica de las soluciones junto al error")
+        birds_eye_gradient_descent(f, solution_at_iteration, starting_point[0] - 2, starting_point[0] + 2, starting_point[1] - 2, starting_point[1] + 2, 100)
+        print("")
+        wait_for_user_input()
+
 
 def ejercicio1():
     print("Ejecutando ejercicio 1")
 
     print("Apartado 2)")
     print("=" * 80)
-    ejercicio1_apartado2()
+    # TODO -- descomentar esto para que funcione todo el ejercicio
+    #ejercicio1_apartado2()
 
     print("Apartado 3)")
     print("=" * 80)
