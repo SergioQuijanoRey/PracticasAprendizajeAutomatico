@@ -13,6 +13,91 @@ import pandas as pd
 def wait_for_user_input():
     input("Pulse ENTER para continuar...")
 
+# Funciones para mostrar graficas
+#===============================================================================
+def birds_eye_loss_plot(loss_function, lower_x: float = -1, upper_x: float = 1, lower_y: float = -1, upper_y: float = 1, points_pers_axis: int = 1000):
+    """
+    Muestro la grafica del error con un codigo de colores en 2D
+    Para poder estudiar lo que pasa cuando corremos ciertos algoritmos de descenso del gradiente de forma intuitiva
+
+    Consulto la funcion de la grafica de la documentacion oficial de matplotlib:
+        https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.contourf.html
+    y de aqui resuelvo mi duda sobre como saber que magnitud representa cada color:
+        https://matplotlib.org/3.3.4/gallery/images_contours_and_fields/contourf_demo.html
+    """
+
+    # Valores de las variables independientes
+    X_values = np.linspace(lower_x, upper_x, points_pers_axis)
+    Y_values = np.linspace(lower_y, upper_y, points_pers_axis)
+
+    # Matriz con los valores de los errores segun las dos variables independientes
+    # Hago un bucle for sobre la matriz inicializada a ceros porque no encuentro
+    # otra forma de hacer el mapeo que busco
+    loss_values_matrix = np.zeros(shape = (points_pers_axis, points_pers_axis))
+    for x_index in range(0, len(X_values)):
+        for y_index in range(0, len(Y_values)):
+            # Hago los indices invertidos porque el primer indice mueve la fila
+            # (mueve la direccion vertical) y el segundo indice mueve la columna
+            # (mueve la direccion horizontal)
+            loss_values_matrix[y_index][x_index] = loss_function(X_values[x_index], Y_values[y_index])
+
+    # Mostramos la grafica de los puntos
+    plt.title("Funcion de error")
+    plt.xlabel("Eje X de la funcion de error")
+    plt.ylabel("Eje Y del a funcion de error")
+    plt.contourf(X_values, Y_values, loss_values_matrix)
+
+    # Para poder ver las magnitudes que representa cada color en la grafica
+    plt.colorbar()
+
+    plt.show()
+    wait_for_user_input()
+
+def birds_eye_gradient_descent(loss_function, solution_at_iteration, lower_x: float = -1, upper_x: float = 1, lower_y: float = -1, upper_y: float = 1, points_pers_axis: int = 1000):
+    """
+    Muestra la grafica de como tomamos puntos solucion junto a la vista de pajaro de la funcion de error
+    No corre el algoritmo, asi que el procedimiento es correr primero el algoritmo
+    y despues pasar los puntos a la funcion, para evitar repetir demasiados calculos
+    Repite gran parte del codigo de birds_eye_loss_plot
+    """
+
+    # Repetimos el codigo de birds_eye_loss_plot
+    # Valores de las variables independientes
+    X_values = np.linspace(lower_x, upper_x, points_pers_axis)
+    Y_values = np.linspace(lower_y, upper_y, points_pers_axis)
+
+    # Matriz con los valores de los errores segun las dos variables independientes
+    # Hago un bucle for sobre la matriz inicializada a ceros porque no encuentro
+    # otra forma de hacer el mapeo que busco
+    loss_values_matrix = np.zeros(shape = (points_pers_axis, points_pers_axis))
+    for x_index in range(0, len(X_values)):
+        for y_index in range(0, len(Y_values)):
+            # Hago los indices invertidos porque el primer indice mueve la fila
+            # (mueve la direccion vertical) y el segundo indice mueve la columna
+            # (mueve la direccion horizontal)
+            loss_values_matrix[y_index][x_index] = loss_function(X_values[x_index], Y_values[y_index])
+
+    # Mostramos la grafica de los puntos
+    plt.title("Funcion de error")
+    plt.xlabel("Eje X de la funcion de error")
+    plt.ylabel("Eje Y del a funcion de error")
+    plt.contourf(X_values, Y_values, loss_values_matrix)
+
+    # Para poder ver las magnitudes que representa cada color en la grafica
+    plt.colorbar()
+
+    # Separo las coordenadas de las soluciones para poder mostrarlas correctamente
+    solution_x_values = solution_at_iteration[:, 0]
+    solution_y_values = solution_at_iteration[:, :1]
+
+    # Añadimos la grafica de los puntos solucion, como puntos rojos gordos: "ro"
+    plt.plot(solution_x_values, solution_y_values, "ro")
+
+    plt.show()
+    wait_for_user_input()
+
+
+
 # Algoritmos
 #===============================================================================
 def gradient_descent(starting_point, loss_function, gradient, learning_rate: float = 0.001, max_iterations: int = 100_000, target_error: float = 1e-10, verbose: bool = False):
@@ -66,6 +151,7 @@ def gradient_descent_and_plot_error(starting_point, loss_function, gradient, lea
     return weights, iterations, error_at_iteration, solution_at_iteration
 
 
+
 # Ejercicio 1
 #===============================================================================
 def ejercicio1_apartado2():
@@ -94,7 +180,7 @@ def ejercicio1_apartado2():
 
     # Mostramos la grafica de la funcion de error
     print("Mostrando grafica de la funcion de error")
-    birds_eye_loss_plot(E, -5, 5, -5, 5, 1000)
+    birds_eye_loss_plot(E, -5, 5, -5, 5, 100)
     print("")
 
     # Parametros para el gradiente descendente
@@ -121,6 +207,11 @@ def ejercicio1_apartado2():
     print(f"Las primeras coordenadas que estan por debajo de ese error: {solution_at_iteration[first_index_under_error]}")
     print("")
     wait_for_user_input()
+
+    # Mostramos la grafica de como han avanzados las soluciones junto a la funcion de error
+    print("Mostrando como han avanzado las soluciones junto a la funcion de error")
+    birds_eye_gradient_descent(E, solution_at_iteration, 1.0, 1.2, 1.0, 1.2, 100)
+    print("")
 
 def ejercicio1_apartado3():
     # Funcion de perdida que nos dan y calculo sus derivadas parciales
@@ -188,41 +279,6 @@ def ejercicio1_apartado3():
         print(f"\tError final: {error_at_iteration[-1]}")
         wait_for_user_input()
 
-def birds_eye_loss_plot(loss_function, lower_x: float = -1, upper_x: float = 1, lower_y: float = -1, upper_y: float = 1, points_pers_axis: int = 1000):
-    """
-    Muestro la grafica del error con un codigo de colores en 2D
-    Para poder estudiar lo que pasa cuando corremos ciertos algoritmos de descenso del gradiente de forma intuitiva
-
-    Consulto la funcion de la grafica de la documentacion oficial de matplotlib:
-        https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.contourf.html
-    y de aqui resuelvo mi duda sobre como saber que magnitud representa cada color:
-        https://matplotlib.org/3.3.4/gallery/images_contours_and_fields/contourf_demo.html
-    """
-
-    # Valores de las variables independientes
-    X_values = np.linspace(lower_x, upper_x, points_pers_axis)
-    Y_values = np.linspace(lower_y, upper_y, points_pers_axis)
-
-    # Matriz con los valores de los errores segun las dos variables independientes
-    # Hago un bucle for sobre la matriz inicializada a ceros porque no encuentro
-    # otra forma de hacer el mapeo que busco
-    loss_values_matrix = np.zeros(shape = (points_pers_axis, points_pers_axis))
-    for x_index in range(0, len(X_values)):
-        for y_index in range(0, len(Y_values)):
-            # Hago los indices invertidos porque el primer indice mueve la fila
-            # (mueve la direccion vertical) y el segundo indice mueve la columna
-            # (mueve la direccion horizontal)
-            loss_values_matrix[y_index][x_index] = loss_function(X_values[x_index], Y_values[y_index])
-
-    # Mostramos la grafica de los puntos
-    plt.title("Funcion de error")
-    plt.contourf(X_values, Y_values, loss_values_matrix)
-
-    # Para poder ver las magnitudes que representa cada color en la grafica
-    plt.colorbar()
-
-    plt.show()
-    wait_for_user_input()
 
 def ejercicio1():
     print("Ejecutando ejercicio 1")
