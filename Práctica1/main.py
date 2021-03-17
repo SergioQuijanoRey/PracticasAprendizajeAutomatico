@@ -374,7 +374,13 @@ def ejercicio1_apartado3():
 
             # Mostramos la traza de soluciones junto a la gráfica del error
             print("Mostrando la grafica de las soluciones junto al error")
-            birds_eye_gradient_descent(f, solution_at_iteration, starting_point[0] - 2, starting_point[0] + 2, starting_point[1] - 2, starting_point[1] + 2, 100)
+            birds_eye_gradient_descent(f, solution_at_iteration, starting_point[0] - 2, starting_point[0] + 2, starting_point[1] - 2, starting_point[1] + 2, 30)
+            print("")
+            wait_for_user_input()
+
+            # Mostramos la traza en tres dimensiones
+            print("Mostrando la grafica de las soluciones (3d) junto al error")
+            plot_3d_gradient_descent(f, solution_at_iteration, starting_point[0] - 2, starting_point[0] + 2, starting_point[1] - 2, starting_point[1] + 2, 30)
             print("")
             wait_for_user_input()
 
