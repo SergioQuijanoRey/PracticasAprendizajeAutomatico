@@ -6,7 +6,6 @@ sergioquijano@correo.ugr.es
 
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 
 # Funciones Auxiliares / Comunes
 #===============================================================================
@@ -112,12 +111,25 @@ def birds_eye_gradient_descent(loss_function, solution_at_iteration, lower_x: fl
 
 # Algoritmos
 #===============================================================================
-def gradient_descent(starting_point, loss_function, gradient, learning_rate: float = 0.001, max_iterations: int = 100_000, target_error: float = 1e-10, verbose: bool = False):
+def gradient_descent(starting_point, loss_function, gradient, learning_rate: float = 0.001, max_iterations: int = 100_000, target_error: float = None, verbose: bool = False):
     """
     Implementa el algoritmo de batch gradient descent
 
     Si verbose == true, entonces guardamos los errores y soluciones obtenidas en cada iteracion
+    Si target_error == None, consumimos todas las iteraciones sin tener en cuenta el error
+       target_error != None, paramos cuando estamos por debajo de dicha cota pasada como argument
     """
+
+    # Defino esta funcion dentro para no ensuciar el resto del codigo
+    # Devuelve si tenemos que parar (True) de iterar por estar por debajo de la cota de error
+    # Claramente, si target_error == None siempre devuelve False
+    def stop_because_error(current_solution):
+        if target_error == None:
+            return False
+
+        return loss_function(current_solution[0], current_solution[1]) < target_error
+
+    # Solucion de partida a partir de la cual iterar
     current_solution = starting_point
     current_iteration = 0
 
@@ -128,7 +140,7 @@ def gradient_descent(starting_point, loss_function, gradient, learning_rate: flo
         error_at_iteration = [loss_function(current_solution[0], current_solution[1])]
         solution_at_iteration = [starting_point]
 
-    while current_iteration < max_iterations and loss_function(current_solution[0], current_solution[1]) > target_error:
+    while current_iteration < max_iterations and stop_because_error(current_solution) == False:
         # Calculamos la siguiente solucion usando el gradiente
         current_solution = current_solution - learning_rate * gradient(current_solution[0], current_solution[1])
 
@@ -140,7 +152,7 @@ def gradient_descent(starting_point, loss_function, gradient, learning_rate: flo
 
     return current_solution, current_iteration, np.array(error_at_iteration), np.array(solution_at_iteration)
 
-def gradient_descent_and_plot_error(starting_point, loss_function, gradient, learning_rate: float = 0.001, max_iterations: int = 100_000, target_error: float = 1e-10):
+def gradient_descent_and_plot_error(starting_point, loss_function, gradient, learning_rate: float = 0.001, max_iterations: int = 100_000, target_error: float = None):
     """
     Ejecutamos el gradiente descendente y mostramos la grafica de la evolucion del error
     Para no repetir muchas veces el mismo codigo en el que lanzamos el algoritmo y
@@ -215,14 +227,14 @@ def ejercicio1_apartado2():
     # indixes[0][0] para quedarnos con el primer elemento de dicha lista
     indixes = np.where(error_at_iteration < 10e-14)
     first_index_under_error = indixes[0][0]
-    print(f"La primera iteracion en la que el error esta por debajo de 10e-14 es: {first_index_under_error}")
+    print(f"La primera iteracion en la que el error esta por debajo de 10e-14 es: {first_index_under_error} (contando desde cero)")
     print(f"Las primeras coordenadas que estan por debajo de ese error: {solution_at_iteration[first_index_under_error]}")
     print("")
     wait_for_user_input()
 
     # Mostramos la grafica de como han avanzados las soluciones junto a la funcion de error
     print("Mostrando como han avanzado las soluciones junto a la funcion de error")
-    birds_eye_gradient_descent(E, solution_at_iteration, 0.95, 1.2, 0.95, 1.2, 100)
+    birds_eye_gradient_descent(E, solution_at_iteration, 0.95, 1.2, 0.90, 1.05, 100)
     print("")
 
 def ejercicio1_apartado3():
@@ -241,11 +253,11 @@ def ejercicio1_apartado3():
     print("")
 
     # Parametros para el gradiente descendiente
-    # No se especifica el error que hay que alcanzar asi que lo pongo a cero
+    # No se especifica el error que hay que alcanzar asi que lo pongo a None
     # para que se consuman las iteraciones
     learning_rate = 0.01
     max_iterations = 50
-    target_error = 1e-15
+    target_error = None
     starting_point = np.array([-1.0,1.0])
 
     # Lanzamos el descenso y mostramos la grafica con los resultados
@@ -254,7 +266,7 @@ def ejercicio1_apartado3():
 
     # Mostramos la grafica de como avanza el algoritmo
     print("Mostramos como avanza el algoritmo")
-    birds_eye_gradient_descent(f, solution_at_iteration, -1.5, -1, 0.5, 1.5, 100)
+    birds_eye_gradient_descent(f, solution_at_iteration, -1.5, -0.9, 0.5, 1.5, 100)
     print("")
 
     # Realizamos el mismo proceso pero modificando el valor del learning rate
@@ -274,9 +286,10 @@ def ejercicio1_apartado3():
 
     # Como no se especifica nada en el enunciado del ejercicio, establezco el
     # learning rate, el numero maximo de iteraciones y el target_error
+    # TODO -- deberia poner el target error a None??
     learning_rate = 0.01
     max_iterations = 10_000
-    target_error = 1e-15
+    target_error = 1e-20
 
     # Muestro explicitamente que estos valores los he fijado yo al no tener indicaciones
     print("Fijo los siguientes parametros para el gradiente descendente:")
@@ -316,8 +329,7 @@ def ejercicio1():
 
     print("Apartado 2)")
     print("=" * 80)
-    # TODO -- descomentar esto para que funcione todo el ejercicio
-    #ejercicio1_apartado2()
+    ejercicio1_apartado2()
 
     print("Apartado 3)")
     print("=" * 80)
