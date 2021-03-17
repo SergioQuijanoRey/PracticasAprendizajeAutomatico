@@ -287,13 +287,13 @@ def ejercicio1_apartado3():
     # Como no se especifica nada en el enunciado del ejercicio, establezco el
     # learning rate, el numero maximo de iteraciones y el target_error
     # TODO -- deberia poner el target error a None??
-    learning_rate = 0.01
+    learning_rates = [0.01, 0.1]
     max_iterations = 10_000
     target_error = 1e-20
 
     # Muestro explicitamente que estos valores los he fijado yo al no tener indicaciones
     print("Fijo los siguientes parametros para el gradiente descendente:")
-    print(f"\tlearning_rate: {learning_rate}")
+    print(f"\tlearning_rates (probamos con mas de uno): {learning_rates}")
     print(f"\tmax_iterations: {max_iterations}")
     print(f"\ttarget_error: {target_error}")
     print("")
@@ -311,18 +311,23 @@ def ejercicio1_apartado3():
     ]
 
     for starting_point in starting_points:
-        starting_point = np.array(starting_point)
-        weights, iterations, error_at_iteration, solution_at_iteration = gradient_descent_and_plot_error(starting_point, f, gradient, learning_rate, max_iterations, target_error)
-        print(f"Resultados para starting_point: {starting_point}")
-        print(f"\t(x, y): {weights}")
-        print(f"\tError final: {error_at_iteration[-1]}")
-        wait_for_user_input()
+        for learning_rate in learning_rates:
+            # Lo pasamos a un array de numpy
+            starting_point = np.array(starting_point)
 
-        print("Mostrando la grafica de las soluciones junto al error")
-        birds_eye_gradient_descent(f, solution_at_iteration, starting_point[0] - 2, starting_point[0] + 2, starting_point[1] - 2, starting_point[1] + 2, 100)
-        print("")
-        wait_for_user_input()
+            # Mostramos la grafica de descenso del error, que tambien nos devuelve
+            # toda la informacion del proceso
+            weights, iterations, error_at_iteration, solution_at_iteration = gradient_descent_and_plot_error(starting_point, f, gradient, learning_rate, max_iterations, target_error)
+            print(f"Resultados para starting_point {starting_point} y learning_rate {learning_rate}")
+            print(f"\t(x, y): {weights}")
+            print(f"\tError final: {error_at_iteration[-1]}")
+            wait_for_user_input()
 
+            # Mostramos la traza de soluciones junto a la gráfica del error
+            print("Mostrando la grafica de las soluciones junto al error")
+            birds_eye_gradient_descent(f, solution_at_iteration, starting_point[0] - 2, starting_point[0] + 2, starting_point[1] - 2, starting_point[1] + 2, 100)
+            print("")
+            wait_for_user_input()
 
 def ejercicio1():
     print("Ejecutando ejercicio 1")
