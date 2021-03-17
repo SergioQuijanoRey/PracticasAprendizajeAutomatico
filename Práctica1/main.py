@@ -7,6 +7,9 @@ sergioquijano@correo.ugr.es
 import numpy as np
 import matplotlib.pyplot as plt
 
+from mpl_toolkits.mplot3d import Axes3D # Para hacer graficas en 3D
+from matplotlib import cm               # Para cambiar el color del grafico 3D
+
 # Funciones Auxiliares / Comunes
 #===============================================================================
 def wait_for_user_input():
@@ -105,6 +108,52 @@ def birds_eye_gradient_descent(loss_function, solution_at_iteration, lower_x: fl
     plt.plot(first_x, first_y, "x", c="pink")
     plt.plot(last_x, last_y, "x", c="orange")
 
+    plt.show()
+    wait_for_user_input()
+
+def plot_3d_gradient_descent(loss_function, solutions, x_lower: float, x_upper: float, y_lower: float, y_upper: float, points_pers_axis: int = 100):
+    """
+    Muestra en tres dimensiones la funcion de error junto a los puntos de
+    A partir del codigo dado por los profesores, ligeramente modificado
+    Le paso a mano los extremos de los valores de x e y para tener mas control sobre la grafica
+
+    El color distinto lo saco de la documentacion oficial:
+        https://matplotlib.org/3.1.1/gallery/mplot3d/surface3d.html
+    """
+
+
+    # Genero los valores de los ejes X e Y segun los parametros dados
+    X = np.linspace(x_lower, x_upper, points_pers_axis)
+    Y = np.linspace(y_lower, y_upper, points_pers_axis)
+    X, Y = np.meshgrid(X, Y)
+
+    # Valores del eje vertical segun la funcion de perdida dada como parametro
+    Z = loss_function(X, Y)
+
+    # Para generar  una grafica en 3d
+    fig = plt.figure()
+    ax = Axes3D(fig)
+
+    # Genero la grafica en 3d a partir de los datos ya calculados
+    # Cambio el color gracias al enlace que he referenciado
+    # Añado alpha para que los puntos que pinte encima de la grafica se vean bien
+    surf = ax.plot_surface(X, Y, Z, edgecolor='none', rstride=1, cstride=1, cmap=cm.coolwarm, alpha = 0.7)
+    ax.plot(x_lower, y_lower, loss_function(x_lower, y_lower), 'r*', markersize = 10)
+
+    # Añado titulo y leyenda a la grafica
+    ax.set(title="Iteraciones del gradiente descendente junto a la funcion de error")
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Loss(X, Y)')
+
+    # Ponemos los puntos del gradiente descendente sobre la grafica de error
+    for solution in solutions:
+        # Para levantar algo los puntos sobre la superficie y que se vean mejor
+        epsilon = 0.5
+
+        plt.plot(solution[0], solution[1], loss_function(solution[0], solution[1]) + epsilon, "ko")
+
+    # Mostramos la grafica conjunta
     plt.show()
     wait_for_user_input()
 
