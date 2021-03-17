@@ -75,8 +75,8 @@ def birds_eye_gradient_descent(loss_function, solution_at_iteration, lower_x: fl
     y despues pasar los puntos a la funcion, para evitar repetir demasiados calculos
     Repite gran parte del codigo de birds_eye_loss_plot
 
-    El primer punto lo pinta en rosa, para saber que es el punto de partida
-    El ultimo punto lo pinta en naranja, para saber que es el punto de llegada
+    El primer punto lo pinta con una cruz blanca, para saber que es el punto de partida
+    El ultimo punto lo pinta con una cruz negra, para saber que es el punto de llegada
     """
 
     # Genera el grafico y realizamos mas manipulaciones a partir de este punto
@@ -94,19 +94,17 @@ def birds_eye_gradient_descent(loss_function, solution_at_iteration, lower_x: fl
     first_y = solution_y_values[0]
     last_y = solution_y_values[-1]
 
-    # Podria borrar estos dos puntos de los vectores pero como pinto por encima
-    # de ellos el efecto visual va a ser el mismo
+    # No los borros para pintarlos de forma normal, pero con una cruz por encima
+    # para distinguirlos
 
     # Añadimos la grafica de los puntos solucion, como puntos rojos gordos: "ro"
     plt.plot(solution_x_values, solution_y_values, "ro")
 
-    # Pinto los puntos inicial y final por encima
+    # Pinto los puntos inicial y final con una cruz por encima
     # Uso este formato para especificar colores porque no se cual es el codigo
     # de caracter para estos dos colores
-    # Ademas los mostramos con dos cruces para que la distincion sea todavia
-    # mas obvia
-    plt.plot(first_x, first_y, "x", c="pink")
-    plt.plot(last_x, last_y, "x", c="orange")
+    plt.plot(first_x, first_y, "x", c="white")
+    plt.plot(last_x, last_y, "x", c="black")
 
     plt.show()
     wait_for_user_input()
@@ -378,7 +376,8 @@ def ejercicio1_apartado3():
             print("")
             wait_for_user_input()
 
-            # Mostramos la traza en tres dimensiones
+            # Mostramos la traza en tres dimensiones, porque las graficas
+            # en dos dimensiones no nos dan informacion suficiente
             print("Mostrando la grafica de las soluciones (3d) junto al error")
             plot_3d_gradient_descent(f, solution_at_iteration, starting_point[0] - 2, starting_point[0] + 2, starting_point[1] - 2, starting_point[1] + 2, 30)
             print("")
