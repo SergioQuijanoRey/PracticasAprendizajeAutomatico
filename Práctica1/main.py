@@ -259,6 +259,14 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title)
     plt.show()
     wait_for_user_input()
 
+# TODO -- implementar
+def scatter_plot_wrong_predictions():
+    """
+    Muestra un scatter plot en la que los valores bien predichos se pintan en gris
+    y los valores mal predichos se pintan en rojo
+    """
+    pass
+
 
 
 # Algoritmos
@@ -536,6 +544,8 @@ def get_lineal(weights):
     """Dados los pesos de un modelo lineal, devuelve la funcion lineal que se esta representando"""
     return lambda intensity, simetry: weights[0] + weights[1] * intensity + weights[2] * simetry
 
+# TODO -- no estoy seguro de que este bien porque a un compañero le dan
+# otros valores del error
 def clasiffication_error(data, labels, weights):
     """
     Dados unos datos etiquetados y unos pesos que representan una funcion lineal
