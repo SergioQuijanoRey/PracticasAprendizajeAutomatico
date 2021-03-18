@@ -455,11 +455,86 @@ def ejercicio1():
 
 # Ejercicio 2
 #===============================================================================
+def scatter_plot_with_classes(data, classes, target_names, feature_names, title):
+    """
+    Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados en distintos grupos
+
+    Mucho del codigo esta tomado de la practica anterior, en concreto, de hacer
+    el plot de iris dataset
+
+    Parameters:
+    ===========
+    data: coordeandas de los distintos puntos
+    classes: etiquetas numericas de las clases a la que pertenencen los datos
+    target_names: nombres que le doy a cada una de las clases
+    feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
+
+    Ambos parametros ya en un tipo de dato de numpy para tratarlos
+    """
+
+    # Tomo las coordenadas de la matriz de datos, es decir, separo coordenadas
+    # x e y de una matriz de datos que contiene pares de coordenadas
+    # Para poder operar con la matriz X, su primera columna es todo unos (que representan
+    # los terminos independientes en las operaciones matriciales). Para estas
+    # graficas logicamente no nos interesa esa columna
+    x_values = data[:, 1]
+    y_values = data[:, 2]
+
+    # Colores que voy a utilizar para cada una de las clases
+    # Rojo para un numero, azul para otro color.
+    colormap = ['red', 'blue']
+
+    # Separacion de indices. Con esto, consigo la lista de los indices de la
+    # clase i-esima, cada uno en un vector distinto. Esto lo necesitare para
+    # colorear cada clase de un color y ponerle de label el nombre de la planta
+
+    # Separo los indices correspondientes a la clase del numero 1 y la clase del
+    # numero 5
+    first_class_indexes = np.where(classes == -1)
+    second_class_indexes = np.where(classes == 1)
+
+    # Asi puedo referirme a la primera clase como splitted_indixes[0] en vez
+    # de usar el nombre de la variable (para acceder a los indices en el siguiente
+    # bucle)
+    splitted_indixes = [first_class_indexes, second_class_indexes]
+
+    # Tomo estos elementos para hacer graficas elaboradas
+    fig, ax = plt.subplots()
+
+    # Itero sobre las clases
+    for index, target_name in enumerate(target_names):
+
+        # Tomo las coordenadas de la clase index-esima
+        current_x = x_values[splitted_indixes[index]]
+        current_y = y_values[splitted_indixes[index]]
+
+        # Muestro la clase index-esima, con su color y su etiqueta correspondiente
+        # Ponemos alpha para apreciar donde se acumulan muchos datos (que seran
+        # zonas mas oscuras que aquellas en las que no hay acumulaciones)
+        ax.scatter(current_x, current_y, c=colormap[index], label=target_name, alpha = 0.6)
+
+    # Titulo para la grafica
+    plt.title(title)
+
+    # Tomo los titulos de las caracteristicas y los asigno al grafico
+    # Tomo la idea de: https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_iris_scatter.html
+    x_legend = feature_names[0]
+    y_legend = feature_names[1]
+    plt.xlabel(x_legend)
+    plt.ylabel(y_legend)
+
+    plt.show()
+    wait_for_user_input()
+
 def ejercicio2_apartado1():
 
     # Leemos los datos de entrenamiento y de test
     X, Y = readData('datos/X_train.npy', 'datos/y_train.npy')
     X_test, Y_test = readData('datos/X_test.npy', 'datos/y_test.npy')
+
+    # Mostramos la grafica de los digitos
+    print("Grafica de los datos")
+    scatter_plot_with_classes(X, Y, ["Digito 1", "Digito 5"], ["Intensidad", "Simetria"], "Grafica de los datos de entrada")
 
     # Calculamos la regresion lineal con la pseudo inversa
     print("Calculamos los pesos de la regresion lineal usando el algoritmo de pseudo inversa")
@@ -467,6 +542,8 @@ def ejercicio2_apartado1():
     print(f"Los pesos obtenidos son: {weights}")
     print("")
     wait_for_user_input()
+
+    # Muestro la grafica que se obtiene con esto
 
 
 
