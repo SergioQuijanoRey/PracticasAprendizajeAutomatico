@@ -10,10 +10,43 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D # Para hacer graficas en 3D
 from matplotlib import cm               # Para cambiar el color del grafico 3D
 
+# Variables globales
+#===============================================================================
+# Como etiquetamos los datos
+label5 = 1
+label1 = -1
+
 # Funciones Auxiliares / Comunes
 #===============================================================================
 def wait_for_user_input():
     input("Pulse ENTER para continuar...")
+
+def readData(file_x, file_y):
+    """
+    Lee los datos almacenados en ficheros de numpy
+    Codigo COPIADO completamente de la plantilla dada por los profesores
+    Los datos de entrada X se guardan en file_x
+    Los datos de salida o etiquetas Y se guardan en file_y
+    """
+
+    # Leemos los ficheros
+    datax = np.load(file_x)
+    datay = np.load(file_y)
+    y = []
+    x = []
+    # Solo guardamos los datos cuya clase sea la 1 o la 5
+    for i in range(0,datay.size):
+            if datay[i] == 5 or datay[i] == 1:
+                    if datay[i] == 5:
+                            y.append(label5)
+                    else:
+                            y.append(label1)
+                    x.append(np.array([1, datax[i][0], datax[i][1]]))
+
+    x = np.array(x, np.float64)
+    y = np.array(y, np.float64)
+
+    return x, y
 
 # Funciones para mostrar graficas
 #===============================================================================
@@ -223,6 +256,30 @@ def gradient_descent_and_plot_error(starting_point, loss_function, gradient, lea
     # Por si necesitamos realizar otras operaciones con los resultados
     return weights, iterations, error_at_iteration, solution_at_iteration
 
+def pseudo_inverse(data_matrix, label_vector):
+    """
+    Calcula los pesos de la regresion lineal a partir del algoritmo de la pseudo inversa
+
+    Parameters:
+    ===========
+    data_matrix: matriz numpy con los datos de entrada. X en notacion de los apuntes
+    label_vector: array numpy con los datos de salida. Y en notacion de los apuntes
+
+    Returns:
+    ========
+    weights: array numpy con los pesos del hiperplano que mejor se ajusta al modelo
+    """
+
+    # Para simplificar la formula que devolvemos
+    # En los parametros dejo los nombres como estan para que sea mas explicito
+    # el significado que tienen
+    X = data_matrix
+    Y = label_vector
+
+    return np.matmul(np.linalg.inv(np.matmul(X.T, X)), np.matmul(X.T, Y))
+
+
+
 # Ejercicio 1
 #===============================================================================
 def ejercicio1_apartado2():
@@ -389,12 +446,41 @@ def ejercicio1():
     print("Apartado 2)")
     print("=" * 80)
     ejercicio1_apartado2()
+    print("")
 
     print("Apartado 3)")
     print("=" * 80)
     ejercicio1_apartado3()
+    print("")
+
+# Ejercicio 2
+#===============================================================================
+def ejercicio2_apartado1():
+
+    # Leemos los datos de entrenamiento y de test
+    X, Y = readData('datos/X_train.npy', 'datos/y_train.npy')
+    X_test, Y_test = readData('datos/X_test.npy', 'datos/y_test.npy')
+
+    # Calculamos la regresion lineal con la pseudo inversa
+    print("Calculamos los pesos de la regresion lineal usando el algoritmo de pseudo inversa")
+    weights = pseudo_inverse(X, Y)
+    print(f"Los pesos obtenidos son: {weights}")
+    print("")
+    wait_for_user_input()
+
+
+
+def ejercicio2():
+    print("Ejecutando ejercicio 2")
+
+    print("Apartado 1)")
+    print("=" * 80)
+    ejercicio2_apartado1()
+
 
 # Corremos todos los ejercicios
 #===============================================================================
 if __name__ == "__main__":
-    ejercicio1()
+    # TODO -- descomentar para que se ejecute todo el codigo
+    #ejercicio1()
+    ejercicio2()
