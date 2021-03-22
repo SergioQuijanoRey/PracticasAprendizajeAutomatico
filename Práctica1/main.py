@@ -541,17 +541,23 @@ def get_clasifficator(weights):
     return lambda intensity, simetry: np.sign(weights[0] + weights[1] * intensity + weights[2] * simetry)
 
 def get_lineal(weights):
-    """Dados los pesos de un modelo lineal, devuelve la funcion lineal que se esta representando"""
+    """
+    Dados los pesos de un modelo lineal, devuelve la funcion lineal que se esta representando
+    Se invoca con dos valores unicamente, no hace falta pasar el valor 1 para el
+    termino independiente (hay que tener cuidad con las matrices de datos que
+    incluyen una primera columna de unos para representar el sumando del
+    termino independiente)
+    """
     return lambda intensity, simetry: weights[0] + weights[1] * intensity + weights[2] * simetry
 
-# TODO -- no estoy seguro de que este bien porque a un compañero le dan
-# otros valores del error
 def clasiffication_error(data, labels, weights):
     """
     Dados unos datos etiquetados y unos pesos que representan una funcion lineal
     de clasificacion, calcula el error que se comete. Sirve tanto para calcular
     el error dentro de la muestra, como para calcular el error fuera de la muestra,
     segun los valores de data y labels pasados como parametro
+
+    Usamos el error de clasificacion como medida del error
 
     Parameters:
     ===========
@@ -573,6 +579,111 @@ def clasiffication_error(data, labels, weights):
         error += max(0, -current_label * lineal(current_input[1], current_input[2]))
     return error
 
+def clasiffication_mean_square_error(data, labels, weights):
+    """
+    Dados unos datos etiquetados y unos pesos que representan una funcion lineal
+    de clasificacion, calcula el error que se comete. Sirve tanto para calcular
+    el error dentro de la muestra, como para calcular el error fuera de la muestra,
+    segun los valores de data y labels pasados como parametro
+
+    Usamos el error error cuadratico medio como medida de error
+
+    Parameters:
+    ===========
+    data: los datos de entrada sobre los que predecimos
+    labels: los verdaderos valores a predecir
+    weights: los pesos que representan la funcion lineal de clasificacion
+    """
+    # Funcion lineal que representan los pesos
+    lineal = get_lineal(weights)
+
+    # Recorremos sobre los datos de entrada y las etiquetas reales de esos datos
+    error = 0
+    for (current_input, current_label) in zip(data, labels):
+        # Nos saltamos data[0] porque la funcion lineal no toma como parametro
+        # el 1 que esta en la primera columna de la matriz data para multiplicarlo
+        # por weights[0], por tanto no lo tenemos que pasar para producir resultados
+        # correctos
+        error += (current_label - lineal(current_input[1], current_input[2]))**2
+    return error / len(labels)
+
+def plot_classification_predictions(data, labels, weights, title: str = "Grafica de predicciones"):
+    """
+    Mostramos un scatter plot de los datos segun las predicciones que hagamos. Si
+    predecimos correctamente la etiqueta, se pinta el punto en un color gris. Si
+    se falla la prediccion, se pinta en un color rojo
+
+    Parameters:
+    ===========
+    data: los datos de entrada sobre los que predecimos
+    labels: los verdaderos valores que deberiamos predecir
+    weights: los pesos que representan la funcion lineal de clasificacion
+    """
+    # Tomo las coordenadas de la matriz de datos, es decir, separo coordenadas
+    # x e y de una matriz de datos que contiene pares de coordenadas
+    # Para poder operar con la matriz X, su primera columna es todo unos (que representan
+    # los terminos independientes en las operaciones matriciales). Para estas
+    # graficas logicamente no nos interesa esa columna
+    x_values = data[:, 1]
+    y_values = data[:, 2]
+
+    # Funcion de prediccion
+    lineal = get_lineal(weights)
+
+    # Colores que voy a utilizar para cada una de las clases
+    # Rojo para un numero, azul para otro color.
+    colormap = ['red', 'blue']
+
+
+    # Serapo los indices en indices de puntos que hemos predicho correctamente
+    # e indices de puntos mal predichos
+    predictions = []
+
+
+
+    # Separacion de indices. Con esto, consigo la lista de los indices de la
+    # clase i-esima, cada uno en un vector distinto. Esto lo necesitare para
+    # colorear cada clase de un color y ponerle de label el nombre de la planta
+
+    # Separo los indices correspondientes a la clase del numero 1 y la clase del
+    # numero 5
+    first_class_indexes = np.where(classes == -1)
+    second_class_indexes = np.where(classes == 1)
+
+    # Asi puedo referirme a la primera clase como splitted_indixes[0] en vez
+    # de usar el nombre de la variable (para acceder a los indices en el siguiente
+    # bucle)
+    splitted_indixes = [first_class_indexes, second_class_indexes]
+
+    # Tomo estos elementos para hacer graficas elaboradas
+    fig, ax = plt.subplots()
+
+    # Itero sobre las clases
+    for index, target_name in enumerate(target_names):
+
+        # Tomo las coordenadas de la clase index-esima
+        current_x = x_values[splitted_indixes[index]]
+        current_y = y_values[splitted_indixes[index]]
+
+        # Muestro la clase index-esima, con su color y su etiqueta correspondiente
+        # Ponemos alpha para apreciar donde se acumulan muchos datos (que seran
+        # zonas mas oscuras que aquellas en las que no hay acumulaciones)
+        ax.scatter(current_x, current_y, c=colormap[index], label=target_name, alpha = 0.6)
+
+    # Titulo para la grafica
+    plt.title(title)
+
+    # Tomo los titulos de las caracteristicas y los asigno al grafico
+    # Tomo la idea de: https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_iris_scatter.html
+    x_legend = feature_names[0]
+    y_legend = feature_names[1]
+    plt.xlabel(x_legend)
+    plt.ylabel(y_legend)
+
+    plt.show()
+    wait_for_user_input()
+
+
 def ejercicio2_apartado1():
 
     # Leemos los datos de entrenamiento y de test
@@ -586,14 +697,31 @@ def ejercicio2_apartado1():
 
     # Calculamos la regresion lineal con la pseudo inversa
     # Calculamos tambien el error cometido para mostrar todos los resultados de golpe
-    # Error tanto en la muestra comop fuera de la muestra
+    # Error tanto en la muestra comop fuera de la muestra, y ademas error de
+    # clasificacion como error cuadratico medio
     print("Calculamos los pesos de la regresion lineal usando el algoritmo de pseudo inversa")
     weights = pseudo_inverse(X, Y)
     error_in_sample = clasiffication_error(X, Y, weights)
     error_out_sample = clasiffication_error(X_test, Y_test, weights)
+    mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
+    mean_square_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
     print(f"\tLos pesos obtenidos son: {weights}")
-    print(f"\tEl error en la muestra Ein es: {error_in_sample}")
-    print(f"\tEl error fuera de la muestra Eout es: {error_out_sample}")
+    print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
+    print(f"\tEl error de clasificacion fuera de la muestra Eout es: {error_out_sample}")
+    print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
+    print(f"\tEl error cuadratico medio fuera de la muestra Eout es: {mean_square_error_out_sample}")
+    print("")
+    wait_for_user_input()
+
+    # Mostramos la grafica de nuestro modelo. En gris, pintaremos los valores
+    # que se han predicho correctamente. En rojo, los valores en los que falla
+    # la predicción
+    # Mostramos esta grafica tanto para la muestra como para el dataset de test
+    print("Mostrando grafica de predicciones en la muestra de entrenamiento")
+    plot_classification_predictions(X, Y, weights, title = "Resultados en la muestra")
+    wait_for_user_input()
+    print("Mostrando grafica de predicciones en el conjunto de datos de test")
+    plot_classification_predictions(X_test, Y_test, weights, title = "Resultados en el dataset de test")
     print("")
     wait_for_user_input()
 
