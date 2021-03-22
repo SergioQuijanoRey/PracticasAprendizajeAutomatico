@@ -424,6 +424,57 @@ def pseudo_inverse(data_matrix, label_vector):
 
     return np.matmul(np.linalg.inv(np.matmul(X.T, X)), np.matmul(X.T, Y))
 
+# TODO -- No consigue buenos resultados
+def stochastic_gradient_descent_for_classificators(data, labels, number_of_cycles: int = 10):
+    """
+    Algoritmo de Stochastic Gradient Descent para el caso concreto de clasificadores
+
+    Tomado de las transparencias de teoria
+    En dichas transparencias se indica que tenemos un SGD con Batch Size = 1
+    y un learning rate de 1
+
+    Parameters:
+    ===========
+    data: los datos de entrada sobre los que predecimos
+    labels: los verdaderos valores a predecir
+
+    Returns:
+    ========
+    weights: los pesos que representan la solucion obtenida
+    """
+
+    # Tomamos una solucion inicial
+    # Nos quedamos con el numero de columnas de la matriz de datos
+    # El numero de filas nos daria el numero de puntos que tiene el problema, lo
+    # que no nos sirve para fijar la dimensionalidad de los pesos solucion
+    weights = np.array([0 for _ in range(np.shape(data)[1])])
+
+    # Recorremos number_of_cycles veces todo el conjunto de datos realizando
+    # actualizaciones. Si en alguna pasada no hay cambios, paramos de iterar
+    for _ in range(number_of_cycles):
+        # Para comprobar si hacemos cambios en una pasada
+        weights_have_changed = False
+
+        # Recorremos sobre los datos de entrada y las etiquetas reales de esos datos
+        for (current_input, current_label) in zip(data, labels):
+            # Clasificador con el valor de los pesos actuales
+            classificator = get_clasifficator(weights)
+
+            # Si el clasificador predice bien este valor, se deja intacto el vector de pesos
+            # En otro caso, se actualiza convenientemente
+            if classificator(current_input[0], current_input[1]) != current_label:
+                weights = weights + current_label * current_input
+
+                # Hemos hecho un cambio asi que tenemos que hacer otra pasada
+                # completa sobre los datos
+                weights_have_changed = True
+
+            # Si en una pasada no hemos cambiado la solucion, paramos de iterar
+            if weights_have_changed == False:
+                break
+
+    return weights
+
 # Ejercicio 1
 #===============================================================================
 def ejercicio1_apartado2():
@@ -677,52 +728,133 @@ def clasiffication_mean_square_error(data, labels, weights):
         error += (current_label - lineal(current_input[1], current_input[2]))**2
     return error / len(labels)
 
-def stochastic_gradient_descent_for_classificators(data, labels, number_of_cycles: int = 10, target_error: float = 1e-10):
+def get_minibatches(data, batch_size: int):
     """
-    Algoritmo de Stochastic Gradient Descent para el caso concreto de clasificadores
+    Dados unos datos de entrada, mezcla los datos y los devuelve en subconjuntos
+    de batch_size elementos. Realmente devolvemos un array de conjuntos de indices
+    que representan este mezclado y empaquetado, pues asi es mas facil de operar
+    (no alteramos los datos de entrada y no tenemos que considerar como quedarian
+    ordenadas las etiquetas asociadas a los datos) y mas eficiente (trabajamos
+    con indices, no con datos multidimensionales)
 
-    Tomado de las transparencias de teoria
-    En dichas transparencias se indica que tenemos un SGD con Batch Size = 1
-    y un learning rate de 1
-
-    Parameters:
-    ===========
-    data: los datos de entrada sobre los que predecimos
-    labels: los verdaderos valores a predecir
+    Paramters:
+    ==========
+    data: matriz de datos de entrada que queremos mezclar y agrupar
+    batch_size: tamaño de los paquetes en los que agrupamos los datos
 
     Returns:
     ========
-    weights: los pesos que representan la solucion obtenida
+    indixes: array de conjuntos de indices (array tambien) que representa la operacion
+             descrita anteriormente
     """
 
-    # Tomamos una solucion inicial
-    # Nos quedamos con el numero de columnas de la matriz de datos
-    # El numero de filas nos daria el numero de puntos que tiene el problema, lo
-    # que no nos sirve para fijar la dimensionalidad de los pesos solucion
-    weights = np.array([0 for _ in range(np.shape(data)[1])])
+    # Los indices de todos los datos de entrada
+    # Me quedo con las filas porque indican el numero de datos con los que trabajamos
+    # Las columnas indican el numero de caracteristicas de cada dato
+    all_indixes = np.arange(start = 0, stop = np.shape(data)[0])
 
-    # Recorremos number_of_cycles veces todo el conjunto de datos realizando
-    # actualizaciones. Si en alguna pasada no hay cambios, paramos de iterar
-    for _ in range(number_of_cycles):
-        # Para comprobar si hacemos cambios en una pasada
-        weights_have_changed = False
+    # Mezclo estos indices antes de dividirlos en minibatches
+    np.random.shuffle(all_indixes)
 
-        # Recorremos sobre los datos de entrada y las etiquetas reales de esos datos
-        for (current_input, current_label) in zip(data, labels):
-            # Clasificador con el valor de los pesos actuales
-            classificator = get_clasifficator(weights)
+    # Array de conjuntos de indices (array de arrays)
+    grouped_indixes = []
 
-            # Si el clasificador predice bien este valor, se deja intacto el vector de pesos
-            # En otro caso, se actualiza convenientemente
-            if classificator(current_input[0], current_input[1]) != current_label:
-                weights = weights + current_label * current_input
-                weights_have_changed = True
+    # Agrupamos los indices que ya han sido mezclados en los minibatches
+    last_group = []
+    for value in all_indixes:
 
-            # Si en una pasada no hemos cambiado la solucion, paramos de iterar
-            if weights_have_changed == False:
-                break
+        # El ultimo minibatch no esta completo, podemos añadir un nuevo punto
+        if len(last_group) < batch_size:
+            last_group.append(value)
 
-    return weights
+        # El minibatch esta completo, asi que hay que hay que añadirlo al grupo
+        # de minibatches y reiniciar el grupo
+        if len(last_group) == batch_size:
+            grouped_indixes.append(last_group)
+            last_group = []
+
+    return np.array(grouped_indixes)
+
+def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: float = 0.001, batch_size: int = 1, max_iterations: int = 100_000, target_error: float = None, verbose: bool = False):
+    """
+    Implementa el algoritmo de Stochastic Gradient Descent
+
+    A diferencia del programado para Gradient Descent, usamos datos etiquetados
+    como parametros de entrada en vez de una funcion de perdida con su gradiente
+    calculado analiticamente, por lo que vamos a aproximar numericamente la funcion
+    de error (error cuadratico medio) como se indican en las transparencias de teoria
+
+    Parameters:
+    ===========
+    data: datos de entrada sobre los que queremos hacer predicciones
+    labels: verdaderos valores que queremos predecir. Pueden representar etiquetas
+            de una categoria para clasificacion o valores reales para regresion.
+            Gracias a las etiquetas podemos calcular aproximadamente el gradiente
+            del error para una solucion iterativa concreta
+    """
+
+    # Establecemos la solucion actual (que vamos a ir modificando) a la solucion
+    # inicial dada
+    current_solution = starting_solution
+
+    for _ in range(max_iterations):
+        # Generamos los minibatches a partir de los datos de entrada
+        # Trabajamos por comodidad y eficiencia con indices, como se indica en la funcion
+        mini_batches_index_groups = get_minibatches(data, batch_size)
+
+        # Iteramos en los minibatches
+        for mini_batches_indixes in mini_batches_index_groups:
+            # Tomo los datos y etiquetas asociadas a los indices de este minibatch
+            minibatch_data = data[mini_batches_indixes]
+            minibatch_labels = labels[mini_batches_indixes]
+
+            # Calculo la aproximacion al gradiente con estos datos
+            minibatch_approx_gradient = approx_gradient(minibatch_data, minibatch_labels, current_solution)
+
+            # Actualizo la solucion con este minibatch
+            current_solution = current_solution - learning_rate * minibatch_approx_gradient
+
+    # Devolvemos la solucion como un array, no como una matriz de una unica fila
+    # pues esto provoca fallos en otras funciones (como la del calculo del error)
+    if(len(np.shape(current_solution)) == 2):
+        current_solution = current_solution[0]
+
+    return current_solution
+
+
+def approx_gradient(data, labels, weights):
+    """
+    Aproximamos el valor del gradiente con datos
+
+    Parameters:
+    ===========
+    data: datos de entrada que se usan para predecir
+    labels: valores reales que debemos predecir correctamente
+    weights: pesos que representan la funcion lineal que predice
+
+    """
+    # Inicializamos la aproximacion al gradiente con ceros y con el shape de la
+    # solucion que generamos con estos datos (columnas que nos indican las caracteristicas
+    # de las soluciones, no filas que nos indican el numero de datos)
+    gradient = np.zeros((1, np.shape(data)[1]))
+
+    # Si los pesos tienen shape(1, n), nos da problemas, asi que en ese caso
+    # nos quedamos con la primera fila de una matriz de una unica fila para que
+    # la funcion get_lineal funcione sin problemas
+    if(len(np.shape(weights)) == 2):
+        weights = weights[0]
+
+    # Funcion lineal que representan los pesos dados
+    lineal = get_lineal(weights)
+
+    # Aproximamos el gradiente linealmente con la formula dada en las transparencias
+    for value, label in zip(data, labels):
+        # De nuevo, obviamos la columna de unos de la matriz de datos para representar
+        # el sumando del termino independiente
+        curr_err = value * (lineal(value[1], value[2]) - label)
+        gradient = gradient + curr_err
+
+    return gradient
 
 def ejercicio2_apartado1():
 
@@ -735,12 +867,85 @@ def ejercicio2_apartado1():
     scatter_plot_with_classes(X, Y, ["Digito 1", "Digito 5"], ["Intensidad", "Simetria"], "Grafica de los datos de entrada")
     plt.show()
 
-    # Calculamos la regresion lineal con la pseudo inversa
+    # # Calculamos la regresion lineal con la pseudo inversa
+    # # Calculamos tambien el error cometido para mostrar todos los resultados de golpe
+    # # Error tanto en la muestra comop fuera de la muestra, y ademas error de
+    # # clasificacion como error cuadratico medio
+    # print("Calculamos los pesos de la regresion lineal usando el algoritmo de pseudo inversa")
+    # weights = pseudo_inverse(X, Y)
+    # error_in_sample = clasiffication_error(X, Y, weights)
+    # error_out_sample = clasiffication_error(X_test, Y_test, weights)
+    # mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
+    # mean_square_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
+    # print(f"\tLos pesos obtenidos son: {weights}")
+    # print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
+    # print(f"\tEl error de clasificacion fuera de la muestra Eout es: {error_out_sample}")
+    # print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
+    # print(f"\tEl error cuadratico medio fuera de la muestra Eout es: {mean_square_error_out_sample}")
+    # print("")
+    # wait_for_user_input()
+
+    # # Mostramos la grafica de nuestro modelo. En gris, pintaremos los valores
+    # # que se han predicho correctamente. En rojo, los valores en los que falla
+    # # la predicción
+    # # Mostramos esta grafica tanto para la muestra como para el dataset de test
+    # print("Mostrando grafica de predicciones en la muestra de entrenamiento")
+    # plot_classification_predictions(X, Y, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en la muestra")
+    # wait_for_user_input()
+    # print("Mostrando grafica de predicciones en el conjunto de datos de test")
+    # plot_classification_predictions(X_test, Y_test, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en el dataset de test")
+    # print("")
+    # wait_for_user_input()
+
+    # # Calculamos la regresion lineal con Stochastic Gradient Descent concreto
+    # # para clasificadores lineales
+    # # Calculamos tambien el error cometido para mostrar todos los resultados de golpe
+    # # Error tanto en la muestra comop fuera de la muestra, y ademas error de
+    # # clasificacion como error cuadratico medio
+    # print("Calculamos los pesos de la regresion lineal usando el algoritmo Stochastic Gradient Descent concreto para clasificacion")
+    # weights = stochastic_gradient_descent_for_classificators(X, Y, number_of_cycles = 10)
+    # error_in_sample = clasiffication_error(X, Y, weights)
+    # error_out_sample = clasiffication_error(X_test, Y_test, weights)
+    # mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
+    # mean_square_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
+    # print(f"\tLos pesos obtenidos son: {weights}")
+    # print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
+    # print(f"\tEl error de clasificacion fuera de la muestra Eout es: {error_out_sample}")
+    # print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
+    # print(f"\tEl error cuadratico medio fuera de la muestra Eout es: {mean_square_error_out_sample}")
+    # print("")
+    # wait_for_user_input()
+
+    # # Mostramos la grafica de nuestro modelo. En gris, pintaremos los valores
+    # # que se han predicho correctamente. En rojo, los valores en los que falla
+    # # la predicción
+    # # Mostramos esta grafica tanto para la muestra como para el dataset de test
+    # print("Mostrando grafica de predicciones en la muestra de entrenamiento")
+    # plot_classification_predictions(X, Y, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en la muestra")
+    # wait_for_user_input()
+    # print("Mostrando grafica de predicciones en el conjunto de datos de test")
+    # plot_classification_predictions(X_test, Y_test, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en el dataset de test")
+    # print("")
+    # wait_for_user_input()
+
+    # Calculamos la regresion lineal con Stochastic Gradient Descent en general
     # Calculamos tambien el error cometido para mostrar todos los resultados de golpe
     # Error tanto en la muestra comop fuera de la muestra, y ademas error de
     # clasificacion como error cuadratico medio
-    print("Calculamos los pesos de la regresion lineal usando el algoritmo de pseudo inversa")
-    weights = pseudo_inverse(X, Y)
+    print("Calculamos los pesos de la regresion lineal usando el algoritmo Stochastic Gradient Descent general")
+    # Parametros para gradient descent
+
+    # Solucion inicial con todo ceros
+    # Tomamos el numero de columnas para el tamaño de nuestro vector solucion, pues
+    # las columnas indican la dimension de los datos, mientras que las filas indican
+    # el numero de datos
+    starting_solution = np.zeros(np.shape(X)[1])
+
+    learning_rate = 0.01
+    batch_size = 10
+    max_iterations = 10_000
+
+    weights = stochastic_gradient_descent(X, Y, starting_solution, learning_rate, batch_size, max_iterations)
     error_in_sample = clasiffication_error(X, Y, weights)
     error_out_sample = clasiffication_error(X_test, Y_test, weights)
     mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
@@ -765,35 +970,6 @@ def ejercicio2_apartado1():
     print("")
     wait_for_user_input()
 
-    # Calculamos la regresion lineal con Stochastic Gradient Descent
-    # Calculamos tambien el error cometido para mostrar todos los resultados de golpe
-    # Error tanto en la muestra comop fuera de la muestra, y ademas error de
-    # clasificacion como error cuadratico medio
-    print("Calculamos los pesos de la regresion lineal usando el algoritmo Stochastic Gradient Descent")
-    weights = stochastic_gradient_descent_for_classificators(X, Y, number_of_cycles = 10, target_error = 0.01)
-    error_in_sample = clasiffication_error(X, Y, weights)
-    error_out_sample = clasiffication_error(X_test, Y_test, weights)
-    mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
-    mean_square_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
-    print(f"\tLos pesos obtenidos son: {weights}")
-    print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
-    print(f"\tEl error de clasificacion fuera de la muestra Eout es: {error_out_sample}")
-    print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
-    print(f"\tEl error cuadratico medio fuera de la muestra Eout es: {mean_square_error_out_sample}")
-    print("")
-    wait_for_user_input()
-
-    # Mostramos la grafica de nuestro modelo. En gris, pintaremos los valores
-    # que se han predicho correctamente. En rojo, los valores en los que falla
-    # la predicción
-    # Mostramos esta grafica tanto para la muestra como para el dataset de test
-    print("Mostrando grafica de predicciones en la muestra de entrenamiento")
-    plot_classification_predictions(X, Y, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en la muestra")
-    wait_for_user_input()
-    print("Mostrando grafica de predicciones en el conjunto de datos de test")
-    plot_classification_predictions(X_test, Y_test, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en el dataset de test")
-    print("")
-    wait_for_user_input()
 
 
 def ejercicio2():
