@@ -474,6 +474,171 @@ def stochastic_gradient_descent_for_classificators(data, labels, number_of_cycle
                 break
 
     return weights
+def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: float = 0.001, batch_size: int = 1, max_epochs: int = 100_000, target_error: float = None, verbose: bool = False):
+    """
+    Implementa el algoritmo de Stochastic Gradient Descent
+
+    A diferencia del programado para Gradient Descent, usamos datos etiquetados
+    como parametros de entrada en vez de una funcion de perdida con su gradiente
+    calculado analiticamente, por lo que vamos a aproximar numericamente la funcion
+    de error (error cuadratico medio) como se indican en las transparencias de teoria
+
+    Parameters:
+    ===========
+    data: datos de entrada sobre los que queremos hacer predicciones
+    labels: verdaderos valores que queremos predecir. Pueden representar etiquetas
+            de una categoria para clasificacion o valores reales para regresion.
+            Gracias a las etiquetas podemos calcular aproximadamente el gradiente
+            del error para una solucion iterativa concreta
+    starting_solution: np.array del que parte las soluciones iterativas
+    learning_rate: tasa de aprendizaje
+    max_epochs: maximo numero de iteraciones sobre los minibatches
+    target_error: error por debajo del cual dejamos de iterar
+                  Puede ser None para indicar que no comprobemos el error para dejar de iterar
+    verbose: indica si queremos que se guarden metricas en cada epoch
+    """
+
+    # Si verbose == True, guardamos algunas metricas parciales durante el proceso
+
+    # Error que tenemos en cada epoca (en cada iteracion seria algo excesivo, asi
+    # como en cada minibatch)
+    error_at_epoch = None
+    if verbose is True:
+        error_at_epoch = []
+
+    # Establecemos la solucion actual (que vamos a ir modificando) a la solucion
+    # inicial dada
+    current_solution = starting_solution
+
+    for epoch in range(max_epochs):
+        # Generamos los minibatches a partir de los datos de entrada
+        # Trabajamos por comodidad y eficiencia con indices, como se indica en la funcion
+        mini_batches_index_groups = get_minibatches(data, batch_size)
+
+        # Iteramos en los minibatches
+        for mini_batches_indixes in mini_batches_index_groups:
+            # Tomo los datos y etiquetas asociadas a los indices de este minibatch
+            minibatch_data = data[mini_batches_indixes]
+            minibatch_labels = labels[mini_batches_indixes]
+
+            # Calculo la aproximacion al gradiente con estos datos
+            minibatch_approx_gradient = approx_gradient(minibatch_data, minibatch_labels, current_solution)
+
+            # Actualizo la solucion con este minibatch
+            current_solution = current_solution - learning_rate * minibatch_approx_gradient
+
+
+        # Comprobamos si hemos alcanzado el error objetivo para dejar de iterar
+        if target_error is not None:
+            # Tomamos la solucion como un array, no como una matriz de una unica fila
+            # pues esto provoca fallos en otras funciones (como la del calculo del error)
+            tmp_solution = current_solution
+            if(len(np.shape(current_solution)) == 2):
+                tmp_solution = current_solution[0]
+
+            if clasiffication_mean_square_error(data, labels, tmp_solution) < target_error:
+                break
+
+        # Añadimos el error en este epoch
+        if verbose is True:
+            # Tomamos la solucion como un array, no como una matriz de una unica fila
+            # pues esto provoca fallos en otras funciones (como la del calculo del error)
+            tmp_solution = current_solution
+            if(len(np.shape(current_solution)) == 2):
+                tmp_solution = current_solution[0]
+
+            error_at_epoch.append(clasiffication_mean_square_error(data, labels, tmp_solution))
+
+
+    # Devolvemos la solucion como un array, no como una matriz de una unica fila
+    # pues esto provoca fallos en otras funciones (como la del calculo del error)
+    if(len(np.shape(current_solution)) == 2):
+        current_solution = current_solution[0]
+
+    return current_solution, error_at_epoch
+
+
+
+def get_minibatches(data, batch_size: int):
+    """
+    Dados unos datos de entrada, mezcla los datos y los devuelve en subconjuntos
+    de batch_size elementos. Realmente devolvemos un array de conjuntos de indices
+    que representan este mezclado y empaquetado, pues asi es mas facil de operar
+    (no alteramos los datos de entrada y no tenemos que considerar como quedarian
+    ordenadas las etiquetas asociadas a los datos) y mas eficiente (trabajamos
+    con indices, no con datos multidimensionales)
+
+    Paramters:
+    ==========
+    data: matriz de datos de entrada que queremos mezclar y agrupar
+    batch_size: tamaño de los paquetes en los que agrupamos los datos
+
+    Returns:
+    ========
+    indixes: array de conjuntos de indices (array tambien) que representa la operacion
+             descrita anteriormente
+    """
+
+    # Los indices de todos los datos de entrada
+    # Me quedo con las filas porque indican el numero de datos con los que trabajamos
+    # Las columnas indican el numero de caracteristicas de cada dato
+    all_indixes = np.arange(start = 0, stop = np.shape(data)[0])
+
+    # Mezclo estos indices antes de dividirlos en minibatches
+    np.random.shuffle(all_indixes)
+
+    # Array de conjuntos de indices (array de arrays)
+    grouped_indixes = []
+
+    # Agrupamos los indices que ya han sido mezclados en los minibatches
+    last_group = []
+    for value in all_indixes:
+
+        # El ultimo minibatch no esta completo, podemos añadir un nuevo punto
+        if len(last_group) < batch_size:
+            last_group.append(value)
+
+        # El minibatch esta completo, asi que hay que hay que añadirlo al grupo
+        # de minibatches y reiniciar el grupo
+        if len(last_group) == batch_size:
+            grouped_indixes.append(last_group)
+            last_group = []
+
+    return np.array(grouped_indixes)
+
+def approx_gradient(data, labels, weights):
+    """
+    Aproximamos el valor del gradiente con datos
+
+    Parameters:
+    ===========
+    data: datos de entrada que se usan para predecir
+    labels: valores reales que debemos predecir correctamente
+    weights: pesos que representan la funcion lineal que predice
+
+    """
+    # Inicializamos la aproximacion al gradiente con ceros y con el shape de la
+    # solucion que generamos con estos datos (columnas que nos indican las caracteristicas
+    # de las soluciones, no filas que nos indican el numero de datos)
+    gradient = np.zeros((1, np.shape(data)[1]))
+
+    # Si los pesos tienen shape(1, n), nos da problemas, asi que en ese caso
+    # nos quedamos con la primera fila de una matriz de una unica fila para que
+    # la funcion get_lineal funcione sin problemas
+    if(len(np.shape(weights)) == 2):
+        weights = weights[0]
+
+    # Funcion lineal que representan los pesos dados
+    lineal = get_lineal(weights)
+
+    # Aproximamos el gradiente linealmente con la formula dada en las transparencias
+    for value, label in zip(data, labels):
+        # De nuevo, obviamos la columna de unos de la matriz de datos para representar
+        # el sumando del termino independiente
+        curr_err = value * (lineal(value[1], value[2]) - label)
+        gradient = gradient + curr_err
+
+    return gradient
 
 # Ejercicio 1
 #===============================================================================
@@ -728,133 +893,6 @@ def clasiffication_mean_square_error(data, labels, weights):
         error += (current_label - lineal(current_input[1], current_input[2]))**2
     return error / len(labels)
 
-def get_minibatches(data, batch_size: int):
-    """
-    Dados unos datos de entrada, mezcla los datos y los devuelve en subconjuntos
-    de batch_size elementos. Realmente devolvemos un array de conjuntos de indices
-    que representan este mezclado y empaquetado, pues asi es mas facil de operar
-    (no alteramos los datos de entrada y no tenemos que considerar como quedarian
-    ordenadas las etiquetas asociadas a los datos) y mas eficiente (trabajamos
-    con indices, no con datos multidimensionales)
-
-    Paramters:
-    ==========
-    data: matriz de datos de entrada que queremos mezclar y agrupar
-    batch_size: tamaño de los paquetes en los que agrupamos los datos
-
-    Returns:
-    ========
-    indixes: array de conjuntos de indices (array tambien) que representa la operacion
-             descrita anteriormente
-    """
-
-    # Los indices de todos los datos de entrada
-    # Me quedo con las filas porque indican el numero de datos con los que trabajamos
-    # Las columnas indican el numero de caracteristicas de cada dato
-    all_indixes = np.arange(start = 0, stop = np.shape(data)[0])
-
-    # Mezclo estos indices antes de dividirlos en minibatches
-    np.random.shuffle(all_indixes)
-
-    # Array de conjuntos de indices (array de arrays)
-    grouped_indixes = []
-
-    # Agrupamos los indices que ya han sido mezclados en los minibatches
-    last_group = []
-    for value in all_indixes:
-
-        # El ultimo minibatch no esta completo, podemos añadir un nuevo punto
-        if len(last_group) < batch_size:
-            last_group.append(value)
-
-        # El minibatch esta completo, asi que hay que hay que añadirlo al grupo
-        # de minibatches y reiniciar el grupo
-        if len(last_group) == batch_size:
-            grouped_indixes.append(last_group)
-            last_group = []
-
-    return np.array(grouped_indixes)
-
-def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: float = 0.001, batch_size: int = 1, max_iterations: int = 100_000, target_error: float = None, verbose: bool = False):
-    """
-    Implementa el algoritmo de Stochastic Gradient Descent
-
-    A diferencia del programado para Gradient Descent, usamos datos etiquetados
-    como parametros de entrada en vez de una funcion de perdida con su gradiente
-    calculado analiticamente, por lo que vamos a aproximar numericamente la funcion
-    de error (error cuadratico medio) como se indican en las transparencias de teoria
-
-    Parameters:
-    ===========
-    data: datos de entrada sobre los que queremos hacer predicciones
-    labels: verdaderos valores que queremos predecir. Pueden representar etiquetas
-            de una categoria para clasificacion o valores reales para regresion.
-            Gracias a las etiquetas podemos calcular aproximadamente el gradiente
-            del error para una solucion iterativa concreta
-    """
-
-    # Establecemos la solucion actual (que vamos a ir modificando) a la solucion
-    # inicial dada
-    current_solution = starting_solution
-
-    for _ in range(max_iterations):
-        # Generamos los minibatches a partir de los datos de entrada
-        # Trabajamos por comodidad y eficiencia con indices, como se indica en la funcion
-        mini_batches_index_groups = get_minibatches(data, batch_size)
-
-        # Iteramos en los minibatches
-        for mini_batches_indixes in mini_batches_index_groups:
-            # Tomo los datos y etiquetas asociadas a los indices de este minibatch
-            minibatch_data = data[mini_batches_indixes]
-            minibatch_labels = labels[mini_batches_indixes]
-
-            # Calculo la aproximacion al gradiente con estos datos
-            minibatch_approx_gradient = approx_gradient(minibatch_data, minibatch_labels, current_solution)
-
-            # Actualizo la solucion con este minibatch
-            current_solution = current_solution - learning_rate * minibatch_approx_gradient
-
-    # Devolvemos la solucion como un array, no como una matriz de una unica fila
-    # pues esto provoca fallos en otras funciones (como la del calculo del error)
-    if(len(np.shape(current_solution)) == 2):
-        current_solution = current_solution[0]
-
-    return current_solution
-
-
-def approx_gradient(data, labels, weights):
-    """
-    Aproximamos el valor del gradiente con datos
-
-    Parameters:
-    ===========
-    data: datos de entrada que se usan para predecir
-    labels: valores reales que debemos predecir correctamente
-    weights: pesos que representan la funcion lineal que predice
-
-    """
-    # Inicializamos la aproximacion al gradiente con ceros y con el shape de la
-    # solucion que generamos con estos datos (columnas que nos indican las caracteristicas
-    # de las soluciones, no filas que nos indican el numero de datos)
-    gradient = np.zeros((1, np.shape(data)[1]))
-
-    # Si los pesos tienen shape(1, n), nos da problemas, asi que en ese caso
-    # nos quedamos con la primera fila de una matriz de una unica fila para que
-    # la funcion get_lineal funcione sin problemas
-    if(len(np.shape(weights)) == 2):
-        weights = weights[0]
-
-    # Funcion lineal que representan los pesos dados
-    lineal = get_lineal(weights)
-
-    # Aproximamos el gradiente linealmente con la formula dada en las transparencias
-    for value, label in zip(data, labels):
-        # De nuevo, obviamos la columna de unos de la matriz de datos para representar
-        # el sumando del termino independiente
-        curr_err = value * (lineal(value[1], value[2]) - label)
-        gradient = gradient + curr_err
-
-    return gradient
 
 def ejercicio2_apartado1():
 
@@ -934,6 +972,9 @@ def ejercicio2_apartado1():
     # clasificacion como error cuadratico medio
     print("Calculamos los pesos de la regresion lineal usando el algoritmo Stochastic Gradient Descent general")
     # Parametros para gradient descent
+    learning_rate = 0.01
+    batch_size = 10
+    max_epochs = 5_000
 
     # Solucion inicial con todo ceros
     # Tomamos el numero de columnas para el tamaño de nuestro vector solucion, pues
@@ -941,11 +982,7 @@ def ejercicio2_apartado1():
     # el numero de datos
     starting_solution = np.zeros(np.shape(X)[1])
 
-    learning_rate = 0.01
-    batch_size = 10
-    max_iterations = 10_000
-
-    weights = stochastic_gradient_descent(X, Y, starting_solution, learning_rate, batch_size, max_iterations)
+    weights, error_at_epoch = stochastic_gradient_descent(X, Y, starting_solution, learning_rate, batch_size, max_epochs, target_error = 0.01, verbose = True)
     error_in_sample = clasiffication_error(X, Y, weights)
     error_out_sample = clasiffication_error(X_test, Y_test, weights)
     mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
@@ -967,6 +1004,21 @@ def ejercicio2_apartado1():
     wait_for_user_input()
     print("Mostrando grafica de predicciones en el conjunto de datos de test")
     plot_classification_predictions(X_test, Y_test, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en el dataset de test")
+    print("")
+    wait_for_user_input()
+
+    # Mostramos la evolucion del error por cada epoca
+    print("Evolucion del error por cada epoca de entrenamiento")
+    # Mostramos la grafica de descenso del error
+    Y = error_at_epoch
+    X = np.arange(0, len(Y))
+
+    plt.title(f"Evolucion del error por epoca para eta = {learning_rate}, batch_size = {batch_size}")
+    plt.xlabel("Epoch")
+    plt.ylabel("Error")
+    plt.plot(X, Y)
+    plt.show()
+    wait_for_user_input()
     print("")
     wait_for_user_input()
 
