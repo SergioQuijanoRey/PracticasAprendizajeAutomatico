@@ -607,7 +607,7 @@ def clasiffication_mean_square_error(data, labels, weights):
         error += (current_label - lineal(current_input[1], current_input[2]))**2
     return error / len(labels)
 
-def plot_classification_predictions(data, labels, weights, title: str = "Grafica de predicciones"):
+def plot_classification_predictions(data, labels, weights, feature_names, title: str = "Grafica de predicciones"):
     """
     Mostramos un scatter plot de los datos segun las predicciones que hagamos. Si
     predecimos correctamente la etiqueta, se pinta el punto en un color gris. Si
@@ -618,6 +618,8 @@ def plot_classification_predictions(data, labels, weights, title: str = "Grafica
     data: los datos de entrada sobre los que predecimos
     labels: los verdaderos valores que deberiamos predecir
     weights: los pesos que representan la funcion lineal de clasificacion
+    feature_names: el nombre de las caracteristicas en base a las que hacemos
+                   las predicciones
     """
     # Tomo las coordenadas de la matriz de datos, es decir, separo coordenadas
     # x e y de una matriz de datos que contiene pares de coordenadas
@@ -630,30 +632,28 @@ def plot_classification_predictions(data, labels, weights, title: str = "Grafica
     # Funcion de prediccion
     lineal = get_lineal(weights)
 
-    # Colores que voy a utilizar para cada una de las clases
-    # Rojo para un numero, azul para otro color.
-    colormap = ['red', 'blue']
-
+    # Predicciones sobre el conjunto de datos
+    # La columna primera la obviamos, porque es una columna de unos para representar
+    # el sumando del termino independiente, que no es pasado a la funcion de
+    # clasificacion lineal
+    # Solo me quedo con el signo, porque no me interesa saber el grado en el que
+    # acierto o fallo, solo si acierto o fallo
+    predictions = [np.sign(lineal(x[1], x[2])) for x in data]
 
     # Serapo los indices en indices de puntos que hemos predicho correctamente
     # e indices de puntos mal predichos
-    predictions = []
+    good_predicion_indexes = np.where(predictions == labels)
+    bad_prediction_indexes = np.where(predictions != labels)
 
+    # Gris para los puntos bien predichos, rojo para los puntos mal predichos
+    colormap = ['grey', 'red']
 
+    # Nombre que vamos a poner en la leyenda
+    target_names = ['Puntos BIEN predichos', 'Puntos MAL predichos']
 
-    # Separacion de indices. Con esto, consigo la lista de los indices de la
-    # clase i-esima, cada uno en un vector distinto. Esto lo necesitare para
-    # colorear cada clase de un color y ponerle de label el nombre de la planta
-
-    # Separo los indices correspondientes a la clase del numero 1 y la clase del
-    # numero 5
-    first_class_indexes = np.where(classes == -1)
-    second_class_indexes = np.where(classes == 1)
-
-    # Asi puedo referirme a la primera clase como splitted_indixes[0] en vez
-    # de usar el nombre de la variable (para acceder a los indices en el siguiente
-    # bucle)
-    splitted_indixes = [first_class_indexes, second_class_indexes]
+    # Asi puedo referirme a la clase de puntos bien predichos como splitted_indixes[0]
+    # (para acceder a los indices en el siguiente bucle)
+    splitted_indixes = [good_predicion_indexes, bad_prediction_indexes]
 
     # Tomo estos elementos para hacer graficas elaboradas
     fig, ax = plt.subplots()
@@ -718,10 +718,10 @@ def ejercicio2_apartado1():
     # la predicción
     # Mostramos esta grafica tanto para la muestra como para el dataset de test
     print("Mostrando grafica de predicciones en la muestra de entrenamiento")
-    plot_classification_predictions(X, Y, weights, title = "Resultados en la muestra")
+    plot_classification_predictions(X, Y, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en la muestra")
     wait_for_user_input()
     print("Mostrando grafica de predicciones en el conjunto de datos de test")
-    plot_classification_predictions(X_test, Y_test, weights, title = "Resultados en el dataset de test")
+    plot_classification_predictions(X_test, Y_test, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en el dataset de test")
     print("")
     wait_for_user_input()
 
