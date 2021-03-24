@@ -402,6 +402,7 @@ def gradient_descent_and_plot_error(starting_point, loss_function, gradient, lea
     # Por si necesitamos realizar otras operaciones con los resultados
     return weights, iterations, error_at_iteration, solution_at_iteration
 
+# TODO -- se puede hacer directamente con numpy.pinv
 def pseudo_inverse(data_matrix, label_vector):
     """
     Calcula los pesos de la regresion lineal a partir del algoritmo de la pseudo inversa
@@ -416,7 +417,7 @@ def pseudo_inverse(data_matrix, label_vector):
     weights: array numpy con los pesos del hiperplano que mejor se ajusta al modelo
     """
 
-    # Para simplificar la formula que devolvemos
+    # Para simplificar la formula que devolvemos (que el return sea mas compacto)
     # En los parametros dejo los nombres como estan para que sea mas explicito
     # el significado que tienen
     X = data_matrix
@@ -453,10 +454,13 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
     # Si verbose == True, guardamos algunas metricas parciales durante el proceso
 
     # Error que tenemos en cada epoca (en cada iteracion seria algo excesivo, asi
-    # como en cada minibatch)
+    # como en cada minibatch). Pero si que guardamos en cada iteracion sobre el
+    # minibatech
     error_at_epoch = None
+    error_at_minibatch = None
     if verbose is True:
         error_at_epoch = []
+        error_at_minibatch = []
 
     # Establecemos la solucion actual (que vamos a ir modificando) a la solucion
     # inicial dada
@@ -479,6 +483,15 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
             # Actualizo la solucion con este minibatch
             current_solution = current_solution - learning_rate * minibatch_approx_gradient
 
+            # Añadimos el error sobre la iteracion del minibatch
+            if verbose is True:
+                # Tomamos la solucion como un array, no como una matriz de una unica fila
+                # pues esto provoca fallos en otras funciones (como la del calculo del error)
+                tmp_solution = current_solution
+                if(len(np.shape(current_solution)) == 2):
+                    tmp_solution = current_solution[0]
+
+                error_at_minibatch.append(clasiffication_mean_square_error(data, labels, tmp_solution))
 
         # Comprobamos si hemos alcanzado el error objetivo para dejar de iterar
         if target_error is not None:
@@ -507,9 +520,7 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
     if(len(np.shape(current_solution)) == 2):
         current_solution = current_solution[0]
 
-    return current_solution, error_at_epoch
-
-
+    return current_solution, error_at_epoch, error_at_minibatch
 
 def get_minibatches(data, batch_size: int):
     """
@@ -907,7 +918,7 @@ def ejercicio2_apartado1():
     # el numero de datos
     starting_solution = np.zeros(np.shape(X)[1])
 
-    weights, error_at_epoch = stochastic_gradient_descent(X, Y, starting_solution, learning_rate, batch_size, max_epochs, target_error = 0.01, verbose = True)
+    weights, error_at_epoch, error_at_minibatch = stochastic_gradient_descent(X, Y, starting_solution, learning_rate, batch_size, max_epochs, target_error = 0.01, verbose = True)
     error_in_sample = clasiffication_error(X, Y, weights)
     error_out_sample = clasiffication_error(X_test, Y_test, weights)
     mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
@@ -933,6 +944,7 @@ def ejercicio2_apartado1():
     wait_for_user_input()
 
     # Mostramos la evolucion del error por cada epoca
+    # TODO -- refactor
     print("Evolucion del error por cada epoca de entrenamiento")
     # Mostramos la grafica de descenso del error
     Y = error_at_epoch
@@ -947,6 +959,21 @@ def ejercicio2_apartado1():
     print("")
     wait_for_user_input()
 
+    # Mostramos la evolucion del error por cada iteracion en minibatch
+    # TODO -- refactor
+    print("Evolucion del error por cada epoca de entrenamiento")
+    # Mostramos la grafica de descenso del error
+    Y = error_at_minibatch
+    X = np.arange(0, len(Y))
+
+    plt.title(f"Evolucion del error por cada iteracion de minibatch para eta = {learning_rate}, batch_size = {batch_size}")
+    plt.xlabel("Minibatch iteration")
+    plt.ylabel("Error")
+    plt.plot(X, Y)
+    plt.show()
+    wait_for_user_input()
+    print("")
+    wait_for_user_input()
 
 
 def ejercicio2():
