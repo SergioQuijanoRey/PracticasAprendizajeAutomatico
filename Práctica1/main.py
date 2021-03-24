@@ -335,6 +335,33 @@ def plot_classification_predictions(data, labels, weights, feature_names, title:
     plt.show()
     wait_for_user_input()
 
+def plot_error_evolution(error_at_iteration, title = "Evolucion del error", x_label = "Iteraciones", y_label = "Error"):
+    """
+    Muestra la grafica de evolucion del error con el paso de algun tipo de iteraciones
+    Con 'un tipo de iteraciones' me refiero a que podemos estar indicando error
+    por cada iteracion, por cada recorrido del minibatch, por cada epoch...
+    Sea cual sea el 'tipo de iteracion', esta grafica es la misma
+
+    Parameters:
+    ===========
+    error_at_iteration: el error en cada 'tipo de iteracion'
+    title: titulo de la grafica
+    x_label: para indicar el 'tipo de iteracion'
+    y_label: por si queremos especificar algo sobre la medida el error
+    """
+
+    # Generamos los datos necesarios
+    Y = error_at_iteration
+    X = np.arange(0, len(Y))
+
+    # Mostramos el grafico
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.plot(X, Y)
+    plt.show()
+    wait_for_user_input()
+
 # Algoritmos
 #===============================================================================
 def gradient_descent(starting_point, loss_function, gradient, learning_rate: float = 0.001, max_iterations: int = 100_000, target_error: float = None, verbose: bool = False):
@@ -989,36 +1016,25 @@ def ejercicio2_apartado1():
     wait_for_user_input()
 
     # Mostramos la evolucion del error por cada epoca
-    # TODO -- refactor
     print("Evolucion del error por cada epoca de entrenamiento")
-    # Mostramos la grafica de descenso del error
-    Y = error_at_epoch
-    X = np.arange(0, len(Y))
-
-    plt.title(f"Evolucion del error por epoca para eta = {learning_rate}, batch_size = {batch_size}")
-    plt.xlabel("Epoch")
-    plt.ylabel("Error")
-    plt.plot(X, Y)
-    plt.show()
-    wait_for_user_input()
+    plot_error_evolution(
+        error_at_epoch,
+        title = f"Evolucion del error por EPOCH para eta = {learning_rate}, batch_size = {batch_size}",
+        x_label = "Epoch"
+    )
     print("")
-    wait_for_user_input()
+
 
     # Mostramos la evolucion del error por cada iteracion en minibatch
-    # TODO -- refactor
-    print("Evolucion del error por cada epoca de entrenamiento")
-    # Mostramos la grafica de descenso del error
-    Y = error_at_minibatch
-    X = np.arange(0, len(Y))
-
-    plt.title(f"Evolucion del error por cada iteracion de minibatch para eta = {learning_rate}, batch_size = {batch_size}")
-    plt.xlabel("Minibatch iteration")
-    plt.ylabel("Error")
-    plt.plot(X, Y)
-    plt.show()
-    wait_for_user_input()
+    print("Evolucion del error por cada iteracion sobre minibatch")
+    plot_error_evolution(
+        error_at_minibatch,
+        title = f"Evolucion del error por EPOCH para eta = {learning_rate}, batch_size = {batch_size}",
+        x_label = "Epoch"
+    )
     print("")
-    wait_for_user_input()
+
+
 
 
 def ejercicio2():
