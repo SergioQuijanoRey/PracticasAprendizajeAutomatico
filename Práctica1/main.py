@@ -454,7 +454,7 @@ def pseudo_inverse(data_matrix, label_vector):
 
 # TODO -- lanza muchos errores de overflow
 # TODO -- Multiplicar por 2 / batch_size, porque esto puede provocar el overflow
-def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: float = 0.001, batch_size: int = 1, max_epochs: int = 100_000, target_error: float = None, verbose: bool = False):
+def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: float = 0.001, batch_size: int = 1, max_minibatch_iterations: int = 200, target_error: float = None, verbose: bool = False):
     """
     Implementa el algoritmo de Stochastic Gradient Descent
 
@@ -472,7 +472,10 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
             del error para una solucion iterativa concreta
     starting_solution: np.array del que parte las soluciones iterativas
     learning_rate: tasa de aprendizaje
-    max_epochs: maximo numero de iteraciones sobre los minibatches
+    max_minibatch_iterations: maximo numero de iteraciones
+                              Por iteracion entendemos cada vez que modificamos los
+                              pesos de la solucion iterativa (ie. cada recorrido de
+                              un minibatch)
     target_error: error por debajo del cual dejamos de iterar
                   Puede ser None para indicar que no comprobemos el error para dejar de iterar
     verbose: indica si queremos que se guarden metricas en cada epoch
@@ -493,7 +496,11 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
     # inicial dada
     current_solution = starting_solution
 
-    for epoch in range(max_epochs):
+    # Para controlar current_minibatch_iterations < max_minibatch_iterations de
+    # forma comoda, porque tenemos dos bucles for
+    current_minibatch_iterations = 0
+
+    while current_minibatch_iterations < max_minibatch_iterations:
         # Generamos los minibatches a partir de los datos de entrada
         # Trabajamos por comodidad y eficiencia con indices, como se indica en la funcion
         mini_batches_index_groups = get_minibatches(data, batch_size)
@@ -519,6 +526,13 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
                     tmp_solution = current_solution[0]
 
                 error_at_minibatch.append(clasiffication_mean_square_error(data, labels, tmp_solution))
+
+            # Hemos hecho una pasada completa al minibatch, aumentamos el contador
+            # y comprobamos si hemos superado el maximo (tenemos que hacer esta
+            # compobracion por estar en un doble bucle)
+            current_minibatch_iterations += 1
+            if current_minibatch_iterations >= max_minibatch_iterations:
+                break
 
         # Comprobamos si hemos alcanzado el error objetivo para dejar de iterar
         if target_error is not None:
@@ -977,8 +991,8 @@ def ejercicio2_apartado1():
     print("Calculamos los pesos de la regresion lineal usando el algoritmo Stochastic Gradient Descent general")
     # Parametros para gradient descent
     learning_rate = 0.01
-    batch_size = 256
-    max_epochs = 1000
+    batch_size = 32
+    max_minibatch_iterations = 200
 
     # Solucion inicial con todo ceros
     # Tomamos el numero de columnas para el tamaño de nuestro vector solucion, pues
@@ -986,7 +1000,7 @@ def ejercicio2_apartado1():
     # el numero de datos
     starting_solution = np.zeros(np.shape(X)[1])
 
-    weights, error_at_epoch, error_at_minibatch = stochastic_gradient_descent(X, Y, starting_solution, learning_rate, batch_size, max_epochs, target_error = 0.01, verbose = True)
+    weights, error_at_epoch, error_at_minibatch = stochastic_gradient_descent(X, Y, starting_solution, learning_rate, batch_size, max_minibatch_iterations, target_error = 0.01, verbose = True)
     error_in_sample = clasiffication_error(X, Y, weights)
     error_out_sample = clasiffication_error(X_test, Y_test, weights)
     mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
@@ -1033,9 +1047,6 @@ def ejercicio2_apartado1():
         x_label = "Epoch"
     )
     print("")
-
-
-
 
 def ejercicio2():
     print("Ejecutando ejercicio 2")
