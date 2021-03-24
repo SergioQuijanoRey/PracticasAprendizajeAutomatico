@@ -184,11 +184,10 @@ def plot_3d_gradient_descent(loss_function, solutions, x_lower: float, x_upper: 
 
         plt.plot(solution[0], solution[1], loss_function(solution[0], solution[1]) + epsilon, "ko")
 
-    # Mostramos la grafica conjunta
     plt.show()
     wait_for_user_input()
 
-def scatter_plot_with_classes(data, classes, target_names, feature_names, title):
+def scatter_plot_with_classes(data, classes, target_names, feature_names, title, show: bool = True):
     """
     Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados en distintos grupos
 
@@ -201,6 +200,9 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title)
     classes: etiquetas numericas de las clases a la que pertenencen los datos
     target_names: nombres que le doy a cada una de las clases
     feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
+    show: indica si queremos mostrar o no la grafica
+          Nos puede interesar no mostrar la grafica para añadir nuevos elementos
+          a esta grafica sin tener que repetir codigo
 
     Ambos parametros ya en un tipo de dato de numpy para tratarlos
     """
@@ -256,8 +258,10 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title)
     plt.xlabel(x_legend)
     plt.ylabel(y_legend)
 
-    plt.show()
-    wait_for_user_input()
+    # Muestro la grafica en caso de que show = True
+    if show is True:
+        plt.show()
+        wait_for_user_input()
 
 def plot_classification_predictions(data, labels, weights, feature_names, title: str = "Grafica de predicciones"):
     """
@@ -361,6 +365,56 @@ def plot_error_evolution(error_at_iteration, title = "Evolucion del error", x_la
     plt.plot(X, Y)
     plt.show()
     wait_for_user_input()
+
+def plot_frontier_line(data, labels, weights):
+    """
+    Muestra un scatter plot de los datos, coloreados por su categoria, y la
+    recta que separa los datos segun la clasificacion que representa los pesos
+    dados como parametro
+
+    Parameters:
+    ===========
+    data: datos de entrada sobre los que se quiere hacer la separacion
+    labels: etiquetas de los datos, para pintar los colores de las clasificaciones verdaderas
+    weights: representa la funcion lineal que clasifica
+    """
+
+    # Reutilizamos el codigo para realizar el scatter plot
+    # Para que no haga show y podamos añadir mas elementos, hacemos show = False
+    scatter_plot_with_classes(
+        data = data,
+        classes = labels,
+        target_names = ["Digito 1", "Digito 5"],
+        feature_names = ["Intensidad", "Simetria"],
+        title = "Linea de frontera de nuestro clasificador",
+        show = False
+    )
+
+    # Recta que queda al igualar y = 0 y despejar x2 de la ecuacion:
+    # y = w0 + x1 w1 + x2 w2
+    # Para ello tiene que ocurrir que w2 != 0
+
+    # Comprobacion de seguridad
+    if weights[2] == 0:
+        print("\t[Err] El segundo peso es nulo, no se puede mostrar esta linea")
+        print("\tPor tanto, no mostramos nada")
+        return
+
+    # Ecuacion de la recta anteriormente descrita
+    line = lambda x: (-weights[0] - weights[1] * x) * (1 / weights[2])
+
+    # Tomamos los valores de abscisa sobre los que vamos a mapear la recta
+    x_values = data[:, 1]
+    y_values = line(x_values)
+
+    # Ahora añadimos la linea que separa los datos
+    plt.plot(x_values, y_values)
+
+    # Ahora si que hacemos show de las dos graficas compuestas
+    plt.show()
+    wait_for_user_input()
+
+
 
 # Algoritmos
 #===============================================================================
@@ -972,6 +1026,11 @@ def ejercicio2_apartado1():
     print("")
     wait_for_user_input()
 
+    # Mostramos la recta que separa los datos
+    print("Mostrando la recta que separa los datos sobre los datos de training")
+    plot_frontier_line(X, Y, weights)
+    print("")
+
     # Mostramos la grafica de nuestro modelo. En gris, pintaremos los valores
     # que se han predicho correctamente. En rojo, los valores en los que falla
     # la predicción
@@ -1016,6 +1075,11 @@ def ejercicio2_apartado1():
     print(f"\tEl error porcentual fuera de la muestra Eout es: {porcentual_error_out_sample}%")
     print("")
     wait_for_user_input()
+
+    # Mostramos la recta que separa los datos
+    print("Mostrando la recta que separa los datos sobre los datos de training")
+    plot_frontier_line(X, Y, weights)
+    print("")
 
     # Mostramos la grafica de nuestro modelo. En gris, pintaremos los valores
     # que se han predicho correctamente. En rojo, los valores en los que falla
