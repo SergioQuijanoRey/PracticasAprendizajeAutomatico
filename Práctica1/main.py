@@ -860,6 +860,43 @@ def clasiffication_mean_square_error(data, labels, weights):
         error += (current_label - lineal(current_input[1], current_input[2]))**2
     return error / len(labels)
 
+def classification_porcentual_error(data, labels, weights):
+    """
+    Dados unos datos etiquetados y unos pesos que representan una funcion lineal
+    de clasificacion, calcula el error porcentual (porcentaje de fallos / total
+    de predicciones)que se comete. Sirve tanto para calcular el error dentro de
+    la muestra, como para calcular el error fuera de la muestra, segun los valores
+    de data y labels pasados como parametro
+
+
+    Parameters:
+    ===========
+    data: los datos de entrada sobre los que predecimos
+    labels: los verdaderos valores a predecir
+    weights: los pesos que representan la funcion lineal de clasificacion
+    """
+
+    # Funcion lineal que representan los pesos
+    lineal = get_lineal(weights)
+
+    # Recorremos sobre los datos de entrada y las etiquetas reales de esos datos
+    number_of_bad_predictions = 0
+    for (current_input, current_label) in zip(data, labels):
+        # Nos saltamos current_input[0] porque la funcion lineal no toma como parametro
+        # el 1 que esta en la primera columna de la matriz data para multiplicarlo
+        # por weights[0], por tanto no lo tenemos que pasar para producir resultados
+        # correctos
+        prediction = np.sign(lineal(current_input[1], current_input[2]))
+
+        # Hemos fallado en esta prediccion
+        if prediction != current_label:
+            number_of_bad_predictions += 1
+
+    # Devolvemos el porcentaje de malas predicciones / total de predicciones
+    return (number_of_bad_predictions / len(labels)) * 100
+
+
+
 
 def ejercicio2_apartado1():
 
@@ -872,35 +909,39 @@ def ejercicio2_apartado1():
     scatter_plot_with_classes(X, Y, ["Digito 1", "Digito 5"], ["Intensidad", "Simetria"], "Grafica de los datos de entrada")
     plt.show()
 
-    # # Calculamos la regresion lineal con la pseudo inversa
-    # # Calculamos tambien el error cometido para mostrar todos los resultados de golpe
-    # # Error tanto en la muestra comop fuera de la muestra, y ademas error de
-    # # clasificacion como error cuadratico medio
-    # print("Calculamos los pesos de la regresion lineal usando el algoritmo de pseudo inversa")
-    # weights = pseudo_inverse(X, Y)
-    # error_in_sample = clasiffication_error(X, Y, weights)
-    # error_out_sample = clasiffication_error(X_test, Y_test, weights)
-    # mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
-    # mean_square_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
-    # print(f"\tLos pesos obtenidos son: {weights}")
-    # print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
-    # print(f"\tEl error de clasificacion fuera de la muestra Eout es: {error_out_sample}")
-    # print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
-    # print(f"\tEl error cuadratico medio fuera de la muestra Eout es: {mean_square_error_out_sample}")
-    # print("")
-    # wait_for_user_input()
+    # Calculamos la regresion lineal con la pseudo inversa
+    # Calculamos tambien el error cometido para mostrar todos los resultados de golpe
+    # Error tanto en la muestra comop fuera de la muestra, y ademas error de
+    # clasificacion como error cuadratico medio
+    print("Calculamos los pesos de la regresion lineal usando el algoritmo de pseudo inversa")
+    weights = pseudo_inverse(X, Y)
+    error_in_sample = clasiffication_error(X, Y, weights)
+    error_out_sample = clasiffication_error(X_test, Y_test, weights)
+    mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
+    mean_square_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
+    porcentual_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
+    porcentual_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
+    print(f"\tLos pesos obtenidos son: {weights}")
+    print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
+    print(f"\tEl error de clasificacion fuera de la muestra Eout es: {error_out_sample}")
+    print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
+    print(f"\tEl error cuadratico medio fuera de la muestra Eout es: {mean_square_error_out_sample}")
+    print(f"\tEl error porcentual en la muestra Ein es: {porcentual_error_in_sample}%")
+    print(f"\tEl error porcentual fuera de la muestra Eout es: {porcentual_error_out_sample}%")
+    print("")
+    wait_for_user_input()
 
-    # # Mostramos la grafica de nuestro modelo. En gris, pintaremos los valores
-    # # que se han predicho correctamente. En rojo, los valores en los que falla
-    # # la predicción
-    # # Mostramos esta grafica tanto para la muestra como para el dataset de test
-    # print("Mostrando grafica de predicciones en la muestra de entrenamiento")
-    # plot_classification_predictions(X, Y, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en la muestra")
-    # wait_for_user_input()
-    # print("Mostrando grafica de predicciones en el conjunto de datos de test")
-    # plot_classification_predictions(X_test, Y_test, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en el dataset de test")
-    # print("")
-    # wait_for_user_input()
+    # Mostramos la grafica de nuestro modelo. En gris, pintaremos los valores
+    # que se han predicho correctamente. En rojo, los valores en los que falla
+    # la predicción
+    # Mostramos esta grafica tanto para la muestra como para el dataset de test
+    print("Mostrando grafica de predicciones en la muestra de entrenamiento")
+    plot_classification_predictions(X, Y, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en la muestra")
+    wait_for_user_input()
+    print("Mostrando grafica de predicciones en el conjunto de datos de test")
+    plot_classification_predictions(X_test, Y_test, weights, feature_names= ["Intensidad", "Simetria"], title = "Resultados en el dataset de test")
+    print("")
+    wait_for_user_input()
 
     # Calculamos la regresion lineal con Minibatch Stochastic Gradient Descent
     # Calculamos tambien el error cometido para mostrar todos los resultados de golpe
@@ -923,11 +964,15 @@ def ejercicio2_apartado1():
     error_out_sample = clasiffication_error(X_test, Y_test, weights)
     mean_square_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
     mean_square_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
+    porcentual_error_in_sample = clasiffication_mean_square_error(X, Y, weights)
+    porcentual_error_out_sample = clasiffication_mean_square_error(X_test, Y_test, weights)
     print(f"\tLos pesos obtenidos son: {weights}")
     print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
     print(f"\tEl error de clasificacion fuera de la muestra Eout es: {error_out_sample}")
     print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
     print(f"\tEl error cuadratico medio fuera de la muestra Eout es: {mean_square_error_out_sample}")
+    print(f"\tEl error porcentual en la muestra Ein es: {porcentual_error_in_sample}%")
+    print(f"\tEl error porcentual fuera de la muestra Eout es: {porcentual_error_out_sample}%")
     print("")
     wait_for_user_input()
 
