@@ -535,10 +535,11 @@ def gradient_descent_and_plot_error(starting_point, loss_function, gradient, lea
     # Por si necesitamos realizar otras operaciones con los resultados
     return weights, iterations, error_at_iteration, solution_at_iteration
 
-# TODO -- se puede hacer directamente con numpy.pinv
 def pseudo_inverse(data_matrix, label_vector):
     """
     Calcula los pesos de la regresion lineal a partir del algoritmo de la pseudo inversa
+
+    Se puede hacer con numpy.pinv pero lo he dejado asi porque no me da fallos
 
     Parameters:
     ===========
@@ -558,8 +559,6 @@ def pseudo_inverse(data_matrix, label_vector):
 
     return np.matmul(np.linalg.inv(np.matmul(X.T, X)), np.matmul(X.T, Y))
 
-# TODO -- lanza muchos errores de overflow
-# TODO -- Multiplicar por 2 / batch_size, porque esto puede provocar el overflow
 def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: float = 0.001, batch_size: int = 1, max_minibatch_iterations: int = 200, target_error: float = None, verbose: bool = False):
     """
     Implementa el algoritmo de Stochastic Gradient Descent
@@ -1439,7 +1438,6 @@ def ejercicio2():
 
     print("Apartado 1)")
     print("=" * 80)
-    # TODO -- descomentar para que se ejecute todo el codigo
     ejercicio2_apartado1()
     print("")
 
@@ -1451,6 +1449,5 @@ def ejercicio2():
 # Corremos todos los ejercicios
 #===============================================================================
 if __name__ == "__main__":
-    # TODO -- descomentar para que se ejecute todo el codigo
-        #ejercicio1()
-        ejercicio2()
+    ejercicio1()
+    ejercicio2()
