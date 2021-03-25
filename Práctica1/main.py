@@ -311,12 +311,9 @@ def plot_classification_predictions(data, labels, weights, feature_names, title:
     lineal = get_lineal(weights)
 
     # Predicciones sobre el conjunto de datos
-    # La columna primera la obviamos, porque es una columna de unos para representar
-    # el sumando del termino independiente, que no es pasado a la funcion de
-    # clasificacion lineal
     # Solo me quedo con el signo, porque no me interesa saber el grado en el que
     # acierto o fallo, solo si acierto o fallo
-    predictions = [np.sign(lineal(x[1], x[2])) for x in data]
+    predictions = [np.sign(lineal(x)) for x in data]
 
     # Serapo los indices en indices de puntos que hemos predicho correctamente
     # e indices de puntos mal predichos
@@ -738,20 +735,12 @@ def approx_gradient(data, labels, weights):
     # de las soluciones, no filas que nos indican el numero de datos)
     gradient = np.zeros((1, np.shape(data)[1]))
 
-    # Si los pesos tienen shape(1, n), nos da problemas, asi que en ese caso
-    # nos quedamos con la primera fila de una matriz de una unica fila para que
-    # la funcion get_lineal funcione sin problemas
-    if(len(np.shape(weights)) == 2):
-        weights = weights[0]
-
     # Funcion lineal que representan los pesos dados
     lineal = get_lineal(weights)
 
     # Aproximamos el gradiente linealmente con la formula dada en las transparencias
     for value, label in zip(data, labels):
-        # De nuevo, obviamos la columna de unos de la matriz de datos para representar
-        # el sumando del termino independiente
-        curr_err = value * (lineal(value[1], value[2]) - label)
+        curr_err = value * (lineal(value) - label)
         gradient = gradient + curr_err
 
     return gradient * (2 / len(data))
@@ -935,23 +924,24 @@ def ejercicio1():
 def get_clasifficator(weights):
     """
     Dados los pesos de un modelo lineal, devuelve la funcion que clasifica linealmente
-    Se invoca con dos valores unicamente, no hace falta pasar el valor 1 para el
-    termino independiente (hay que tener cuidad con las matrices de datos que
-    incluyen una primera columna de unos para representar el sumando del
-    termino independiente)
+    Pasar la matriz de datos adecuada a la funcion que se devuelve segun el vector
+    de representancion que se este usando. En la mayoria de casos el vector
+    de representacion es (1, x1, x2), pero en el ultimo ejercicio se usa el vector
+    (1, x1, x2, x1 * x2, x1**2, x2**2)
     """
-    return lambda intensity, simetry: np.sign(weights[0] + weights[1] * intensity + weights[2] * simetry)
+    return lambda X: np.sign(np.dot(X, weights))
 
-# TODO -- sustituir por np.dot(X, weights)
 def get_lineal(weights):
     """
     Dados los pesos de un modelo lineal, devuelve la funcion lineal que se esta representando
-    Se invoca con dos valores unicamente, no hace falta pasar el valor 1 para el
-    termino independiente (hay que tener cuidad con las matrices de datos que
-    incluyen una primera columna de unos para representar el sumando del
-    termino independiente)
+    Pasar la matriz de datos adecuada a la funcion que se devuelve segun el vector
+    de representancion que se este usando. En la mayoria de casos el vector
+    de representacion es (1, x1, x2), pero en el ultimo ejercicio se usa el vector
+    (1, x1, x2, x1 * x2, x1**2, x2**2)
     """
-    return lambda intensity, simetry: weights[0] + weights[1] * intensity + weights[2] * simetry
+
+    # X es la matriz de datos sobre la que hacemos una prediccion
+    return lambda X: np.dot(X, weights.T)
 
 def clasiffication_error(data, labels, weights):
     """
@@ -975,11 +965,8 @@ def clasiffication_error(data, labels, weights):
     # Recorremos sobre los datos de entrada y las etiquetas reales de esos datos
     error = 0
     for (current_input, current_label) in zip(data, labels):
-        # Nos saltamos data[0] porque la funcion lineal no toma como parametro
-        # el 1 que esta en la primera columna de la matriz data para multiplicarlo
-        # por weights[0], por tanto no lo tenemos que pasar para producir resultados
-        # correctos
-        error += max(0, -current_label * lineal(current_input[1], current_input[2]))
+        error += max(0, -current_label * lineal(current_input))
+
     return error
 
 def clasiffication_mean_square_error(data, labels, weights):
@@ -1003,11 +990,8 @@ def clasiffication_mean_square_error(data, labels, weights):
     # Recorremos sobre los datos de entrada y las etiquetas reales de esos datos
     error = 0
     for (current_input, current_label) in zip(data, labels):
-        # Nos saltamos data[0] porque la funcion lineal no toma como parametro
-        # el 1 que esta en la primera columna de la matriz data para multiplicarlo
-        # por weights[0], por tanto no lo tenemos que pasar para producir resultados
-        # correctos
-        error += (current_label - lineal(current_input[1], current_input[2]))**2
+        error += (current_label - lineal(current_input))**2
+
     return error / len(labels)
 
 def classification_porcentual_error(data, labels, weights):
@@ -1036,7 +1020,7 @@ def classification_porcentual_error(data, labels, weights):
         # el 1 que esta en la primera columna de la matriz data para multiplicarlo
         # por weights[0], por tanto no lo tenemos que pasar para producir resultados
         # correctos
-        prediction = np.sign(lineal(current_input[1], current_input[2]))
+        prediction = np.sign(lineal(current_input))
 
         # Hemos fallado en esta prediccion
         if prediction != current_label:
@@ -1329,16 +1313,16 @@ def experiment_non_linear(iterations: int = 1000):
         # Aplicamos la misma modificacion a la matriz de testing
         number_of_rows = int(np.shape(test_data)[0])
         new_column = np.ones(number_of_rows)
-        test_data = np.insert(test_data, 0, new_column, atest_datais = 1)
+        test_data = np.insert(test_data, 0, new_column, axis = 1)
 
         third_col = test_data[:, 1] * test_data[:, 2]
-        test_data = np.insert(test_data, 3, third_col, atest_datais = 1)
+        test_data = np.insert(test_data, 3, third_col, axis = 1)
 
         fourth_col = test_data[:, 1] * test_data[:, 1]
-        test_data = np.insert(test_data, 4, fourth_col, atest_datais = 1)
+        test_data = np.insert(test_data, 4, fourth_col, axis = 1)
 
         last_col = test_data[:, 2] * test_data[:, 2]
-        test_data = np.insert(test_data, 5, last_col, atest_datais = 1)
+        test_data = np.insert(test_data, 5, last_col, axis = 1)
 
         # Ceros con el numero de columnas de nuestra matriz de datos
         starting_solution = np.zeros(np.shape(X)[1])
@@ -1364,78 +1348,78 @@ def experiment_non_linear(iterations: int = 1000):
 
 
 def ejercicio2_apartado2():
-    # # Generamos la muestra de entrenamiento de 1000 puntos en el cuadrado [-1, 1] x [-1, 1]
-    # print("Generando la muestra de datos de entrenamiento y mostrando su gracica")
-    # X = simula_unif(1000, 2, 1)
+    # Generamos la muestra de entrenamiento de 1000 puntos en el cuadrado [-1, 1] x [-1, 1]
+    print("Generando la muestra de datos de entrenamiento y mostrando su gracica")
+    X = simula_unif(1000, 2, 1)
 
-    # # Separo las coordedas x1 de las coordenadas x2 (o equivalentemente (x, y))
-    # scatter_plot(X[:, 0], X[:, 1], title = "Datos generados aleatoriamente")
+    # Separo las coordedas x1 de las coordenadas x2 (o equivalentemente (x, y))
+    scatter_plot(X[:, 0], X[:, 1], title = "Datos generados aleatoriamente")
 
-    # # Etiquetamos los puntos tal y como se indica en el guion de practicas
-    # # Una vez etiquetados, mostramos los puntos ya etiquetados, usando colores
-    # # ignore_first_column porque en este caso no trabajamos con una matriz de datos
-    # # con la primera columna de unos para representar el sumando del termino independiente,
-    # # como si pasa con otras matrices de la practica
-    # labels = generate_labels_for_simula_unif(X)
-    # print("Mostrando etiquetado de los datos previamente generados")
-    # scatter_plot_with_classes(X, labels, ["Puntos positivos", "Puntos negativos"],  ["Valor en X", "Valor en Y"], title = "Etiquetado de los datos generados", ignore_first_column = False)
-    # print("")
+    # Etiquetamos los puntos tal y como se indica en el guion de practicas
+    # Una vez etiquetados, mostramos los puntos ya etiquetados, usando colores
+    # ignore_first_column porque en este caso no trabajamos con una matriz de datos
+    # con la primera columna de unos para representar el sumando del termino independiente,
+    # como si pasa con otras matrices de la practica
+    labels = generate_labels_for_simula_unif(X)
+    print("Mostrando etiquetado de los datos previamente generados")
+    scatter_plot_with_classes(X, labels, ["Puntos positivos", "Puntos negativos"],  ["Valor en X", "Valor en Y"], title = "Etiquetado de los datos generados", ignore_first_column = False)
+    print("")
 
-    # # Clasificamos estos datos usando regresion lineal, como en el anterior apartado
-    # # Para ello, necesitamos que la matriz de datos contenga una primera columna
-    # # de unos para representar que estamos usando el vector de caracteristicas
-    # # (1, x1, x2) (termino independiente en los sumandos de las ecuaciones lineales)
+    # Clasificamos estos datos usando regresion lineal, como en el anterior apartado
+    # Para ello, necesitamos que la matriz de datos contenga una primera columna
+    # de unos para representar que estamos usando el vector de caracteristicas
+    # (1, x1, x2) (termino independiente en los sumandos de las ecuaciones lineales)
 
-    # # Añadimos la columna de unos
-    # number_of_rows = int(np.shape(X)[0])
-    # new_column = np.ones(number_of_rows)
-    # X = np.insert(X, 0, new_column, axis = 1)
+    # Añadimos la columna de unos
+    number_of_rows = int(np.shape(X)[0])
+    new_column = np.ones(number_of_rows)
+    X = np.insert(X, 0, new_column, axis = 1)
 
 
-    # # Lanzamos minibatch stochastic gradient descent
-    # # Usamos los parametros del ejercicio anterior porque nos han funcionado muy bien
-    # batch_size = 32
-    # max_minibatch_iterations = 200
-    # learning_rate = 0.01
+    # Lanzamos minibatch stochastic gradient descent
+    # Usamos los parametros del ejercicio anterior porque nos han funcionado muy bien
+    batch_size = 32
+    max_minibatch_iterations = 200
+    learning_rate = 0.01
 
-    # # Ceros con el numero de columnas de nuestra matriz de datos
-    # starting_solution = np.zeros(np.shape(X)[1])
+    # Ceros con el numero de columnas de nuestra matriz de datos
+    starting_solution = np.zeros(np.shape(X)[1])
 
-    # # Ejecutamos el algoritmo y calculamos el error in sample (no tenemos muestra
-    # # de datos de testing)
-    # print("Lanzando Stochastic Gradient Descent")
-    # weights, error_at_epoch, error_at_minibatch = stochastic_gradient_descent(X, labels, starting_solution, learning_rate, batch_size, max_minibatch_iterations, verbose = True)
-    # error_in_sample = clasiffication_error(X, labels, weights)
-    # mean_square_error_in_sample = clasiffication_mean_square_error(X, labels, weights)
-    # porcentual_error_in_sample = classification_porcentual_error(X, labels, weights)
-    # print(f"\tLos pesos obtenidos son: {weights}")
-    # print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
-    # print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
-    # print(f"\tEl error porcentual en la muestra Ein es: {porcentual_error_in_sample}%")
-    # print("")
-    # wait_for_user_input()
+    # Ejecutamos el algoritmo y calculamos el error in sample (no tenemos muestra
+    # de datos de testing)
+    print("Lanzando Stochastic Gradient Descent")
+    weights, error_at_epoch, error_at_minibatch = stochastic_gradient_descent(X, labels, starting_solution, learning_rate, batch_size, max_minibatch_iterations, verbose = True)
+    error_in_sample = clasiffication_error(X, labels, weights)
+    mean_square_error_in_sample = clasiffication_mean_square_error(X, labels, weights)
+    porcentual_error_in_sample = classification_porcentual_error(X, labels, weights)
+    print(f"\tLos pesos obtenidos son: {weights}")
+    print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
+    print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
+    print(f"\tEl error porcentual en la muestra Ein es: {porcentual_error_in_sample}%")
+    print("")
+    wait_for_user_input()
 
-    # # Mostramos la evolucion del error
-    # print("Mostrando la evolucion del error por iteracion en minibatch")
-    # plot_error_evolution(error_at_minibatch, title = "Error por cada iteracion sobre el minibatch", x_label = "Error por iteracion de minibatch")
-    # print("")
+    # Mostramos la evolucion del error
+    print("Mostrando la evolucion del error por iteracion en minibatch")
+    plot_error_evolution(error_at_minibatch, title = "Error por cada iteracion sobre el minibatch", x_label = "Error por iteracion de minibatch")
+    print("")
 
-    # # Mostramos los puntos en los que falla el clasificador
-    # print("Mostrando los puntos en los que falla el clasificador entrenado")
-    # plot_classification_predictions(X, labels, weights, feature_names = ["Valor de X", "Valor de Y"], title = "Puntos en los que fallamos en la prediccion")
+    # Mostramos los puntos en los que falla el clasificador
+    print("Mostrando los puntos en los que falla el clasificador entrenado")
+    plot_classification_predictions(X, labels, weights, feature_names = ["Valor de X", "Valor de Y"], title = "Puntos en los que fallamos en la prediccion")
 
-    # # Ahora realizamos el experimento 1000 veces, como se indica en el guion,
-    # # simulando datos en cada iteracion, tanto de training como de test
-    # print("Lanzamos el experimento 1000 veces, usando el vector de caracteristicas (1, x1, x2)")
-    # mean_perc_error_in_sample, mean_perc_error_out_sample, mean_mean_square_error_in_sample, mean_mean_square_error_out_sample = experiment_linear(1000)
+    # Ahora realizamos el experimento 1000 veces, como se indica en el guion,
+    # simulando datos en cada iteracion, tanto de training como de test
+    print("Lanzamos el experimento 1000 veces, usando el vector de caracteristicas (1, x1, x2)")
+    mean_perc_error_in_sample, mean_perc_error_out_sample, mean_mean_square_error_in_sample, mean_mean_square_error_out_sample = experiment_linear(1000)
 
-    # print("Los valores medios de los errores del experimento tras 1000 iteraciones son:")
-    # print(f"\tError medio porcentual DENTRO de la muestra: {mean_perc_error_in_sample}%")
-    # print(f"\tError medio porcentual FUERA de la muestra: {mean_perc_error_out_sample}%")
-    # print(f"\tError medio cuadratico medio DENTRO de la muestra: {mean_mean_square_error_in_sample}")
-    # print(f"\tError medio cuadratico medio FUERA de la muestra: {mean_mean_square_error_out_sample}")
-    # print("")
-    # wait_for_user_input()
+    print("Los valores medios de los errores del experimento tras 1000 iteraciones son:")
+    print(f"\tError medio porcentual DENTRO de la muestra: {mean_perc_error_in_sample}%")
+    print(f"\tError medio porcentual FUERA de la muestra: {mean_perc_error_out_sample}%")
+    print(f"\tError medio cuadratico medio DENTRO de la muestra: {mean_mean_square_error_in_sample}")
+    print(f"\tError medio cuadratico medio FUERA de la muestra: {mean_mean_square_error_out_sample}")
+    print("")
+    wait_for_user_input()
 
     # Ahora realizamos el mismo experimento pero con un vector de caracteristicas
     # no lineal, como se indica en el guion de practicas
@@ -1456,7 +1440,7 @@ def ejercicio2():
     print("Apartado 1)")
     print("=" * 80)
     # TODO -- descomentar para que se ejecute todo el codigo
-    # ejercicio2_apartado1()
+    ejercicio2_apartado1()
     print("")
 
     print("Apartado 2)")
@@ -1468,5 +1452,5 @@ def ejercicio2():
 #===============================================================================
 if __name__ == "__main__":
     # TODO -- descomentar para que se ejecute todo el codigo
-    #ejercicio1()
-    ejercicio2()
+        #ejercicio1()
+        ejercicio2()
