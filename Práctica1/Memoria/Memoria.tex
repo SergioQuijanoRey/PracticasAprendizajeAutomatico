@@ -1,7 +1,8 @@
 \documentclass[11pt]{article}
 
 % TODO
-% Aumentar la separación entre párrafos
+% [ ] Aumentar la separación entre párrafos
+% [ ] Añadir algunas bases matematicas de lo que estamos haciendo
 
 % Paquetes
 %===============================================================================
@@ -117,5 +118,63 @@ La gráfica del error para los parámetros que se nos han indicado en ~\ref{secc
 \subsection{Apartado 3}
 
 Se considera ahora la función:
+
+\begin{displaymath}
+    f(x,y) := (x+2)^2 + 2(y-2)^2 + 2 sin(2\pi x) sin(2 \pi y)
+\end{displaymath}
+
+Como vamos a usar la técnica del gradiente descendente, necesitamos calcular analíticamente la expresión del gradiente:
+
+\begin{displaymath}
+    \frac{\partial f(x,y)}{\partial x} = 2(x+2) + 4 \pi sin(2 \pi y) cos(2 \pi x)
+\end{displaymath}
+\begin{displaymath}
+    \frac{\partial f(x,y)}{\partial y} = 4(y - 2) + 4 \pi sin(2 \pi x) cos(2 \pi y)
+\end{displaymath}
+\begin{displaymath}
+    \nabla f(x, y) = (\frac{\partial f(x,y)}{\partial x}, \frac{\partial f(x,y)}{\partial y})
+\end{displaymath}
+
+\subsubsection{Apartado a}
+
+Se nos pide usar gradiente descendiente para minimizar la función de error $f$. Además, se nos pide que usemos como parámetros del gradiente descendente:
+
+\begin{itemize}
+    \item $\eta = 0.01$
+    \item $x_0 = -1, y_0 = 1$
+    \item Máximo 50 iteraciones
+\end{itemize}
+
+Y que repitamos el experimento con un valor de $\eta = 0.1$.
+
+Lo primero que hacemos es mostrar una gráfica en dos dimensiones de la función de error que queremos minimizar:
+
+\includegraphics[scale=0.65]{FuncionErrorEjercicio1Apartado3}
+
+Realizando gradiente descendente con los primeros parametros dados obtenemos la siguiente gráfica, en la que se muestra cómo evoluciona el valor del error según avanzan las iteraciones del algoritmo.
+
+\includegraphics[scale=0.65]{EvolucionError02}
+
+Mostramos, aunque no se nos pida en el guión, la traza del algritmo (soluciones plasmadas sobre la gráfica bidimensiona del error):
+
+\includegraphics[scale=0.65]{EvolucionSoluciones02}
+
+En esta gráfica se puede apreciar con facilidad que el algoritmo tiene el comportamiento deseado, pues cae con facilidad en un óptimo local.
+
+Ahora realizamos el mismo proceso pero cambiando a $\eta = 0.1$. Obtenemos la siguiente gráfica de evolución del errolución del error:
+
+\includegraphics[scale=0.65]{EvolucionError03}
+
+De esta gráfica ya podemos ver que el comportamiento del algoritmo no es el deseado. Lo que esperaríamos es que el error disminuyese monótamente en cada iteración. Sin embargo, lo que nos encontramos es con que el error oscila con grandes saltos. De lo estudiado en teoría, sabemos que el motivo sea seguramente un valor de $\eta$ demasiado grande. COn esto, cuando estamos cerca de una solución local, damos un salto muy grande en cierta dirección, saltando el óptimo local y yendo a una zona de alto error. Del mismo modo, de un salto desde una zona de alto error podemos acabar en una zona de muy bajo error. Es claro que este comportamiento errático no es deseable. Mostramos la traza de las soluciones en cada iteración para reforzar esta hipótesis sobre el mal comportamiento:
+
+\includegraphics[scale=0.65]{EvolucionSoluciones03}
+
+Con este gráfico, vemos que en la última iteración (del gráfico de evolución de error se deduce ya que se han consumido el total de iteraciones) hemos acabado, por buena suerte, en una buena zona de la función del error.
+
+Con este ejemplo, podemos ver que es importante explorar con distintos valores de $\eta$, pues estos influyen mucho en el buen o mal comportamento del gradiente descendiente. Es más, ya podemos intuir que un ajuste dinámico del valor de $\eta$ puede ser muy interesante, pues como hemos visto en teoría, nos interesa avanzar con \emph{"pasos de gigante"} al principio con un $\eta$ grande, y disminuir el valor de $\eta$ al acercarnos a un óptimo local para tener más precisión en las iteraciones.
+
+En estos dos ejemplos no muestro los valores numéricos de las soluciones obtenidas ni del error alcanzado. Considero que es mucho más interesante e informativo visualizar las gráficas, tanto del error como de la traza, pues estamos estudiando el comportamiento del algoritmo, no una solución concreta que no nos interesa al no ser un problema que realmente queramos resolver.
+
+\subsubsection{Apartado b}
 
 \end{document}
