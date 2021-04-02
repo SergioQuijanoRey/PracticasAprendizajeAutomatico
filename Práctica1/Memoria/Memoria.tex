@@ -1,0 +1,110 @@
+\documentclass[11pt]{article}
+
+% Paquetes
+%===============================================================================
+
+% Paquete para incluir imagenes
+\usepackage{graphicx}
+\graphicspath{ {./Imagenes/} }
+
+% Metadatos del documento
+\title{Práctica 1 - Memoria}
+\author{Sergio Quijano Rey}
+\date{\today}
+
+\begin{document}
+
+% Portada del documento
+\maketitle
+\pagebreak
+
+% Indice de contenidos
+\tableofcontents
+\pagebreak
+
+% Primer ejercicio
+\section{Ejercicio 1 - Búsqueda iterativa de óptimos}
+
+% Apartado 1
+\subsection{Apartado 1}
+
+En este apartado se nos pide implementar el algoritmo de Grandiente Descendente. Esta función toma como parámetros de entrada:
+
+\begin{itemize}
+    \item starting\_point: punto inicial del que parte la búsqueda
+    \item loss\_function: función de error que buscamos minimizar. En nuestro caso concreto, es una función real de dos variables
+    \item gradient: función vectorial 2-dimensional que representa el gradiente de loss\_function
+    \item learning\_rate: la tasa de aprendizaje. Es el parámetro crítico, pues en esta sección nos centramos en estudiar el comportamiento del gradiente descendente en base a este parámetro (y también del starting\_point)
+    \item max\_iterations: número máximo de iteraciones. Así tenemos una condición sufiente para saber que el algoritmo va a parar
+    \item target\_error: error debajo del cual paramos de iterar
+    \item verbose: si es True, la función devuelve el error de cada solución de las iteraciones
+\end{itemize}
+
+Esta función devuelve el vector de soluciones que hemos ido construyendo. Si queremos obtener la solución final, lo único que tenemos que hacer es acceder a la última posición. Así podemos generar las gráficas en las que plasmamos tanto la función de error como los puntos que vamos construyendo. También, si tenemos activado el parámetro Verbose, devolvemos el error en cada iteración, lo que es necesario para hacer las gráficas de evolución de error que se nos piden.
+
+\subsection{Apartado 2}
+\label{seccion:Apartado2}
+
+Consideramos la función de error dada por:
+
+\begin{displaymath}
+    E(u, v) := (u^3 * e^{v-2} - 2v^2 e^{-u})^2
+\end{displaymath}
+
+Usar gradiente descendente para encontrar un mínimo de esta función, comenzando desde el punto $(u, v) = (1, 1)$ y
+usando una tasa de aprendizaje $\eta = 0,1$.
+
+Podemos mostrar la función de error en una vista de pájaro (la vista tridimensional solo será necesaria en casos en los que la vista de pájaro no sea suficiente). Preferimos esta vista bidimensional porque es más rápida de computar y en muchos casos más fácil de interpretar.
+
+\includegraphics[scale=0.75]{FuncionErrorEjercicio1}
+
+Los colores más azulados y oscuros indican los valores más bajos del error, mientras que valores verdosos y claros indican valores altos del error (la leyenda de la gráfica ya indica esto). Así que nuestros puntos deberán ir acercándose a zonas oscuras de la gráfica, si el comportamiento de los algoritmos es bueno.
+
+
+\subsubsection{Subapartado a}
+
+Calculamos analíticamente la expresión de las derivadas parciales:
+
+\begin{displaymath}
+    \frac{\partial E}{\partial u} = 2 * (u^3 * e^{v-2} - 2v^2 e^{-u}) * (3u^2 e^{v-2} + 2v^2 e^{-u}) \\
+\end{displaymath}
+\begin{displaymath}
+    \frac{\partial E}{\partial v} = 2 * (u^3 * e^{v-2} - 2v^2 e^{-u}) * (u^3 * e^{v-2} - 4v e^{-u})  \\
+\end{displaymath}
+\begin{displaymath}
+    \nabla E = (\frac{\partial E}{\partial u}, \frac{\partial E}{\partial v})
+\end{displaymath}
+
+Esta es la expresión del gradiente que usamos en el código. Expresión que mostramos por pantalla, como se indica en el guión de la práctica.
+
+\subsubsection{Subapartados b y c}
+
+Como se muestra en el código, solo necesitamos 10 iteraciones para quedarnos por debajo de un error (o valor de $E(u, v)$, que es lo que estamos considerando como función de error a minimizar) de valor $10^{-14}$. En el código indicamos que la primera iteración por debajo del error es la iteración 9, pero hay que tener en cuenta que empezamos a contar desde el cero.
+
+Los resultados que mostramos por pantalla nos indican que alcanzamos la solución:
+
+\begin{code}
+Numero de iteraciones: 10
+Pesos encontrados: [1.15728885 0.91083837]
+\end{code}
+
+Estos son los resultados vinculados a la onceava iteración (recordar que empezamos a contar desde el cero). Los resultados asociados a la décima iteración, en los que ya estamos por debajo del error buscado, son:
+
+\begin{code}
+La primera iteracion en la que el error esta por debajo de 10e-14 es: 9 (contando desde cero)
+Las primeras coordenadas que estan por debajo de ese error: [1.15728875 0.9108384 ]
+\end{code}
+
+Todo esto se muestra en las salidas por pantalla de nuestro programa. Además, podemos mostrar cómo avanzan nuestras soluciones sobre la superficie que representa la función de error:
+
+\includegraphics[scale=0.75]{EvolucionSoluciones01}
+
+El punto con una cruz blanca es el punto inicial. El punto con una cruz negra es el punto final de la búsqueda. En este caso podríamos seguir avanzando con la búsqueda, pero decidimos parar porque estamos por debajo de la cota de error pedida.
+
+Se manda explícitamente que usemos flotantes de 64bits, para lo cual usamos la orden np.float64 para devolver todas nuestras funciones que representan los errores y las derivadas parciales.
+
+La gráfica del error para los parámetros que se nos han indicado en ~\ref{seccion:Apartado2} es la siguiente:
+
+\includegraphics[scale=0.75]{EvolucionError01}
+
+\end{document}
