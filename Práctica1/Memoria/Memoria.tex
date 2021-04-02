@@ -1,11 +1,18 @@
 \documentclass[11pt]{article}
 
+% TODO
+% Aumentar la separación entre párrafos
+
 % Paquetes
 %===============================================================================
 
 % Paquete para incluir imagenes
 \usepackage{graphicx}
 \graphicspath{ {./Imagenes/} }
+
+% Paquete para incluir trozos de codigo
+\usepackage{listings}
+
 
 % Metadatos del documento
 \title{Práctica 1 - Memoria}
@@ -31,13 +38,13 @@
 En este apartado se nos pide implementar el algoritmo de Grandiente Descendente. Esta función toma como parámetros de entrada:
 
 \begin{itemize}
-    \item starting\_point: punto inicial del que parte la búsqueda
-    \item loss\_function: función de error que buscamos minimizar. En nuestro caso concreto, es una función real de dos variables
-    \item gradient: función vectorial 2-dimensional que representa el gradiente de loss\_function
-    \item learning\_rate: la tasa de aprendizaje. Es el parámetro crítico, pues en esta sección nos centramos en estudiar el comportamiento del gradiente descendente en base a este parámetro (y también del starting\_point)
-    \item max\_iterations: número máximo de iteraciones. Así tenemos una condición sufiente para saber que el algoritmo va a parar
-    \item target\_error: error debajo del cual paramos de iterar
-    \item verbose: si es True, la función devuelve el error de cada solución de las iteraciones
+    \item \lstinline{starting_point}: punto inicial del que parte la búsqueda
+    \item \lstinline{loss_function}: función de error que buscamos minimizar. En nuestro caso concreto, es una función real de dos variables
+    \item \lstinline{gradient}: función vectorial 2-dimensional que representa el gradiente de \lstinline{loss_function}
+    \item \lstinline{learning_rate}: la tasa de aprendizaje. Es el parámetro crítico, pues en esta sección nos centramos en estudiar el comportamiento del gradiente descendente en base a este parámetro (y también del starting\_point)
+    \item \lstinline{max_iterations}: número máximo de iteraciones. Así tenemos una condición sufiente para saber que el algoritmo va a parar
+    \item \lstinline{target_error}: error debajo del cual paramos de iterar
+    \item \lstinline{verbose}: si es \lstinline{True}, la función devuelve el error de cada solución de las iteraciones
 \end{itemize}
 
 Esta función devuelve el vector de soluciones que hemos ido construyendo. Si queremos obtener la solución final, lo único que tenemos que hacer es acceder a la última posición. Así podemos generar las gráficas en las que plasmamos tanto la función de error como los puntos que vamos construyendo. También, si tenemos activado el parámetro Verbose, devolvemos el error en cada iteración, lo que es necesario para hacer las gráficas de evolución de error que se nos piden.
@@ -79,32 +86,36 @@ Esta es la expresión del gradiente que usamos en el código. Expresión que mos
 
 \subsubsection{Subapartados b y c}
 
+Se manda explícitamente que usemos flotantes de 64 bits, para lo cual usamos la orden \lstinline{np.float64} para devolver todas nuestras funciones que representan los errores y las derivadas parciales.
+
 Como se muestra en el código, solo necesitamos 10 iteraciones para quedarnos por debajo de un error (o valor de $E(u, v)$, que es lo que estamos considerando como función de error a minimizar) de valor $10^{-14}$. En el código indicamos que la primera iteración por debajo del error es la iteración 9, pero hay que tener en cuenta que empezamos a contar desde el cero.
 
 Los resultados que mostramos por pantalla nos indican que alcanzamos la solución:
 
-\begin{code}
+\begin{verbatim}
 Numero de iteraciones: 10
 Pesos encontrados: [1.15728885 0.91083837]
-\end{code}
+\end{verbatim}
 
 Estos son los resultados vinculados a la onceava iteración (recordar que empezamos a contar desde el cero). Los resultados asociados a la décima iteración, en los que ya estamos por debajo del error buscado, son:
 
-\begin{code}
-La primera iteracion en la que el error esta por debajo de 10e-14 es: 9 (contando desde cero)
-Las primeras coordenadas que estan por debajo de ese error: [1.15728875 0.9108384 ]
-\end{code}
+\begin{verbatim}
+Primera iteracion por debajo de 10e-14: 9 (contando desde cero)
+Las primeras coordenadas por debajo del error: [1.15728875 0.9108384 ]
+\end{verbatim}
 
 Todo esto se muestra en las salidas por pantalla de nuestro programa. Además, podemos mostrar cómo avanzan nuestras soluciones sobre la superficie que representa la función de error:
 
 \includegraphics[scale=0.75]{EvolucionSoluciones01}
 
-El punto con una cruz blanca es el punto inicial. El punto con una cruz negra es el punto final de la búsqueda. En este caso podríamos seguir avanzando con la búsqueda, pero decidimos parar porque estamos por debajo de la cota de error pedida.
-
-Se manda explícitamente que usemos flotantes de 64bits, para lo cual usamos la orden np.float64 para devolver todas nuestras funciones que representan los errores y las derivadas parciales.
+El punto con una cruz blanca es el punto inicial. El punto con una cruz negra es el punto final de la búsqueda. Viendo la gráfica de las soluciones generadas es claro que podríamos seguir avanzando con la búsqueda, pero decidimos parar porque estamos por debajo de la cota de error pedida.
 
 La gráfica del error para los parámetros que se nos han indicado en ~\ref{seccion:Apartado2} es la siguiente:
 
 \includegraphics[scale=0.75]{EvolucionError01}
+
+\subsection{Apartado 3}
+
+Se considera ahora la función:
 
 \end{document}
