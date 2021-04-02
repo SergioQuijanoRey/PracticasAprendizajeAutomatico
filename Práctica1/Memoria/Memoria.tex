@@ -177,4 +177,84 @@ En estos dos ejemplos no muestro los valores numéricos de las soluciones obteni
 
 \subsubsection{Apartado b}
 
+Ahora repetiremos el mismo experimento pero tomando distintos valores para las soluciones iniciales. Y en este caso se pide que generemos una tabla con los valores obtenidos. Como no se especifica nada, tomamos $\eta \in {0.01, 0.1}$ y un máximo de 1000 iteraciones. Dejamos la cota de error a \lstinline{None} para que no se hagan comprobaciones de cotas. Además de la tabla, mostraremos las gráficas de la evolución del error y la traza de soluciones en los casos en los que sea interesante comentarlas (no en todas pues resultaría repetitivo).
+
+La tabla con los datos generados es:
+
+\begin{center}
+    \begin{tabular}{| c | c | c | c |}
+        Punto Inicial & Learning Rate $\eta$ & Solución alcanzada & Error Alcanzado \\
+        \hline
+        (-0.5, -0.5) & 0.01 & (-0.7934, -0.1259) & 9.1251\\
+        (-0.5, -0.5) & 0.1 & (-1.1000, 3.4598) & 4.7785 \\
+        (1, 1) & 0.01 & (0.6774, 1.2904) & 6.4375 \\
+        (1, 1) & 0.1 & (-2.3820, 2.0917) & -0.5734 \\
+        (2, 1) & 0.01 & (1.6466, 1.2954) & 12.7624 \\
+        (2, 1) & 0.1 & (-1.8963,  2.1082) & 0.7969 \\
+        (-2,  1) & 0.01 & (-2.2436,  1.2864) & -0.8685 \\
+        (-2,  1) & 0.1 & (-0.8079, 2.0814) & 2.3492 \\
+        (-3,  3) & 0.01 & (-2.7309,  2.7132) & -0.3812 \\
+        (-3,  3) & 0.1 & (-2.1558,  3.0127) & 1.9427 \\
+        (-2,  2) & 0.01 & (-2,  2) & $-4.7992 * 10^{-31}$ \\
+        (-2,  2) & 0.1 & (-1.3420, 0.6155) & 5.3779 \\
+
+
+    \end{tabular}
+
+\end{center}
+
+Esta tabla ha sido obtenida a partir de los datos mostrados por pantalla. El programa no genera está tabla formateada, pero muestra por pantalla todos los valores que esta recoge.
+
+\subsubsection{Comentarios sobre los resultados obtenidos}
+
+Para los primeros valores de la tabla tenemos las siguientes dos gráficas:
+
+\includegraphics[scale=0.5]{EvolucionErrorExperimento01}
+
+\includegraphics[scale=0.5]{EvolucionSolucionesExperimento01}
+
+Vemos que damos un primer salto grande en el descenso del error, pero luego nuestro valor de $\eta$ es demasiado pequeño para converger a un óptimo local. La gráfica en tres dimensiones que generamos no aporta ninguna información de interés.
+
+Para la segunda fila de la tabla, tenemos la siguiente gráfica de evolución del error:
+
+\includegraphics[scale=0.5]{EvolucionErrorExperimento02}
+
+El valor de $\eta$ es demasiado grande, por lo tanto, el error fluctúa tanto. No es un valor apropiado para $\eta$, por lo que hemos comentado en apartados anteriores. Y a pesar de este comportamiento errático, por casualidad, acabamos con un error menor que con el valor apropiado para $\eta$ que aparece en la primera fila de la tabla.
+
+Para la tercera fila de la tabla, parece que nos vuelve a pasar lo mismo que para la primera fila, a vista de las siguientes dos gráficas:
+
+\includegraphics[scale=0.5]{EvolucionErrorExperimento03}
+
+\includegraphics[scale=0.5]{EvolucionSolucionesExperimento03}
+
+Pero si nos fijamos en la siguiente gráfica:
+
+\includegraphics[scale=0.5]{Evolucion3dExperimento03}
+
+Lo que podemos ver es que nos quedamos en una especie de \emph{bache} sobre el terreno. La conclusión es la misma, el valor de $\eta$ tan pequeño nos deja atascado, pero ahora es más claro el motivo. No es que simplemente los 1000 \emph{pasos} que damos sean muy cortos, es que llegamos a un óptimo local que con el pequeño valor de $\eta$ no conseguimos superar.
+
+Para la cuarta fila, con un $\eta = 0.1$, tenemos un valor demasiado grande, lo que produce un comportamiento errático. Y de nuevo, por pura casualidad, alcanzamos un mejor valor de del error que usando un valor de $\eta$ adecuado. No incluyo gráficas pues son muy parecidas a las ya mostradas cuando ocurre esto, para evitar ser repetitivo.
+
+Para la quinta fila, tenemos el mismo comportamiento comentado en el caso en el que las soluciones se quedaban atascadas en un \emph{bache}. Mientras que para la sexta fila volvemos a tener un comportamiento errático, que de nuevo, vuelve a dar mejores resultados por casualidad.
+
+En la séptima fila, vemos como las soluciones convergen correctamente hacia un óptimo local para un valor de $\eta = 0.01$. Mientras que para $\eta = 0.1$, tenemos un comportamiento errático. Esto se muestra con claridad en las siguientes dos gráfica de la traza de las soluciones (en la leyenda se muestran los valores de \emph{eta})
+
+\includegraphics[scale=0.5]{EvolucionSolucionesExperimento07}
+
+\includegraphics[scale=0.5]{EvolucionSolucionesExperimento08}
+
+Además, en este caso, un valor apropiado de $\eta$ consigue mejores resultados que con un valor que produce comportamiento errático.
+
+En la novena fila tenemos un muy buen comportamiento qeu da convergencia hacia un óptimo local (en la gráfica de la traza de la solución que muestra el programa esto se ve claramente. No añado esta gráfica pues ya se ha mostrado una muy parecida, para evitar ser repetitivo). Mientras que en la décima fila ($\eta$ demasiado grande) tenemos el claro caso de comportamiento errático, que en este caso produce peor solución que un adecuado valor de $\eta$.
+
+En la undécima fila tenemos un comportamiento muy curioso. La solución inicial y final coinciden. Esto se ve claramente en las siguientes dos gráficas:
+
+\includegraphics[scale=0.5]{EvolucionErrorExperimento11}
+
+\includegraphics[scale=0.5]{EvolucionSolucionesExperimento11}
+
+Vemos como estamos en el filo de dos \emph{agujeros} a los que nos interesaría caer. Estamos en un equilibrio muy inestable en lo que podría llamarse un punto de silla. En este caso en concreto, queremos que se rompa dicho equilibrio pues nos haría caer en uno de los dos óptimos locales. Notar también, que consumimos las mil iteraciones sin modificar la solución. Esto nos asegura que estamos en un punto de silla, pues el que no se mueva implica que el gradiente es cero. Gradiente nulo en un punto que no es óptimo indica con seguridad que es un punto de silla. Sin embargo, para un valor más grande de $\eta$ nos salimos del equilibrio, pero produciendo un comportamiento errático (como se muestra en la siguiente gráfica) que nos lleva a una peor solución:
+
+\includegraphics[scale=0.5]{EvolucionSolucionesExperimento12}
+
 \end{document}
