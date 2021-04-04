@@ -617,7 +617,7 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
             minibatch_labels = labels[mini_batches_indixes]
 
             # Calculo la aproximacion al gradiente con estos datos
-            minibatch_approx_gradient = approx_gradient(minibatch_data, minibatch_labels, current_solution)
+            minibatch_approx_gradient = calculate_gradient_from_data(minibatch_data, minibatch_labels, current_solution)
 
             # Actualizo la solucion con este minibatch
             current_solution = current_solution - learning_rate * minibatch_approx_gradient
@@ -715,12 +715,10 @@ def get_minibatches(data, batch_size: int):
 
     return np.array(grouped_indixes)
 
-# TODO -- mal nombre. No estamos aproximando el gradiente, estamos calculando
-# la expresion del gradiente a partir de operar con el error cuadratico medio
-def approx_gradient(data, labels, weights):
+def calculate_gradient_from_data(data, labels, weights):
     """
-    TODO -- no estamos aproximando, estamos usando la expresion numerica
-    Aproximamos el valor del gradiente con datos
+    Calculamos el valor del gradiente a partir de los datos etiquetados y los
+    pesos que representan la solucion actual que predice los valores
 
     Parameters:
     ===========
@@ -749,13 +747,15 @@ def approx_gradient(data, labels, weights):
 def ejercicio1_apartado2():
     # Definimos la funcion de coste
     # Me quedo con el cuerpo del cuadrado porque lo usaremos en las derivadas parciales
-    inside = lambda u, v: np.power(u, 3) * np.exp(v - 2) - 2.0 * np.power(v, 2) * np.exp(-u)
-    E = lambda u, v: np.power(inside(u, v), 2)
+    # Usamos np.float64 para forzar el uso de flotantes de 64 bits
+    inside = lambda u, v: np.float64(np.power(u, 3) * np.exp(v - 2) - 2.0 * np.power(v, 2) * np.exp(-u))
+    E = lambda u, v: np.float64(np.power(inside(u, v), 2))
 
     # Derivadas parciales, cuya expresion hemos calculado a mano y cuyo procedimiento
     # esta reflejado en el documento
-    dEu = lambda u, v: 2 * inside(u, v) * (3 * np.power(u, 2) * np.exp(v - 2) + 2 * np.power(v, 2) * np.exp(-u))
-    dEv = lambda u, v: 2 * inside(u, v) * (np.power(u, 3) * np.exp(v - 2) - 4 * v * np.exp(-u))
+    # De nuevo, usamos np.float64 para forzar el uso de flotantes de 64 bits
+    dEu = lambda u, v: np.float64(2 * inside(u, v) * (3 * np.power(u, 2) * np.exp(v - 2) + 2 * np.power(v, 2) * np.exp(-u)))
+    dEv = lambda u, v: np.float64(2 * inside(u, v) * (np.power(u, 3) * np.exp(v - 2) - 4 * v * np.exp(-u)))
 
     # Gradiente de la funcion de coste
     gradient = lambda u, v: np.array([dEu(u, v), dEv(u, v)])
@@ -854,10 +854,9 @@ def ejercicio1_apartado3():
 
     # Como no se especifica nada en el enunciado del ejercicio, establezco el
     # learning rate, el numero maximo de iteraciones y el target_error
-    # TODO -- deberia poner el target error a None??
     learning_rates = [0.01, 0.1]
-    max_iterations = 10_000
-    target_error = 1e-20
+    max_iterations = 1000
+    target_error = None
 
     # Muestro explicitamente que estos valores los he fijado yo al no tener indicaciones
     print("Fijo los siguientes parametros para el gradiente descendente:")
@@ -1445,6 +1444,9 @@ def ejercicio2():
     print("=" * 80)
     ejercicio2_apartado2()
 
+
+# Ejercicio Bonus
+#===============================================================================
 
 # Corremos todos los ejercicios
 #===============================================================================
