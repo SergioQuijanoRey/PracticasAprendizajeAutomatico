@@ -3,6 +3,7 @@
 % TODO
 % [ ] Aumentar la separación entre párrafos
 % [ ] Añadir algunas bases matematicas de lo que estamos haciendo
+% [ ] Mirar el vídeo sobre la práctica para mirar si hay que añadir el codigo en la memoria
 
 % Paquetes
 %===============================================================================
@@ -16,9 +17,17 @@
 
 
 % Metadatos del documento
+%===============================================================================
 \title{Práctica 1 - Memoria}
 \author{Sergio Quijano Rey}
 \date{\today}
+
+% Separacion entre parrafos
+\setlength{\parskip}{1em}
+
+
+% Contenidos del documento
+%===============================================================================
 
 \begin{document}
 
@@ -135,7 +144,7 @@ Como vamos a usar la técnica del gradiente descendente, necesitamos calcular an
     \nabla f(x, y) = (\frac{\partial f(x,y)}{\partial x}, \frac{\partial f(x,y)}{\partial y})
 \end{displaymath}
 
-\subsubsection{Apartado a}
+\subsubsection{Subapartado a}
 
 Se nos pide usar gradiente descendiente para minimizar la función de error $f$. Además, se nos pide que usemos como parámetros del gradiente descendente:
 
@@ -175,7 +184,7 @@ Con este ejemplo, podemos ver que es importante explorar con distintos valores d
 
 En estos dos ejemplos no muestro los valores numéricos de las soluciones obtenidas ni del error alcanzado. Considero que es mucho más interesante e informativo visualizar las gráficas, tanto del error como de la traza, pues estamos estudiando el comportamiento del algoritmo, no una solución concreta que no nos interesa al no ser un problema que realmente queramos resolver.
 
-\subsubsection{Apartado b}
+\subsubsection{Subapartado b}
 
 Ahora repetiremos el mismo experimento pero tomando distintos valores para las soluciones iniciales. Y en este caso se pide que generemos una tabla con los valores obtenidos. Como no se especifica nada, tomamos $\eta \in {0.01, 0.1}$ y un máximo de 1000 iteraciones. Dejamos la cota de error a \lstinline{None} para que no se hagan comprobaciones de cotas. Además de la tabla, mostraremos las gráficas de la evolución del error y la traza de soluciones en los casos en los que sea interesante comentarlas (no en todas pues resultaría repetitivo).
 
@@ -197,8 +206,7 @@ La tabla con los datos generados es:
         (-3,  3) & 0.1 & (-2.1558,  3.0127) & 1.9427 \\
         (-2,  2) & 0.01 & (-2,  2) & $-4.7992 * 10^{-31}$ \\
         (-2,  2) & 0.1 & (-1.3420, 0.6155) & 5.3779 \\
-
-
+        \hline
     \end{tabular}
 
 \end{center}
@@ -256,5 +264,32 @@ En la undécima fila tenemos un comportamiento muy curioso. La solución inicial
 Vemos como estamos en el filo de dos \emph{agujeros} a los que nos interesaría caer. Estamos en un equilibrio muy inestable en lo que podría llamarse un punto de silla. En este caso en concreto, queremos que se rompa dicho equilibrio pues nos haría caer en uno de los dos óptimos locales. Notar también, que consumimos las mil iteraciones sin modificar la solución. Esto nos asegura que estamos en un punto de silla, pues el que no se mueva implica que el gradiente es cero. Gradiente nulo en un punto que no es óptimo indica con seguridad que es un punto de silla. Sin embargo, para un valor más grande de $\eta$ nos salimos del equilibrio, pero produciendo un comportamiento errático (como se muestra en la siguiente gráfica) que nos lleva a una peor solución:
 
 \includegraphics[scale=0.5]{EvolucionSolucionesExperimento12}
+
+\subsection{Apartado 4}
+
+La búsqueda de un mínimo global de una función arbitraria presenta varias dificultades, como hemos podido comprobar en estos casoss de estudio.
+
+Para comenzar, no conocemos a priori si la función estudiada tiene un mínimo global. Tenemos resultados como el que nos asegura qque en una función convexa, todo mínimo local es un mínimo global (análogo con funciones cóncavas y máximos).
+
+Los métodos analíticos para calcular puntos críticos son poco útiles en la práctica en espacios paramétricos de gran dimensionalidad. O con funciones para las que no existen soluciones analíticas, a pesar de que las funciones que definen el problema sean suficientemente regulares (continuas, diferenciables, $C^\infty$, $\ldots$), con lo que estas deben ser aproximadas por métodos numéricos. Por tanto, para muchos casos de uso, estas técnicas no van a ser factibles.
+
+Y en otros muchos casos, vamos a trabajar con funciones de error que directamente no van a ser analíticamente tratables, por lo que quedan directamente descartados estos métodos analíticos. Es aquí donde entran en juego otros métodos, como búsquedas heurísticas o el método del gradiente descendente (que en este caso, se apoya en una propiedad analitica como es la existencia del gradiente).
+
+Este método en concreto, que es el que estudiamos en este apartado, tiene las problemáticas usuales de los métodos iterativos para la búsqueda de óptimos locales. Dependen de parámetros como la solución inicial escogida, condiciones de parada, tamaño de la población de búsqueda (en caso de las técnicas vistas hasta ahora, solo tenemos una solución en la población de soluciones sobre las que realizamos la búsqueda).
+
+Pero en el caso concreto del gradiente descendente, dependemos de forma crítica de elegir un valor adecuado para $\eta$, pues tendrá un gran impacto a la hora de decidir si la búsqueda del óptimo local tiene un comportamiento bueno (descenso del error monótono a un buen ritmo) o un mal comportamiento (evolución del error no monótono, con grandes picos, a un ritmo elevado, o por otro lado, descenso monótono pero a un ritmo demasiado lento, lo que hace que se atasque en malos óptimos o que no consiga llegar al óptimo local al agotar las iteraciones máximas permitidas).
+
+La elección de este valor de $\eta$ además depende en gran medida de la función de error que queremos minimizar, y el valor de la solución de la que parte la búsqueda iterativa. Por tanto, y como ya se ha comentado, sería interesante disponer de técnicas para ajustar de forma dinámica el valor del \emph{learning\_rate}, pues nos interesa tener un valor alto al inicio para alejarnos rápidamente de zonas de alto error, y descender el valor de $\eta$ para tener más precisión a la hora de acercarnos al óptimo local. Y todo esto, en cada caso concreto con el que nos encontremos (hasta ahora, dependiendo de la solución inicial y de la función concreta que estemos minimizando).
+
+Además, en las dos funciones de error estudiadas, hemos tenido que calcular analíticamente la expresión del gradiente para poder operar. Aunque esto no debería ser un gran problema con otras funciones, puesto que existen paquetes de cálculo simbólico como \lstinline{sympy} o aproximaciones numéricas del gradiente en un punto (como por ejemplo, diferencias finitas).
+
+\pagebreak
+
+\section{Ejercicio 2 - Regresión Lineal}
+
+\subsection{Descripción del problema}
+
+Buscamos ajustar modelos de
+
 
 \end{document}
