@@ -1264,7 +1264,7 @@ def experiment_linear(iterations: int = 1000):
     # Devolvemos estas medias
     return mean_perc_error_in_sample, mean_perc_error_out_sample, mean_mean_square_error_in_sample, mean_mean_square_error_out_sample
 
-def experiment_non_linear(iterations: int = 1000):
+def experiment_non_linear(iterations: int = 1000, max_minibatch_iterations = 200):
     """
     Realiza el mismo experimento que en experiment_linear, pero usando otro vector
     de caracteristicas: (1, x1, x2, x1*x2, x1**2, x2**2)
@@ -1272,6 +1272,7 @@ def experiment_non_linear(iterations: int = 1000):
     Parameters:
     ===========
     iterations: el numero de veces que repetimos el experimento
+    max_minibatch_iterations: numero maximo de iteraciones sobre minimbatch, por defecto 200
 
     Returns:
     ========
@@ -1283,7 +1284,6 @@ def experiment_non_linear(iterations: int = 1000):
 
     # Parametros para minibatch gradient descent
     batch_size = 32
-    max_minibatch_iterations = 200
     learning_rate = 0.01
 
     # Errores que vamos a ir calculando para devolver su media
@@ -1446,13 +1446,103 @@ def ejercicio2_apartado2():
     print("")
     wait_for_user_input()
 
+    # Lanzamos el algoritmo para un ejemplo unicamente, y con ello mostramos
+    # algunas graficas
+    # Para ello lo primero que tenemos que hacer es transformar la matriz de datos
+    # Partimos de un nuevo conjunto de datos al que le añadimos las nuevas columnas
+
+    # Generamos la muestra de entrenamiento de 1000 puntos en el cuadrado [-1, 1] x [-1, 1]
+    # Generamos tambien las etiquetas del conjunto de entrenamiento
+    X = simula_unif(1000, 2, 1)
+    labels = generate_labels_for_simula_unif(X)
+
+    # Ahora generamos la muestra de testing y sus etiquetas
+    test_data = simula_unif(1000, 2, 1)
+    test_labels = generate_labels_for_simula_unif(test_data)
+
+    # Clasificamos estos datos usando regresion lineal
+    # Usamos el vector de caracteristicas (1, x1, x2, x1*x2, x1**2, x2**2)
+
+    # Añadimos la columna de unos al training
+    number_of_rows = int(np.shape(X)[0])
+    new_column = np.ones(number_of_rows)
+    X = np.insert(X, 0, new_column, axis = 1)
+
+    # Añadimos la tercera columna x1 * x2
+    third_col = X[:, 1] * X[:, 2]
+    X = np.insert(X, 3, third_col, axis = 1)
+
+    # Añadimos la cuarta columna x1**2
+    fourth_col = X[:, 1] * X[:, 1]
+    X = np.insert(X, 4, fourth_col, axis = 1)
+
+    # Añadimos la quinta columna x2**2
+    last_col = X[:, 2] * X[:, 2]
+    X = np.insert(X, 5, last_col, axis = 1)
+
+    # Aplicamos la misma modificacion a la matriz de testing
+    number_of_rows = int(np.shape(test_data)[0])
+    new_column = np.ones(number_of_rows)
+    test_data = np.insert(test_data, 0, new_column, axis = 1)
+
+    third_col = test_data[:, 1] * test_data[:, 2]
+    test_data = np.insert(test_data, 3, third_col, axis = 1)
+
+    fourth_col = test_data[:, 1] * test_data[:, 1]
+    test_data = np.insert(test_data, 4, fourth_col, axis = 1)
+
+    last_col = test_data[:, 2] * test_data[:, 2]
+    test_data = np.insert(test_data, 5, last_col, axis = 1)
+
+    # Ceros con el numero de columnas de nuestra matriz de datos
+    starting_solution = np.zeros(np.shape(X)[1])
+
+    # Ahora ejecutamos minibatch gradient descent y calculamos los errores
+    # verbose = False porque no queremos la evolucion del error a traves de las
+    # iteraciones, y asi el algoritmo va mas rapido
+    print("Lanzando Stochastic Gradient Descent para un caso concreto, con vector de caracteristicas no linelaes")
+
+    # El valor de max_minibatch_iterations lo hemos ido variando para realizar el
+    # analisis plasmado en la memoria. Ha pasado por los valores 200, 400, 600 y 800
+    weights, error_at_epoch, error_at_minibatch = stochastic_gradient_descent(X, labels, starting_solution, learning_rate, batch_size, max_minibatch_iterations=800, verbose = True)
+    error_in_sample = clasiffication_error(X, labels, weights)
+    mean_square_error_in_sample = clasiffication_mean_square_error(X, labels, weights)
+    porcentual_error_in_sample = classification_porcentual_error(X, labels, weights)
+    print(f"\tLos pesos obtenidos son: {weights}")
+    print(f"\tEl error de clasficacion en la muestra Ein es: {error_in_sample}")
+    print(f"\tEl error cuadratico medio en la muestra Ein es: {mean_square_error_in_sample}")
+    print(f"\tEl error porcentual en la muestra Ein es: {porcentual_error_in_sample}%")
+    print("")
+    wait_for_user_input()
+
+    # Mostramos la evolucion del error
+    print("Mostrando la evolucion del error por iteracion en minibatch")
+    plot_error_evolution(error_at_minibatch, title = "Error por cada iteracion sobre el minibatch", x_label = "Error por iteracion de minibatch")
+    print("")
+
+    # Mostramos los puntos en los que falla el clasificador
+    print("Mostrando los puntos en los que falla el clasificador entrenado")
+    plot_classification_predictions(X, labels, weights, feature_names = ["Valor de X", "Valor de Y"], title = "Puntos en los que fallamos en la prediccion")
+
+    # Repetimos el experimento mil veces, pero cambiando el valor de max_minibatch_iterations
+    # pues explorando dicho parametro vemos que se puede mejorar mucho mas el error
+    print("Repitiendo el experimento pero cambiando el valor de max_minibatch_iterations a 800")
+    mean_perc_error_in_sample, mean_perc_error_out_sample, mean_mean_square_error_in_sample, mean_mean_square_error_out_sample = experiment_non_linear(1000, max_minibatch_iterations = 800)
+
+    print("Los valores medios de los errores del experimento tras 1000 iteraciones y habiendo cambiado max_minibatch_iterations a 800 son:")
+    print(f"\tError medio porcentual DENTRO de la muestra: {mean_perc_error_in_sample}%")
+    print(f"\tError medio porcentual FUERA de la muestra: {mean_perc_error_out_sample}%")
+    print(f"\tError medio cuadratico medio DENTRO de la muestra: {mean_mean_square_error_in_sample}")
+    print(f"\tError medio cuadratico medio FUERA de la muestra: {mean_mean_square_error_out_sample}")
+    print("")
+    wait_for_user_input()
+
 def ejercicio2():
     print("Ejecutando ejercicio 2")
 
     print("Apartado 1)")
     print("=" * 80)
-    # TODO -- descomentar
-    #ejercicio2_apartado1()
+    ejercicio2_apartado1()
     print("")
 
     print("Apartado 2)")
