@@ -1141,8 +1141,8 @@ def ejercicio2_apartado1():
     print("Evolucion del error por cada iteracion sobre minibatch")
     plot_error_evolution(
         error_at_minibatch,
-        title = f"Evolucion del error por EPOCH para eta = {learning_rate}, batch_size = {batch_size}",
-        x_label = "Epoch"
+        title = f"Evolucion del error por Minibatch para eta = {learning_rate}, batch_size = {batch_size}",
+        x_label = "Minibatch Iteration"
     )
     print("")
 

@@ -1,7 +1,6 @@
 \documentclass[11pt]{article}
 
 % TODO
-% [ ] Aumentar la separación entre párrafos
 % [ ] Añadir algunas bases matematicas de lo que estamos haciendo
 % [ ] Mirar el vídeo sobre la práctica para mirar si hay que añadir el codigo en la memoria
 
@@ -304,7 +303,7 @@ Es importante tener en cuenta que la matriz de datos que cargamos del fichero ya
 
 Además, en este ejercicio, usaremos regresión lineal con la intención de clasificar los datos. Es decir, para un dato de entrada, devolvemos una solución real en un intervalo dado (regresión lineal). Después, tomamos como valor de clasificación la etiqueta cuyo valor numérico está más cercana a nuestra predicción de regresión. En el caso concreto de este ejercicio, las etiquetas son -1 y 1, luego es suficiente con quedarnos con el signo de la predicción de la regresión como valor de clasificación.
 
-\subsection{Ejercicio 1}
+\subsection{Apartado 1}
 
 Se nos pide estimar un modelo lineal a partir de los datos proporcionados, usando tanto el algoritmo de la pseudo-inversa como el algoritmo de gradiente descendente estocástico. Las etiquetas de los datos serán:
 
@@ -335,11 +334,11 @@ El error porcentual en la muestra Ein es: 0.5124919923126201%
 El error porcentual fuera de la muestra Eout es: 1.650943396226415%
 \end{lstlisting}
 
-Este algoritmo calcula una solución cerrada en un paso, pues está usando el despeje matemático del sistema de ecuaciones que se nos plantea. Así que así hemos calculado la mejor solución, la que menor error va a cometer, al menos en los datos de entrenamiento.
+Este algoritmo calcula una solución cerrada en un paso, pues está usando el despeje matemático del sistema de ecuaciones que se nos plantea. Así que así hemos calculado la mejor solución, la que menor error va a cometer, al menos en los datos de entrenamiento y con el error cuadrático medio.
 
 El error porcentual obtenido es muy bueno, tanto en la muestra de entrenamiento (un $0.5125\%$) como en la muestra de testing (un 1.6509\%). Como al usar la pseudo-inversa obtenemos la mejor solución, la información que esto nos aporta es que los datos con los que estamos trabajando están altamente correlados de forma lineal.
 
-El error cuadrático es menos interpretable que el porcentual, pues depende de la escala de los datos con los que estemos trabajando, con las unidades en las que estemos trabajando\ldots. Además, al ser una media de suma de errores al cuadrado es más complicado que lo interpretemos sin tener otras referencias. Este error cuadrático medio nos servirá para hacer comparaciones con los errores cuadráticos de los métodos iterativos, pues como ya se ha mencionado, la pseudo-inversa obtiene el error mínimo para este problema. Y también es interesante tener un control sobre el error cuadrático medio pues es la función de error que los métodos iterativos van a tratar de minimizar (de nuevo, este algoritmo no es un método iterativo, da una solución cerrada en un paso).
+El error cuadrático es menos interpretable que el porcentual, pues depende de la escala de los datos con los que estemos trabajando, con las unidades en las que estemos trabajando\ldots. Además, al ser una media de suma de errores al cuadrado es más complicado que lo interpretemos sin tener otras referencias. Este error cuadrático medio nos servirá para hacer comparaciones con los errores cuadráticos de los métodos iterativos, pues como ya se ha mencionado, la pseudo-inversa obtiene el error mínimo para este problema, al menos para el error cuadrático medio. Y también es interesante tener un control sobre el error cuadrático medio pues es la función de error que los métodos iterativos van a tratar de minimizar (de nuevo, este algoritmo no es un método iterativo, da una solución cerrada en un paso).
 
 El error de clasificación es el error que aparece en la teoría, en el contexto del algoritmo \emph{PLA}. El profesor ya nos comentó que estos métodos serán tratados en la siguiente práctica, pero hemos pensado que no vendría mal tener una referencia sobre esa medida de error.
 
@@ -401,5 +400,48 @@ En estas pruebas solo nos quedaremos con los errores porcentuales, al ser los m�
 \end{center}
 
 Todos los algoritmos corren en poco tiempo, salvo cuando usamos $data\_size$, que tarda algo más. Todos los errores, cuando miramos cuatro cifras decimales, son los mismos, salvo cuando usamos $batch\_size = 1$, que fuera de la muestra obtiene peores resultados. Por tanto, decido quedarme con $batch\_size = 32$, por se un valor bastante convencional, que produce buenos resultados y que tarda poco.
+
+Así que corriendo el algoritmo con un valor de $batch\_size = 32$ obtenemos los siguientes resultados que mostramos por pantalla:
+
+\begin{lstlisting}
+Los pesos obtenidos son: [-1.0312233  -0.11892069 -0.40199688]
+El error de clasficacion en la muestra Ein es: 1.959996706581955
+El error de clasificacion fuera de la muestra Eout es: 2.5841736601550416
+El error cuadratico medio en la muestra Ein es: 0.10448833536429288
+El error cuadratico medio fuera de la muestra Eout es: 0.1533263011697918
+El error porcentual en la muestra Ein es: 0.4484304932735426%
+El error porcentual fuera de la muestra Eout es: 1.650943396226415%
+\end{lstlisting}
+
+Tanto fuera como dentro de la muestra, obtenemos errores porcentuales por debajo de los errores porcentuales de los errores porcentuales del algoritmo de la pseudo-inversa. Esto puede ocurrir al estar minimizando el error cuadrático medio y no un error porcentual. Sin embargo, el error cuadrático medio es más alto con este algoritmo que con la pseudo-inversa, lo que era de esperar.
+
+El error porcentual solo tiene en cuenta si clasificamos bien un punto o no. Mientras que el error cuadrático medio mide también cómo de lejos está la predicción a través de regresión del valor de la etiqueta que queremos alcanzar. Por ejemplo, podemos predecir para un dato de entrada con verdadera etiqueta 1 la salida 0.57. Respecto al error porcentual, no estamos cometiendo error, pues la clasificación que se deriva es correcta. Pero para el error cuadrático medio se incluye en la sumatoria de la media un sumando $(1 - 0.57)^2$.
+
+Mostramos la recta frontera obtenida con este algoritmo:
+
+\includegraphics[scale=0.55]{FrontierLine02}
+
+También mostramos las gráficas de puntos errados, tanto en la muestra de entrenamiento como en la muestra de test:
+
+\includegraphics[scale=0.55]{BadPoints03}
+
+\includegraphics[scale=0.55]{BadPoints04}
+
+Al estar usando un proceso iterativo, podemos mostrar cómo avanza el error en cada iteración sobre cada uno de los minibatches:
+
+\includegraphics[scale=0.55]{MinibatchError01}
+
+Notar que hay iteraciones en las que el error asciende en vez de descender de forma monótona, como buscábamos en Batch Gradient Descent. Sin embargo, ahora este comportamiento no es indeseable como lo era antes. Para empezar, el ascenso del error es pequeño, no como en Batch Gradient Descent en los que teníamos picos demasiado bruscos. Además, la tendencia general es claramente descendente. Y en ocasiones puede ser interesante poder tener iteraciones que aumenten el error. Ya en el ejercicio 1 nos habría venido bien, tanto para salir de esos pequeños baches como para caernos de un punto de silla hacia un mínimo local.
+
+Estos pequeños aumentos del error se deben a que, como no estamos usando toda la información de la muestra de datos, ciertas iteraciones pueden ir en una dirección confundida que indica el cálculo del gradiente con ese \emph{subset} de los datos.
+
+También puede parecer que las doscientas iteraciones se quedan cortas a la hora de seguir disminuyendo el error. Así que pruebo a poner un máximo de 400 iteraciones para ver si se puede seguir disminuyendo el valor del error, obteniendo la gráfica siguiente:
+
+\includegraphics[scale=0.55]{MinibatchError02}
+
+Podemos ver que a partir de las doscientas iteraciones apenas se reduce el error. Alcanzamos una cota para el error que podemos minimizar. Esto puede ser bien porque los datos con los que trabajamos no permiten reducir más el error (hemos alcanzado un mínimo local), o porque a partir de las doscientas iteraciones convendría emplear un $learning\_rate$ más bajo para poder mejorar el error con más precisión.
+
+\subsection{Apartado 2}
+
 
 \end{document}
