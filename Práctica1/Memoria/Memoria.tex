@@ -1,9 +1,5 @@
 \documentclass[11pt]{article}
 
-% TODO
-% [ ] Añadir algunas bases matematicas de lo que estamos haciendo
-% [ ] Mirar el vídeo sobre la práctica para mirar si hay que añadir el codigo en la memoria
-
 % Paquetes
 %===============================================================================
 
@@ -33,6 +29,8 @@
   {»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1
 }
 
+% Para que los metadatos que escribe latex esten en español
+\usepackage[spanish]{babel}
 
 
 % Metadatos del documento
@@ -77,6 +75,14 @@ En este apartado se nos pide implementar el algoritmo de Gradiente Descendente. 
 \end{itemize}
 
 Esta función devuelve el vector de soluciones que hemos ido construyendo. Si queremos obtener la solución final, lo único que tenemos que hacer es acceder a la última posición. Así podemos generar las gráficas en las que plasmamos tanto la función de error como los puntos que vamos construyendo. También, si tenemos activado el parámetro Verbose, devolvemos el error en cada iteración, lo que es necesario para hacer las gráficas de evolución de error que se nos piden.
+
+El procedimiento del algoritmo es muy simple. Partiendo de la solución inicial, avanzamos el punto en la dirección opuesta al gradiente, puesto que el gradiente apunta en la dirección de máximo ascenso, y nosotros estamos haciendo minimización. Además, cada paso marcado por el gradiente lo ponderamos por el \lstinline{learning_rate}. Todo esto se resume en la fórmula:
+
+\begin{displaymath}
+    w_{new} = w_{old} - \eta * \nabla Err(w_{old})
+\end{displaymath}
+
+donde $\nabla Err$ es la función vectorial gradiente, $w_{new}, w_{old}$ son los vectores peso que definen la solución y $\eta$ es el \lstinline{learning_rate}.
 
 \pagebreak
 
@@ -298,7 +304,7 @@ Para comenzar, no conocemos a priori si la función estudiada tiene un mínimo g
 
 Los métodos analíticos para calcular puntos críticos son poco útiles en la práctica en espacios paramétricos de gran dimensionalidad. O con funciones para las que no existen soluciones analíticas, a pesar de que las funciones que definen el problema sean suficientemente regulares (continuas, diferenciables, $C^\infty$, $\ldots$), con lo que estas deben ser aproximadas por métodos numéricos. Por tanto, para muchos casos de uso, estas técnicas no van a ser factibles.
 
-Y en otros muchos casos, vamos a trabajar con funciones de error que directamente no van a ser analíticamente tratables, por lo que quedan directamente descartados estos métodos analíticos. Es aquí donde entran en juego otros métodos, como búsquedas heurísticas o el método del gradiente descendente (que en este caso, se apoya en una propiedad analítica como es la existencia del gradiente).
+Y en otros muchos casos, vamos a trabajar con funciones de error que directamente no van a ser analíticamente tratables, por lo que quedan directamente descartados estos métodos analíticos. Es aquí donde entran en juego otros métodos, como búsquedas heurísticas o el método del gradiente descendente (que en este caso, se apoya en una propiedad analítica como es la existencia del gradiente, o lo que es lo mismo, que sea al menos diferenciable una vez).
 
 Este método en concreto, que es el que estudiamos en este apartado, tiene las problemáticas usuales de los métodos iterativos para la búsqueda de óptimos locales. Dependen de parámetros como la solución inicial escogida, condiciones de parada, tamaño de la población de búsqueda (en caso de las técnicas vistas hasta ahora, solo tenemos una solución en la población de soluciones sobre las que realizamos la búsqueda).
 
@@ -328,6 +334,8 @@ Cargaremos los datos, tanto de entrenamiento como de testing, de ficheros dados 
 Es importante tener en cuenta que la matriz de datos que cargamos del fichero ya tiene una primera columna de unos. Esta columna es necesaria porque representa el sumando del término independiente en las ecuaciones lineales con las que estamos trabajando de forma matricial. De no ser así, tendríamos que añadir esta columna de unos para poder operar cómodamente con la matriz. En el experimento con características no lineales, añadimos columnas a la matriz con la orden \lstinline{np.insert(X, nueva_columna)}
 
 Además, en este ejercicio, usaremos regresión lineal con la intención de clasificar los datos. Es decir, para un dato de entrada, devolvemos una solución real en un intervalo dado (regresión lineal). Después, tomamos como valor de clasificación la etiqueta cuyo valor numérico está más cercana a nuestra predicción de regresión. En el caso concreto de este ejercicio, las etiquetas son -1 y 1, luego es suficiente con quedarnos con el signo de la predicción de la regresión como valor de clasificación.
+
+A diferencia del ejercicio anterior, en los que no teníamos datos, sino simplemente una función de error a minimizar, dispondremos tanto de datos de entrenamiento como datos de testing. Y con ellos, podremos calcular los valores de error en la muestra $E\_in$ como error fuera de la muestra $E\_out$
 
 \subsection{Apartado 1}
 
@@ -364,11 +372,11 @@ Este algoritmo calcula una solución cerrada en un paso, pues está usando el de
 
 El error porcentual obtenido es muy bueno, tanto en la muestra de entrenamiento (un $0.5125\%$) como en la muestra de testing (un 1.6509\%). Como al usar la pseudo-inversa obtenemos la mejor solución, la información que esto nos aporta es que los datos con los que estamos trabajando están altamente correlados de forma lineal.
 
-El error cuadrático es menos interpretable que el porcentual, pues depende de la escala de los datos con los que estemos trabajando, con las unidades en las que estemos trabajando\ldots. Además, al ser una media de suma de errores al cuadrado es más complicado que lo interpretemos sin tener otras referencias. Este error cuadrático medio nos servirá para hacer comparaciones con los errores cuadráticos de los métodos iterativos, pues como ya se ha mencionado, la pseudo-inversa obtiene el error mínimo para este problema, al menos para el error cuadrático medio. Y también es interesante tener un control sobre el error cuadrático medio pues es la función de error que los métodos iterativos van a tratar de minimizar (de nuevo, este algoritmo no es un método iterativo, da una solución cerrada en un paso).
+El error cuadrático es menos interpretable que el porcentual, pues depende de la escala de los datos con los que estemos trabajando, de las unidades con las que estemos trabajando\ldots. Además, al ser una media de suma de errores al cuadrado es más complicado que lo interpretemos sin tener otras referencias. Este error cuadrático medio nos servirá para hacer comparaciones con los errores cuadráticos de los métodos iterativos, pues como ya se ha mencionado, la pseudo-inversa obtiene el error mínimo para este problema, al menos para el error cuadrático medio. Y también es interesante tener un control sobre el error cuadrático medio pues es la función de error que los métodos iterativos van a tratar de minimizar (de nuevo, este algoritmo no es un método iterativo, da una solución cerrada en un paso).
 
 El error de clasificación es el error que aparece en la teoría, en el contexto del algoritmo \emph{PLA}. El profesor ya nos comentó que estos métodos serán tratados en la siguiente práctica, pero hemos pensado que no vendría mal tener una referencia sobre esa medida de error.
 
-Un inconveniente de este algoritmo es que para matrices mucho más grande que esta, es más lento que métodos iterativos como los que vamos a explorar a continuación.
+Un inconveniente de este algoritmo es que para matrices mucho más grande que esta, es más lento que métodos iterativos como los que vamos a explorar a continuación. Sin embargo, no tenemos que escoger un valor adecuado para el \lstinline{learning_rate}. Por otro lado, solo es aplicable a regresión lineal, mientras que las distintas técnicas que usan el gradiente descendente son aplicables a distintos problemas.
 
 Ahora mostramos la recta que separa los datos en los dos grupos en los que clasificamos. Es lo que podríamos llamar la recta frontera de la clasificación. Un dato lo clasificamos de una u otra forma según el signo de la predicción, por tanto, la frontera de clasificación será la recta que prediga los datos a un valor de cero, y con ello hacemos el siguiente desarrollo:
 
@@ -452,6 +460,8 @@ También mostramos las gráficas de puntos errados, tanto en la muestra de entre
 \includegraphics[scale=0.55]{BadPoints03}
 
 \includegraphics[scale=0.55]{BadPoints04}
+
+En esta gráfica, podemos ver que por ejemplo, el punto que está el segundo más a la derecha, está bien clasificado, mientras que con la pseudo-inversa se clasifica mal. Esto puede ocurrir porque para minimizar el error cuadrático medio, seguramente convenga que ese punto se clasifique mal pero que en contrapartida el error cuadrático medio global sea menor.
 
 Al estar usando un proceso iterativo, podemos mostrar cómo avanza el error en cada iteración sobre cada uno de los minibatches:
 
@@ -542,7 +552,7 @@ Así que repitiendo mil veces el experimento, vemos que la clasificación usando
 
 \subsubsection{Subapartado e}
 
-Por tanto, como ya hemos comentado, no es adecuado el uso de regresión lineal para clasificar este conjunto de datos. Un 40\% de error no es admisible a la hora de clasificar los datos. Esto era previsible desde el momento que hemos usado una función de etiquetado $f(x,y)$ no lineal, pero un vector de características lineal.
+Por tanto, como ya hemos comentado, no es adecuado el uso de regresión lineal para clasificar este conjunto de datos. Un 40\% de error no es admisible a la hora de clasificar los datos. Esto era previsible desde el momento que hemos usado una función de etiquetado $f(x,y)$ no lineal, pero un vector de características lineal para realizar las predicciones.
 
 Todo esto es motivación suficiente para emplear el vector de características no lineales del siguiente ejercicio.
 
@@ -605,7 +615,7 @@ Según esta gráfica de error, parece que podemos seguir mejorando el error conf
 
 Efectivamente, con más iteraciones hemos podido mejorar aún más el error. A partir de 800 iteraciones, el error se estabiliza. Así que gracias a este análisis, repito las mil iteraciones del experimento pero con un valor de \lstinline{max_iterations} de 1000
 
-\subsubsection{Lanzar 1000 veces el experimento, pero con \lstinline{max_iterations = 1000}}
+\subsubsection{Lanzar 1000 veces el experimento, cambiando \lstinline{max_iterations}}
 
 Los resultados obtenidos en el experimento, tras haber cambiado este parámetro en el código, son:
 
@@ -623,5 +633,86 @@ Claramente añadiendo las características no lineales hemos mejorado enormement
 Este cambio hace que las mil iteraciones tarden mucho en ejecutarse, pero a cambio pasamos de unos errores porcentuales, tanto dentro como fuera de la muestra, de entre 22\% y 23\%, a unos errores porcentuales de entre el 13\%  y 14\%.
 
 Por tanto, considero que es más adecuado el modelo con características no lineales, pues reduce en gran medida los errores cometidos. Aunque requiera mucho más tiempo de ejecución, este tiempo no es demasiado grande como para que el algoritmo no sea aplicable, mientras que un error del 40\% no lo podemos considerar admisible a la hora de ser aplicado a un problema de clasificación.
+
+\pagebreak
+
+\subsection{Consideraciones sobre la implementación de Minibatch Gradient Descent}
+
+Para generar los minibatches de forma eficiente y cómoda, lo que hemos hecho ha sido generar todos los índices de los puntos con los que trabajamos: $\{0, 1, 2, \ldots, N\}$ y los hemos mezclado aleatoriamente. Una vez hecho, devolvemos el vector de grupos de tamaño $batch\_size$. Con esto conseguimos dos cosas:
+
+\begin{itemize}
+    \item No mezclamos la matriz de datos, que al ser muy grande, podría llegar a ser costoso dependiendo de las implementaciones de los métodos que usemos para ello
+    \item Es muy sencillo realizar exactamente la misma mezcla y agrupación a las etiquetas, pues solo hay que aplicar los mismos índices y grupos generados para la matriz de datos
+\end{itemize}
+
+Esta funcionalidad se implementa en la función \lstinline{get_minibatches()}, que como ya hemos comentado devuelve un vector de vectores (vector con las agrupaciones de índices de cada minibatch). Mostramos el código a continuación:
+
+\begin{lstlisting}[language=Python]
+def get_minibatches(data, batch_size: int):
+    """
+    Dados unos datos de entrada, mezcla los datos y los devuelve en subconjuntos
+    de batch_size elementos. Realmente devolvemos un array de conjuntos de indices
+    que representan este mezclado y empaquetado, pues asi es mas facil de operar
+    (no alteramos los datos de entrada y no tenemos que considerar como quedarian
+    ordenadas las etiquetas asociadas a los datos) y mas eficiente (trabajamos
+    con indices, no con datos multidimensionales)
+
+    Paramters:
+    ==========
+    data: matriz de datos de entrada que queremos mezclar y agrupar
+    batch_size: tamaño de los paquetes en los que agrupamos los datos
+
+    Returns:
+    ========
+    indixes: array de conjuntos de indices (array tambien) que representa la operacion
+             descrita anteriormente
+    """
+
+    # Los indices de todos los datos de entrada
+    # Me quedo con las filas porque indican el numero de datos con los que trabajamos
+    # Las columnas indican el numero de caracteristicas de cada dato
+    all_indixes = np.arange(start = 0, stop = np.shape(data)[0])
+
+    # Mezclo estos indices antes de dividirlos en minibatches
+    np.random.shuffle(all_indixes)
+
+    # Array de conjuntos de indices (array de arrays)
+    grouped_indixes = []
+
+    # Agrupamos los indices que ya han sido mezclados en los minibatches
+    last_group = []
+    for value in all_indixes:
+
+        # El ultimo minibatch no esta completo, podemos añadir un nuevo punto
+        if len(last_group) < batch_size:
+            last_group.append(value)
+
+        # El minibatch esta completo, asi que hay que hay que añadirlo al grupo
+        # de minibatches y reiniciar el grupo
+        if len(last_group) == batch_size:
+            grouped_indixes.append(last_group)
+            last_group = []
+
+    return np.array(grouped_indixes)
+\end{lstlisting}
+
+Una vez que tenemos generados los grupos de índices, es muy fácil tomar los datos y etiquetas de un minibatch, gracias a que estamos trabajando con \lstinline{numpy}, el cual nos permite usar el operador corchete con un vector de índices. Por ejemplo, el siguiente código que se usa en la función \lstinline{stochastic_gradient_descent}:
+
+
+\begin{lstlisting}
+# Iteramos en los minibatches
+for mini_batches_indixes in mini_batches_index_groups:
+    # Tomo los datos y etiquetas asociadas a los indices de este minibatch
+    minibatch_data = data[mini_batches_indixes]
+    minibatch_labels = labels[mini_batches_indixes]
+\end{lstlisting}
+
+Además, ahora que trabajamos con datos podemos aplicar la fórmula para el gradiente siguiente, que solo trabaja con un \emph{subset} de los datos, y no con la muestra completa:
+
+\begin{displaymath}
+    \nabla E_{in}(w) = \frac{2}{M} \sum^M_{n=1} x_n (h(x_n) - y_n)
+\end{displaymath}
+
+Esta es la fórmula que usamos en la función \lstinline{calculate_gradient_from_data()}
 
 \end{document}
