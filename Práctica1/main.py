@@ -1180,7 +1180,7 @@ def generate_labels_for_simula_unif(data):
 
 
     # Etiquetamos los datos sin introducir ruido
-    labels = label_function(data[:, 0], data[:, 1]))
+    labels = label_function(data[:, 0], data[:, 1])
 
     # Indices aleatorios para cambiar el signo
     indixes_to_change = generate_noisy_indixes(data)
