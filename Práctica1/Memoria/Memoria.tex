@@ -441,7 +441,84 @@ También puede parecer que las doscientas iteraciones se quedan cortas a la hora
 
 Podemos ver que a partir de las doscientas iteraciones apenas se reduce el error. Alcanzamos una cota para el error que podemos minimizar. Esto puede ser bien porque los datos con los que trabajamos no permiten reducir más el error (hemos alcanzado un mínimo local), o porque a partir de las doscientas iteraciones convendría emplear un $learning\_rate$ más bajo para poder mejorar el error con más precisión.
 
+\pagebreak
+
 \subsection{Apartado 2}
+
+Usamos la función de generación de datos \lstinline{simula_unif(N, 2, size)} que nos devuelve $N$ coordenadas bidimesionales en el cuadrado $[-size, size]^2$
+
+\subsubsection{Subapartado a}
+
+Usando la anterior función generamos los 1000 puntos en el cuadrado $[-1, 1]^2$ usando \lstinline{simula_unif(1000, 2, 1)}, y generamos el siguiente gráfico:
+
+\includegraphics[scale=0.45]{RandomScatterPlot}
+
+\subsubsection{Subapartartado b}
+
+Consideramos la función $f(x_1, x_2) = sign((x_1 - 0.2)^2 + x_2^2 - 0.6)$. Usamos dicha función para etiquetar los datos. Introducimos ruido sobre el 10\% de las etiquetas, es decir, cambiamos el signo del 10\% de las etiquetas. Para ello, generamos los índices $\{0, 1, \ldots, 999\}$, los mezclamos y cambiamos el signo de los datos datos correspondientes a los primeros 100 indices. Por tener más generalidad, trabajamos con el 10\% de los indices generados. Así obtenemos la siguiente gráfica:
+
+\includegraphics[scale=0.45]{LabeledScatterPlot}
+
+\subsubsection{Subapartartado c}
+
+Ajustamos un modelo lineal usando el vector de características $(1, x_1, x_2)$ usando Gradiente Descendiente Estocástico.
+
+Necesitamos añadir una columna de unos a la matriz de datos generadas. Para ello usamos las instrucciones:
+
+\begin{lstlisting}[language=Python]
+number_of_rows = int(np.shape(X)[0])
+new_column = np.ones(number_of_rows)
+X = np.insert(X, 0, new_column, axis = 1)
+\end{lstlisting}
+
+Para lanzar \emph{SGD} establecemos los siguientes parámetros:
+
+\begin{itemize}
+    \item Solución inicial: vector de ceros con la dimensionalidad adecuada
+    \item $batch\_size$: 32, por lo bien que nos ha funcionado en el ejercicio anterior
+    \item Número máximo de iteraciones: 200, el profesor nos comentó que deberían ser suficientes. Y en el apartado anterior vemos que con más iteraciones no mejoramos demasiado el resultado
+    \item $\eta$: 0.01 pues hemos explorado otros valores para este problema y este nos ha funcionado bien
+\end{itemize}
+
+El algoritmo nos devuelve el siguiente resultado:
+
+\begin{lstlisting}
+Los pesos obtenidos son: [ 0.0495547  -0.3450253   0.03473961]
+El error de clasficacion en la muestra Ein es: 61.57961277110754
+El error cuadratico medio en la muestra Ein es: 0.9290128091406921
+El error porcentual en la muestra Ein es: 39.800000000000004%
+\end{lstlisting}
+
+Fallamos en prácticamente el 40\% de los datos. Por tanto, no estamos consiguiendo buenos resultados. En este caso, podemos afirmar que los datos no son buenamente tratables con regresión lineal, al menos con el vector de características que estamos trabajando. Esto ya lo podíamos saber fácilmente viendo la función que hemos usado para etiquetar los datos.
+
+Mostramos cómo avanza el error sobre las iteraciones en el minibatch:
+
+\includegraphics[scale=0.55]{MinibatchError03}
+
+Como en el apartado anterior, vemos que con 200 iteraciones la tendencia de la gráfica es a aplanarse, por lo tanto, con unos resultados tan malos no merece la pena estudiar si con más iteraciones mejoraríamos el resultado.
+
+Y los puntos en los que falla la clasificación:
+
+\includegraphics[scale=0.55]{BadPoints05}
+
+\subsubsection{Subapartado d}
+
+Repetimos el experimento 1000 veces. En cada una de estas repeticiones, generamos una nueva muestra aleatoria de 1000 puntos para el training, y otra muestra aleatorioa de 1000 puntos para testing, así que ahora podremos computar el valor tanto de $E\_in$ como de $E\_out$. Los resultados obtenidos son:
+
+\begin{lstlisting}
+Error medio porcentual DENTRO de la muestra: 40.41820000000005%
+Error medio porcentual FUERA de la muestra: 40.74019999999995%
+Error medio cuadratico medio DENTRO de la muestra: 0.9310675034757584
+Error medio cuadratico medio FUERA de la muestra: 0.9363078116801644
+\end{lstlisting}
+
+Así que repitiendo mil veces el experimento, vemos que la clasificación usando regresión lineal es muy mala. Además, se clasifica prácticamente igual de mal dentro de la muestra de entrenamiento como en la muestra de testing.
+
+\subsubsection{Subapartado e}
+
+Por tanto, como ya hemos comentado, no es adecuado el uso de regresión lineal para clasificar este conjunto de datos. Un 40\% de error no es admisible a la hora de clasificar los datos. Esto era previsible desde el momento que hemos usado una función de etiquetado $f(x,y)$ no lineal, pero un vector de características lineal.
+
+Todo esto es motivación suficiente para emplear el vector de características no lineales del siguiente ejercicio.
 
 
 \end{document}
