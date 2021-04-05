@@ -1156,21 +1156,38 @@ def generate_labels_for_simula_unif(data):
     data: la matriz de datos que queremos etiquetar
     """
 
-    # Funcion de etiquetado
+    # Funcion de etiquetado, que no incluye el ruido
     # La dejo dentro de esta funcion porque creo que asi queda mas claro el objetivo
     # de esta funcion de etiquetado
     def label_function(x, y):
         # Funcion dada en el guion de la practica
         label = np.sign(np.power(x - 0.2, 2.0) + np.power(y, 2.0) - 0.6)
-
-        # Introducimos ruido aleatorio
-        if np.random.random() < 0.1:
-            label = label * (-1.0)
-
         return label
 
-    # Etiquetamos los datos
-    labels = label_function(data[:, 0], data[:, 1])
+    # Devuelve el 10% de los indices aleatorios para que cambiemos los signos
+    # La dejo dentro de esta funcion porque creo que asi queda mas claro el objetivo
+    # de esta funcion
+    def generate_noisy_indixes(data):
+        # Los indices ordenados
+        indixes = np.arange(len(data))
+
+        # Mezclamos los indices
+        np.random.shuffle(indixes)
+
+        # Devolvemos el 10% de los datos
+        ten_percent = int(0.1 * len(data))
+        return indixes[0:ten_percent]
+
+
+    # Etiquetamos los datos sin introducir ruido
+    labels = label_function(data[:, 0], data[:, 1]))
+
+    # Indices aleatorios para cambiar el signo
+    indixes_to_change = generate_noisy_indixes(data)
+
+    # Introducimos el ruido sobre esos datos
+    for index in indixes_to_change:
+        labels[index] = labels[index] * (-1)
 
     return np.array(labels)
 
@@ -1434,7 +1451,8 @@ def ejercicio2():
 
     print("Apartado 1)")
     print("=" * 80)
-    ejercicio2_apartado1()
+    # TODO -- descomentar
+    #ejercicio2_apartado1()
     print("")
 
     print("Apartado 2)")
