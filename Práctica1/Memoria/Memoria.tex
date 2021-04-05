@@ -14,6 +14,26 @@
 % Paquete para incluir trozos de codigo
 \usepackage{listings}
 
+% Para que el codigo acepte caracteres en utf8
+\lstset{literate=
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+  {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+  {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+  {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+  {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+  {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+  {ã}{{\~a}}1 {ẽ}{{\~e}}1 {ĩ}{{\~i}}1 {õ}{{\~o}}1 {ũ}{{\~u}}1
+  {Ã}{{\~A}}1 {Ẽ}{{\~E}}1 {Ĩ}{{\~I}}1 {Õ}{{\~O}}1 {Ũ}{{\~U}}1
+  {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+  {ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+  {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+  {€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+  {»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1
+}
+
+
 
 % Metadatos del documento
 %===============================================================================
@@ -520,5 +540,80 @@ Por tanto, como ya hemos comentado, no es adecuado el uso de regresión lineal p
 
 Todo esto es motivación suficiente para emplear el vector de características no lineales del siguiente ejercicio.
 
+\subsection{Repetir el apartado, pero usando otro vector de características}
+
+Vamos a realizar el mismo experimento que en el apartado anterior, pero usando un vector de características no lineales. Este vector viene dado por $\phi(x) = (1, x_1, x_2, x_1 x_2, x_1^2, x_2^2)$
+
+Para ello, tenemos que añadir nuevas columnas en nuestra matriz de datos, al igual que hicimos para añadir la columna de unos en la primera posición. Usando \lstinline{numpy} calculamos las nuevas columnas, para después añadirlas a la matriz. Todo el código de modificación de la matriz queda tal que:
+
+\begin{lstlisting}[language=Python]
+    # Añadimos la columna de unos al training
+    number_of_rows = int(np.shape(X)[0])
+    new_column = np.ones(number_of_rows)
+    X = np.insert(X, 0, new_column, axis = 1)
+
+    # Añadimos la tercera columna x1 * x2
+    third_col = X[:, 1] * X[:, 2]
+    X = np.insert(X, 3, third_col, axis = 1)
+
+    # Añadimos la cuarta columna x1**2
+    fourth_col = X[:, 1] * X[:, 1]
+    X = np.insert(X, 4, fourth_col, axis = 1)
+
+    # Añadimos la quinta columna x2**2
+    last_col = X[:, 2] * X[:, 2]
+    X = np.insert(X, 5, last_col, axis = 1)
+\end{lstlisting}
+
+\subsubsection{Lanzar 1000 veces el experimento}
+
+Los resultados tras lanzar 1000 veces el experimento y promediando los valores son:
+
+\begin{lstlisting}
+Error medio porcentual DENTRO de la muestra: 22.85820000000001\%
+Error medio porcentual FUERA de la muestra: 23.287299999999977\%
+Error medio cuadratico medio DENTRO de la muestra: 0.7737067204159451
+Error medio cuadratico medio FUERA de la muestra: 0.7786926343602749
+\end{lstlisting}
+
+\subsubsection{Mostramos los resultados para un experimento concreto}
+
+En este caso, no vamos a mostrar los valores de los distintos errores, pues son más representativos aquellos calculados a partir de mil repeticiones. En este caso, nos interesa ver las gráficas que nos van a dar mucha información sobre el comportamiento del algoritmo una vez que hemos añadido características no lineales.
+
+Al usar un valor de \lstinline{max_iterations} de 200 obtenemos la siguiente gráfica de evolución de error y puntos mal clasificados:
+
+\includegraphics[scale=0.55]{MinibatchError04}
+
+\includegraphics[scale=0.55]{BadPoints06}
+
+Según esta gráfica de error, parece que podemo seguir mejorando el error conforme avancen más iteraciones, así que pruebo con 400, 600 y 800 iteraciones, obtenidendo las siguientes gráficas de errores:
+
+
+\includegraphics[scale=0.55]{MinibatchError05}
+
+\includegraphics[scale=0.55]{MinibatchError06}
+
+\includegraphics[scale=0.55]{MinibatchError07}
+
+Efectivamente, con más iteraciones hemos podido mejorar aún más el error. A partir de 800 iteraciones, el error se estabiliza. Así que gracias a este análisis, repito las mil iteraciones del experimento pero con un valor de \lstinline{max_iterations} de 1000
+
+\subsubsection{Lanzar 1000 veces el experimento, pero con \lstinline{max_iterations = 1000}}
+
+Los resultados obtenidos en el experimento, tras haber cambiado este parámetro en el código, son:
+
+\begin{lstlisting}
+Error medio porcentual DENTRO de la muestra: 13.98220000000001%
+Error medio porcentual FUERA de la muestra: 14.315200000000006%
+Error medio cuadratico medio DENTRO de la muestra: 0.6134839356488047
+Error medio cuadratico medio FUERA de la muestra: 0.6203435366656959
+\end{lstlisting}
+
+\subsubsection{Conclusiones}
+
+Claramente añadiendo las características no lineales hemos mejorado enormemente el valor del error, tanto en las muestras de entrenamiento como en las muestras de testing. Hemos pasado de un 40\% de error aproximadamente a un 14\% de error porcentual. Pero para ello, ha sido necesario aumentar el número de iteraciones máximas, es decir, que el proceso de aprendizaje es más lento.
+
+Este cambio hace que las mil iteraciones tarden mucho en ejecutarse, pero a cambio pasamos de unos errores porcentuales, tanto dentro como fuera de la muestra, de entre 22\% y 23\%, a unos errores porcentuales de entre el 13\%  y 14\%.
+
+Por tanto, considero que es más adecuado el modelo con características no lineales, pues reduce en gran medida los errores cometidos. Aunque requiera mucho más tiempo de ejecución, este tiempo no es demasiado grande como para que el algoritmo no sea aplicable, mientras que un error del 40\% no lo podemos considerar admisible a la hora de ser aplicado a un problema de clasificación.
 
 \end{document}
