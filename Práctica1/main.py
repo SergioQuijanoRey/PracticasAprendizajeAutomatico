@@ -1014,10 +1014,7 @@ def classification_porcentual_error(data, labels, weights):
     # Recorremos sobre los datos de entrada y las etiquetas reales de esos datos
     number_of_bad_predictions = 0
     for (current_input, current_label) in zip(data, labels):
-        # Nos saltamos current_input[0] porque la funcion lineal no toma como parametro
-        # el 1 que esta en la primera columna de la matriz data para multiplicarlo
-        # por weights[0], por tanto no lo tenemos que pasar para producir resultados
-        # correctos
+        # Prediccion del input actual
         prediction = np.sign(lineal(current_input))
 
         # Hemos fallado en esta prediccion
@@ -1219,7 +1216,7 @@ def experiment_linear(iterations: int = 1000):
         # de unos para representar que estamos usando el vector de caracteristicas
         # (1, x1, x2) (termino independiente en los sumandos de las ecuaciones lineales)
 
-        # Añadimos la columna de unosS al training
+        # Añadimos la columna de unos al training
         number_of_rows = int(np.shape(X)[0])
         new_column = np.ones(number_of_rows)
         X = np.insert(X, 0, new_column, axis = 1)
@@ -1451,5 +1448,8 @@ def ejercicio2():
 # Corremos todos los ejercicios
 #===============================================================================
 if __name__ == "__main__":
-    ejercicio1()
+    # Establecemos la semilla aleatoria para trabajar con resultados reproducibles
+    np.random.seed(123456789)
+
+    #ejercicio1()
     ejercicio2()

@@ -289,7 +289,117 @@ Además, en las dos funciones de error estudiadas, hemos tenido que calcular ana
 
 \subsection{Descripción del problema}
 
-Buscamos ajustar modelos de
+Buscamos ajustar modelos de regresión a vectores de características extraídos de imágenes de dígitos manuscritos. Estas características son:
 
+\begin{itemize}
+    \item Intensidad: valor medio del nivel de gris
+    \item Simetría: respecto al eje vertical
+\end{itemize}
+
+Solo trabajaremos con los dígitos 1 y 5.
+
+Cargaremos los datos, tanto de entrenamiento como de testing, de ficheros dados por los profesores de prácticas. La función que usamos para leer los datos, \lstinline{readData}, también ha sido dada por los profesores.
+
+Es importante tener en cuenta que la matriz de datos que cargamos del fichero ya tiene una primera columna de unos. Esta columna es necesaria porque representa el sumando del término independiente en las ecuaciones lineales con las que estamos trabajando de forma matricial. De no ser así, tendríamos que añadir esta columna de unos para poder operar cómodamente con la matriz. En el experimento con características no lineales, añadimos columnas a la matriz con la orden \lstinline{np.insert(X, nueva_columna)}
+
+Además, en este ejercicio, usaremos regresión lineal con la intención de clasificar los datos. Es decir, para un dato de entrada, devolvemos una solución real en un intervalo dado (regresión lineal). Después, tomamos como valor de clasificación la etiqueta cuyo valor numérico está más cercana a nuestra predicción de regresión. En el caso concreto de este ejercicio, las etiquetas son -1 y 1, luego es suficiente con quedarnos con el signo de la predicción de la regresión como valor de clasificación.
+
+\subsection{Ejercicio 1}
+
+Se nos pide estimar un modelo lineal a partir de los datos proporcionados, usando tanto el algoritmo de la pseudo-inversa como el algoritmo de gradiente descendente estocástico. Las etiquetas de los datos serán:
+
+\begin{itemize}
+    \item 1: para los dígitos cinco
+    \item -1: para los dígitos uno
+\end{itemize}
+
+Una vez cargados los datos, estos pueden ser visualizados en un \emph{scatter plot}:
+
+\begin{center}
+\includegraphics[scale=0.45]{NubeDatosOriginales}
+\end{center}
+
+Los puntos azules se corresponden con los unos, mientras que los rojos se corresponden con los cincos. Además, añadimos transparencias a los puntos para que sean más apreciables las zonas en las que hay mas concentración de puntos.
+
+\subsubsection{Pseudo-Inversa}
+
+Los resultados que mostramos por pantalla una vez ejecutado el algoritmo de la pseudo-inversa es:
+
+\begin{lstlisting}
+Los pesos obtenidos son: [-1.11588016 -1.24859546 -0.49753165]
+El error de clasficacion en la muestra Ein es: 2.2408193670794097
+El error de clasificacion fuera de la muestra Eout es: 2.439522584578059
+El error cuadratico medio en la muestra Ein es: 0.07918658628900388
+El error cuadratico medio fuera de la muestra Eout es: 0.13095383720052575
+El error porcentual en la muestra Ein es: 0.5124919923126201%
+El error porcentual fuera de la muestra Eout es: 1.650943396226415%
+\end{lstlisting}
+
+Este algoritmo calcula una solución cerrada en un paso, pues está usando el despeje matemático del sistema de ecuaciones que se nos plantea. Así que así hemos calculado la mejor solución, la que menor error va a cometer, al menos en los datos de entrenamiento.
+
+El error porcentual obtenido es muy bueno, tanto en la muestra de entrenamiento (un $0.5125\%$) como en la muestra de testing (un 1.6509\%). Como al usar la pseudo-inversa obtenemos la mejor solución, la información que esto nos aporta es que los datos con los que estamos trabajando están altamente correlados de forma lineal.
+
+El error cuadrático es menos interpretable que el porcentual, pues depende de la escala de los datos con los que estemos trabajando, con las unidades en las que estemos trabajando\ldots. Además, al ser una media de suma de errores al cuadrado es más complicado que lo interpretemos sin tener otras referencias. Este error cuadrático medio nos servirá para hacer comparaciones con los errores cuadráticos de los métodos iterativos, pues como ya se ha mencionado, la pseudo-inversa obtiene el error mínimo para este problema. Y también es interesante tener un control sobre el error cuadrático medio pues es la función de error que los métodos iterativos van a tratar de minimizar (de nuevo, este algoritmo no es un método iterativo, da una solución cerrada en un paso).
+
+El error de clasificación es el error que aparece en la teoría, en el contexto del algoritmo \emph{PLA}. El profesor ya nos comentó que estos métodos serán tratados en la siguiente práctica, pero hemos pensado que no vendría mal tener una referencia sobre esa medida de error.
+
+Un inconveniente de este algoritmo es que para matrices mucho más grande que esta, es más lento que métodos iterativos como los que vamos a explorar a continuación.
+
+Ahora mostramos la recta que separa los datos en los dos grupos en los que clasificamos. Es lo que podríamos llamar la recta frontera de la clasificación. Un dato lo clasificamos de una u otra forma según el signo de la predicción, por tanto, la frontera de clasificación será la recta que prediga los datos a un valor de cero, y con ello hacemos el siguiente desarrollo:
+
+\begin{displaymath}
+y = w_0 + w_1 x_1 + w_2 x_2
+\end{displaymath}
+
+La frontera será por tanto los valores para los que tengamos la predicción $y = 0$ y por tanto:
+
+\begin{displaymath}
+    0 = w_0 + w_1 x_1 + w_2 x_2 \Longrightarrow x_2 = \frac{1}{w_2} (-w_0 - w_1 x_1)
+\end{displaymath}
+
+y con esta fórmula ya podemos representar la recta frontera:
+
+\includegraphics[scale=0.55]{FrontierLine01}
+
+Esta recta frontera está representada con los datos de entrenamiento en el fondo. Además de esta gráfica, voy a mostrar una gráfica para ver dónde fallamos. En esta gráfica, los datos bien clasificados se mostrarán en gris, mientras que los datos mal clasificados se mostrarán en rojo. Dicha gráfica sobre los datos de entrenamiento es:
+
+\includegraphics[scale=0.55]{BadPoints01}
+
+Y la misma gráfica sobre los datos de test es:
+
+\includegraphics[scale=0.55]{BadPoints02}
+
+Por tanto, podemos concluir que la muestra de datos está bien correlada linealmente y por tanto esta técnica tiene buenos resultados, a vista de los resultados reflejados en \lstinline{E_in} y \lstinline{E_out}. Además como no tenemos una gran cantidad de datos, el algoritmo devuelve la solución en un tiempo razonable.
+
+\subsubsection{Stochastic Gradient Descent}
+
+Este algoritmo depende de generar valores aleatorios. Así que, para trabajar con resultados reproducibles, fijamos la semilla aleatoria con \lstinline{np.random.seed(123456789)}.
+
+Stochastic Gradient Descent, en su formulación clásica, trabaja con \lstinline{batch size = 1}, pero como nos indica el profesor de prácticas, es mejor explorar distintos valores de \emph{batch size}, así que realmente estamos trabajando con \emph{MiniBatch Stochastic Gradient Descent}.
+
+Probaremos con un $batch\_size \in \{1, 32, data\_size\}$, donde $data\_size$ es el tamaño de la matriz de datos, con lo que tenemos, segun el valor del $batch\_size$:
+
+\begin{itemize}
+    \item 1: Stochastic Gradient Descent clásico
+    \item 32: Minibatch con un valor del $batch\_size$ convencional
+    \item 64: Minibatch con otro valor del $batch\_size$ convencional
+    \item $data\_size$: Batch Gradient Descent, algoritmo que hemos usado en el Ejercicio 1
+\end{itemize}
+
+En estas pruebas solo nos quedaremos con los errores porcentuales, al ser los más fácilmente interpretables, y una vez escogido el tamaño del $batch\_size$, mostraremos los resultados completos. Además, siguiendo la indicación de nuestro profesor de prácticas, con 200 iteraciones sobre los minibatches generados, debería ser suficiente. Por otro lado, el valor del \emph{learning rate} lo dejaremos a $0.01$ tras haber hecho una exploración de posibles valores. Esta exploración no la incluimos también por no hacer demasiado extensa la memoria de esta práctica.
+
+\begin{center}
+    \begin{tabular}{| c | c | c | c |}
+        Tamaño del minibatch & Error Porcentual en la muestra & Error porcentual fuera de la muestra \\
+        \hline
+        1 & 0.4484 \% & 1.8867\% \\
+        32 & 0.4484\% & 1.6509\% \\
+        64 & 0.4484\% & 1.6509\% \\
+        $data\_size$ & 0.4484\% & 1.6509 \\
+        \hline
+    \end{tabular}
+\end{center}
+
+Todos los algoritmos corren en poco tiempo, salvo cuando usamos $data\_size$, que tarda algo más. Todos los errores, cuando miramos cuatro cifras decimales, son los mismos, salvo cuando usamos $batch\_size = 1$, que fuera de la muestra obtiene peores resultados. Por tanto, decido quedarme con $batch\_size = 32$, por se un valor bastante convencional, que produce buenos resultados y que tarda poco.
 
 \end{document}
