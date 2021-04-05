@@ -78,6 +78,8 @@ En este apartado se nos pide implementar el algoritmo de Gradiente Descendente. 
 
 Esta función devuelve el vector de soluciones que hemos ido construyendo. Si queremos obtener la solución final, lo único que tenemos que hacer es acceder a la última posición. Así podemos generar las gráficas en las que plasmamos tanto la función de error como los puntos que vamos construyendo. También, si tenemos activado el parámetro Verbose, devolvemos el error en cada iteración, lo que es necesario para hacer las gráficas de evolución de error que se nos piden.
 
+\pagebreak
+
 \subsection{Apartado 2}
 \label{seccion:Apartado2}
 
@@ -142,6 +144,8 @@ El punto con una cruz blanca es el punto inicial. El punto con una cruz negra es
 La gráfica del error para los parámetros que se nos han indicado en ~\ref{seccion:Apartado2} es la siguiente:
 
 \includegraphics[scale=0.75]{EvolucionError01}
+
+\pagebreak
 
 \subsection{Apartado 3}
 
@@ -283,6 +287,8 @@ En la undécima fila tenemos un comportamiento muy curioso. La solución inicial
 Vemos como estamos en el filo de dos \emph{agujeros} a los que nos interesaría caer. Estamos en un equilibrio muy inestable en lo que podría llamarse un punto de silla. En este caso en concreto, queremos que se rompa dicho equilibrio pues nos haría caer en uno de los dos óptimos locales. Notar también, que consumimos las mil iteraciones sin modificar la solución. Esto nos asegura que estamos en un punto de silla, pues el que no se mueva implica que el gradiente es cero. Gradiente nulo en un punto que no es óptimo indica con seguridad que es un punto de silla. Sin embargo, para un valor más grande de $\eta$ nos salimos del equilibrio, pero produciendo un comportamiento errático (como se muestra en la siguiente gráfica) que nos lleva a una peor solución:
 
 \includegraphics[scale=0.5]{EvolucionSolucionesExperimento12}
+
+\pagebreak
 
 \subsection{Apartado 4}
 
@@ -565,13 +571,15 @@ Para ello, tenemos que añadir nuevas columnas en nuestra matriz de datos, al ig
     X = np.insert(X, 5, last_col, axis = 1)
 \end{lstlisting}
 
+Este es el único cambio que tenemos que hacer para correr el algoritmo \emph{SGD} adaptado a estas características no lineales, pues todas las operaciones son sobre vectores y matrices usando \lstinline{numpy}.
+
 \subsubsection{Lanzar 1000 veces el experimento}
 
 Los resultados tras lanzar 1000 veces el experimento y promediando los valores son:
 
 \begin{lstlisting}
-Error medio porcentual DENTRO de la muestra: 22.85820000000001\%
-Error medio porcentual FUERA de la muestra: 23.287299999999977\%
+Error medio porcentual DENTRO de la muestra: 22.85820000000001%
+Error medio porcentual FUERA de la muestra: 23.287299999999977%
 Error medio cuadratico medio DENTRO de la muestra: 0.7737067204159451
 Error medio cuadratico medio FUERA de la muestra: 0.7786926343602749
 \end{lstlisting}

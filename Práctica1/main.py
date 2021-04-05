@@ -1559,5 +1559,5 @@ if __name__ == "__main__":
     # Establecemos la semilla aleatoria para trabajar con resultados reproducibles
     np.random.seed(123456789)
 
-    #ejercicio1()
+    ejercicio1()
     ejercicio2()
