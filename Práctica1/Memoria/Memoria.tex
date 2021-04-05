@@ -64,7 +64,7 @@
 % Apartado 1
 \subsection{Apartado 1}
 
-En este apartado se nos pide implementar el algoritmo de Grandiente Descendente. Esta función toma como parámetros de entrada:
+En este apartado se nos pide implementar el algoritmo de Gradiente Descendente. Esta función toma como parámetros de entrada:
 
 \begin{itemize}
     \item \lstinline{starting_point}: punto inicial del que parte la búsqueda
@@ -179,27 +179,27 @@ Lo primero que hacemos es mostrar una gráfica en dos dimensiones de la función
 
 \includegraphics[scale=0.65]{FuncionErrorEjercicio1Apartado3}
 
-Realizando gradiente descendente con los primeros parametros dados obtenemos la siguiente gráfica, en la que se muestra cómo evoluciona el valor del error según avanzan las iteraciones del algoritmo.
+Realizando gradiente descendente con los primeros parámetros dados obtenemos la siguiente gráfica, en la que se muestra cómo evoluciona el valor del error según avanzan las iteraciones del algoritmo.
 
 \includegraphics[scale=0.65]{EvolucionError02}
 
-Mostramos, aunque no se nos pida en el guión, la traza del algritmo (soluciones plasmadas sobre la gráfica bidimensiona del error):
+Mostramos, aunque no se nos pida en el guión, la traza del algoritmo (soluciones plasmadas sobre la gráfica bidimensional del error):
 
 \includegraphics[scale=0.65]{EvolucionSoluciones02}
 
 En esta gráfica se puede apreciar con facilidad que el algoritmo tiene el comportamiento deseado, pues cae con facilidad en un óptimo local.
 
-Ahora realizamos el mismo proceso pero cambiando a $\eta = 0.1$. Obtenemos la siguiente gráfica de evolución del errolución del error:
+Ahora realizamos el mismo proceso pero cambiando a $\eta = 0.1$. Obtenemos la siguiente gráfica de evolución del error:
 
 \includegraphics[scale=0.65]{EvolucionError03}
 
-De esta gráfica ya podemos ver que el comportamiento del algoritmo no es el deseado. Lo que esperaríamos es que el error disminuyese monótamente en cada iteración. Sin embargo, lo que nos encontramos es con que el error oscila con grandes saltos. De lo estudiado en teoría, sabemos que el motivo sea seguramente un valor de $\eta$ demasiado grande. COn esto, cuando estamos cerca de una solución local, damos un salto muy grande en cierta dirección, saltando el óptimo local y yendo a una zona de alto error. Del mismo modo, de un salto desde una zona de alto error podemos acabar en una zona de muy bajo error. Es claro que este comportamiento errático no es deseable. Mostramos la traza de las soluciones en cada iteración para reforzar esta hipótesis sobre el mal comportamiento:
+De esta gráfica ya podemos ver que el comportamiento del algoritmo no es el deseado. Lo que esperaríamos es que el error disminuyese monótamente en cada iteración. Sin embargo, lo que nos encontramos es con que el error oscila con grandes saltos. De lo estudiado en teoría, sabemos que el motivo sea seguramente un valor de $\eta$ demasiado grande. Con esto, cuando estamos cerca de una solución local, damos un salto muy grande en cierta dirección, saltando el óptimo local y yendo a una zona de alto error. Del mismo modo, de un salto desde una zona de alto error podemos acabar en una zona de muy bajo error. Es claro que este comportamiento errático no es deseable. Mostramos la traza de las soluciones en cada iteración para reforzar esta hipótesis sobre el mal comportamiento:
 
 \includegraphics[scale=0.65]{EvolucionSoluciones03}
 
 Con este gráfico, vemos que en la última iteración (del gráfico de evolución de error se deduce ya que se han consumido el total de iteraciones) hemos acabado, por buena suerte, en una buena zona de la función del error.
 
-Con este ejemplo, podemos ver que es importante explorar con distintos valores de $\eta$, pues estos influyen mucho en el buen o mal comportamento del gradiente descendiente. Es más, ya podemos intuir que un ajuste dinámico del valor de $\eta$ puede ser muy interesante, pues como hemos visto en teoría, nos interesa avanzar con \emph{"pasos de gigante"} al principio con un $\eta$ grande, y disminuir el valor de $\eta$ al acercarnos a un óptimo local para tener más precisión en las iteraciones.
+Con este ejemplo, podemos ver que es importante explorar con distintos valores de $\eta$, pues estos influyen mucho en el buen o mal comportamiento del gradiente descendiente. Es más, ya podemos intuir que un ajuste dinámico del valor de $\eta$ puede ser muy interesante, pues como hemos visto en teoría, nos interesa avanzar con \emph{"pasos de gigante"} al principio con un $\eta$ grande, y disminuir el valor de $\eta$ al acercarnos a un óptimo local para tener más precisión en las iteraciones.
 
 En estos dos ejemplos no muestro los valores numéricos de las soluciones obtenidas ni del error alcanzado. Considero que es mucho más interesante e informativo visualizar las gráficas, tanto del error como de la traza, pues estamos estudiando el comportamiento del algoritmo, no una solución concreta que no nos interesa al no ser un problema que realmente queramos resolver.
 
@@ -272,7 +272,7 @@ En la séptima fila, vemos como las soluciones convergen correctamente hacia un 
 
 Además, en este caso, un valor apropiado de $\eta$ consigue mejores resultados que con un valor que produce comportamiento errático.
 
-En la novena fila tenemos un muy buen comportamiento qeu da convergencia hacia un óptimo local (en la gráfica de la traza de la solución que muestra el programa esto se ve claramente. No añado esta gráfica pues ya se ha mostrado una muy parecida, para evitar ser repetitivo). Mientras que en la décima fila ($\eta$ demasiado grande) tenemos el claro caso de comportamiento errático, que en este caso produce peor solución que un adecuado valor de $\eta$.
+En la novena fila tenemos un muy buen comportamiento que da convergencia hacia un óptimo local (en la gráfica de la traza de la solución que muestra el programa esto se ve claramente. No añado esta gráfica pues ya se ha mostrado una muy parecida, para evitar ser repetitivo). Mientras que en la décima fila ($\eta$ demasiado grande) tenemos el claro caso de comportamiento errático, que en este caso produce peor solución que un adecuado valor de $\eta$.
 
 En la undécima fila tenemos un comportamiento muy curioso. La solución inicial y final coinciden. Esto se ve claramente en las siguientes dos gráficas:
 
@@ -286,13 +286,13 @@ Vemos como estamos en el filo de dos \emph{agujeros} a los que nos interesaría 
 
 \subsection{Apartado 4}
 
-La búsqueda de un mínimo global de una función arbitraria presenta varias dificultades, como hemos podido comprobar en estos casoss de estudio.
+La búsqueda de un mínimo global de una función arbitraria presenta varias dificultades, como hemos podido comprobar en estos casos de estudio.
 
-Para comenzar, no conocemos a priori si la función estudiada tiene un mínimo global. Tenemos resultados como el que nos asegura qque en una función convexa, todo mínimo local es un mínimo global (análogo con funciones cóncavas y máximos).
+Para comenzar, no conocemos a priori si la función estudiada tiene un mínimo global. Tenemos resultados como el que nos asegura que en una función convexa, todo mínimo local es un mínimo global (análogo con funciones cóncavas y máximos).
 
 Los métodos analíticos para calcular puntos críticos son poco útiles en la práctica en espacios paramétricos de gran dimensionalidad. O con funciones para las que no existen soluciones analíticas, a pesar de que las funciones que definen el problema sean suficientemente regulares (continuas, diferenciables, $C^\infty$, $\ldots$), con lo que estas deben ser aproximadas por métodos numéricos. Por tanto, para muchos casos de uso, estas técnicas no van a ser factibles.
 
-Y en otros muchos casos, vamos a trabajar con funciones de error que directamente no van a ser analíticamente tratables, por lo que quedan directamente descartados estos métodos analíticos. Es aquí donde entran en juego otros métodos, como búsquedas heurísticas o el método del gradiente descendente (que en este caso, se apoya en una propiedad analitica como es la existencia del gradiente).
+Y en otros muchos casos, vamos a trabajar con funciones de error que directamente no van a ser analíticamente tratables, por lo que quedan directamente descartados estos métodos analíticos. Es aquí donde entran en juego otros métodos, como búsquedas heurísticas o el método del gradiente descendente (que en este caso, se apoya en una propiedad analítica como es la existencia del gradiente).
 
 Este método en concreto, que es el que estudiamos en este apartado, tiene las problemáticas usuales de los métodos iterativos para la búsqueda de óptimos locales. Dependen de parámetros como la solución inicial escogida, condiciones de parada, tamaño de la población de búsqueda (en caso de las técnicas vistas hasta ahora, solo tenemos una solución en la población de soluciones sobre las que realizamos la búsqueda).
 
@@ -396,7 +396,7 @@ Este algoritmo depende de generar valores aleatorios. Así que, para trabajar co
 
 Stochastic Gradient Descent, en su formulación clásica, trabaja con \lstinline{batch size = 1}, pero como nos indica el profesor de prácticas, es mejor explorar distintos valores de \emph{batch size}, así que realmente estamos trabajando con \emph{MiniBatch Stochastic Gradient Descent}.
 
-Probaremos con un $batch\_size \in \{1, 32, data\_size\}$, donde $data\_size$ es el tamaño de la matriz de datos, con lo que tenemos, segun el valor del $batch\_size$:
+Probaremos con un $batch\_size \in \{1, 32, data\_size\}$, donde $data\_size$ es el tamaño de la matriz de datos, con lo que tenemos, según el valor del $batch\_size$:
 
 \begin{itemize}
     \item 1: Stochastic Gradient Descent clásico
@@ -419,7 +419,7 @@ En estas pruebas solo nos quedaremos con los errores porcentuales, al ser los m�
     \end{tabular}
 \end{center}
 
-Todos los algoritmos corren en poco tiempo, salvo cuando usamos $data\_size$, que tarda algo más. Todos los errores, cuando miramos cuatro cifras decimales, son los mismos, salvo cuando usamos $batch\_size = 1$, que fuera de la muestra obtiene peores resultados. Por tanto, decido quedarme con $batch\_size = 32$, por se un valor bastante convencional, que produce buenos resultados y que tarda poco.
+Todos los algoritmos corren en poco tiempo, salvo cuando usamos $data\_size$, que tarda algo más. Todos los errores, cuando miramos cuatro cifras decimales, son los mismos, salvo cuando usamos $batch\_size = 1$, que fuera de la muestra obtiene peores resultados. Por tanto, decidimos quedarnos con $batch\_size = 32$, por ser un valor bastante convencional, que produce buenos resultados y que tarda poco.
 
 Así que corriendo el algoritmo con un valor de $batch\_size = 32$ obtenemos los siguientes resultados que mostramos por pantalla:
 
@@ -473,13 +473,13 @@ Usando la anterior función generamos los 1000 puntos en el cuadrado $[-1, 1]^2$
 
 \includegraphics[scale=0.45]{RandomScatterPlot}
 
-\subsubsection{Subapartartado b}
+\subsubsection{Subapartado b}
 
 Consideramos la función $f(x_1, x_2) = sign((x_1 - 0.2)^2 + x_2^2 - 0.6)$. Usamos dicha función para etiquetar los datos. Introducimos ruido sobre el 10\% de las etiquetas, es decir, cambiamos el signo del 10\% de las etiquetas. Para ello, generamos los índices $\{0, 1, \ldots, 999\}$, los mezclamos y cambiamos el signo de los datos datos correspondientes a los primeros 100 indices. Por tener más generalidad, trabajamos con el 10\% de los indices generados. Así obtenemos la siguiente gráfica:
 
 \includegraphics[scale=0.45]{LabeledScatterPlot}
 
-\subsubsection{Subapartartado c}
+\subsubsection{Subapartado c}
 
 Ajustamos un modelo lineal usando el vector de características $(1, x_1, x_2)$ usando Gradiente Descendiente Estocástico.
 
@@ -523,7 +523,7 @@ Y los puntos en los que falla la clasificación:
 
 \subsubsection{Subapartado d}
 
-Repetimos el experimento 1000 veces. En cada una de estas repeticiones, generamos una nueva muestra aleatoria de 1000 puntos para el training, y otra muestra aleatorioa de 1000 puntos para testing, así que ahora podremos computar el valor tanto de $E\_in$ como de $E\_out$. Los resultados obtenidos son:
+Repetimos el experimento 1000 veces. En cada una de estas repeticiones, generamos una nueva muestra aleatoria de 1000 puntos para el training, y otra muestra aleatoria de 1000 puntos para testing, así que ahora podremos computar el valor tanto de $E\_in$ como de $E\_out$. Los resultados obtenidos son:
 
 \begin{lstlisting}
 Error medio porcentual DENTRO de la muestra: 40.41820000000005%
@@ -586,7 +586,7 @@ Al usar un valor de \lstinline{max_iterations} de 200 obtenemos la siguiente gr�
 
 \includegraphics[scale=0.55]{BadPoints06}
 
-Según esta gráfica de error, parece que podemo seguir mejorando el error conforme avancen más iteraciones, así que pruebo con 400, 600 y 800 iteraciones, obtenidendo las siguientes gráficas de errores:
+Según esta gráfica de error, parece que podemos seguir mejorando el error conforme avancen más iteraciones, así que pruebo con 400, 600 y 800 iteraciones, obteniendo las siguientes gráficas de errores:
 
 
 \includegraphics[scale=0.55]{MinibatchError05}
