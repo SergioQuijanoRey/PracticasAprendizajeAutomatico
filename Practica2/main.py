@@ -1,12 +1,16 @@
 """
 Practica 2: Aprendizaje Automatico
 Sergio Quijano Rey, sergioquijano@correo.ugr.es
+Enlaces usados:
+    [1]: https://stackoverflow.com/questions/28663856/how-to-count-the-occurrence-of-certain-item-in-an-ndarray
 """
 import numpy as np
 import matplotlib.pyplot as plt
 
 from mpl_toolkits.mplot3d import Axes3D  # Para hacer graficas en 3D
 from matplotlib import cm               # Para cambiar el color del grafico 3D
+
+import collections  # Para contar los numeros de apariciones de cierto elemento en un array numpy
 
 # Funciones auxiliares
 # ===================================================================================================
@@ -20,6 +24,11 @@ def wait_for_user_input():
 def get_straight_line(a, b):
     """Devuelve la funcion recta de la forma a*x + b"""
     return lambda x: a * x + b
+
+# Valores de las etiquetas
+#===================================================================================================
+label_pos = 1
+label_neg = -1
 
 # Funciones dadas por los profesores
 # ===================================================================================================
@@ -340,11 +349,87 @@ def generate_labels_with_random_straight_line(dataset, lower, upper):
 
     return np.array(labels), [a, b]
 
+def change_labels(dataset, labels, percentage):
+    """
+    Cambiamos un porcentaje dado de las etiquetas. Las etiquetas que se cambian se escogen en orden
+    aleatorio. La cantidad de cambios no es aleatoria, pues la fija el percentage de forma
+    deterministica. Se cambia un percentage de etiquetas positivas y otro percentage de etiquetas
+    negativas
+
+    Parameters:
+    ===========
+    labels: etiquetas que vamos a modificar. Debe ser un array de numpy
+    percentage: porcentaje en tantos por uno de etiquetas que vamos a cambiar, tanto negativas como
+                positivas
+
+    Returns:
+    ========
+    new_labels: nuevo etiquetado como ya se ha indicado
+    """
+
+    # Comprobacion de seguridad
+    if percentage < 0 or percentage > 1:
+        raise Exception("El porcentaje debe estar en el intervalo [0, 1]")
+
+    # Copiamos las etiquetas
+    new_labels = labels.copy()
+
+    # Contamos el numero de positivos y negativos
+    # La idea de usar collections.Counter viene del post en StackOverflow: [1]
+    counter = collections.Counter(labels)
+    number_of_positives = counter.get(label_pos)
+    number_of_negatives = counter.get(label_neg)
+
+    # Tomamos el numero de elementos a cambiar usando el porcentage
+    num_positives_to_change = int(number_of_positives * percentage)
+    num_negatives_to_change = int(number_of_negatives * percentage)
+
+    # Tomamos un vector de posiciones de etiquetas negativas y otro de etiquetas positivas
+    positive_index = []
+    negative_index = []
+
+    # Recorremos elemetos, pero tambien indices, porque lo que nos interesa guardar son los indices
+    # de los dos tipos de etiquetas
+    for index, label in enumerate(labels):
+        if label == label_pos:
+            positive_index.append(index)
+        elif label == label_neg:
+            negative_index.append(index)
+        else:
+            raise Exception(f"Una etiqueta no tiene valor en {-1, 1}. El valor encontrado fue {label}")
+
+    # Como el cambio debe ser aleatorio, hacemos shuffle de los indices
+    np.random.shuffle(positive_index)
+    np.random.shuffle(negative_index)
+
+    # Modificamos las etiquetas negativas
+    for i in range(num_negatives_to_change):
+        # Indice en el vector de etiquetas que debemos cambiar
+        # Lo recorremos secuencialmente porque anteriormente hemos hecho un shuffle
+        index_to_change = negative_index[i]
+
+        # Cambiamos ese indice por una etiqueta positiva
+        new_labels[index_to_change] = label_pos
+
+    # Modificamos las etiquetas positivas
+    for i in range(num_positives_to_change):
+        # Indice en el vector de etiquetas que debemos cambiar
+        # Lo recorremos secuencialmente porque anteriormente hemos hecho un shuffle
+        index_to_change = positive_index[i]
+
+        # Cambiamos ese indice por una etiqueta positiva
+        new_labels[index_to_change] = label_neg
+
+
+
+    return new_labels
+
 
 def ejercicio1_apartado2():
     """Codigo que lanza la tarea del segundo apartado del primer ejercicio"""
     print("Ejercicio 1 Apartado 2")
 
+    print("Subapartado a)")
     # Generamos el dataset que se nos indica para este apartado
     number_of_points = 100  # Numero de datos
     dimensions = 2          # Dimensiones de cada dato
@@ -369,6 +454,24 @@ def ejercicio1_apartado2():
         title="Datos etiquetados por la linea aleatoria",
         line_coeffs=line_coeffs
     )
+
+    print("Subapartado b)")
+    print("Cambiamos aleatoriamente el 10% de las etiquetas")
+    # Modificamos el 10% de las etiquetas positivas y el 10% de las etiquetas negativas, escogiendo
+    # los elementos a cambiar de forma aleatoria (sin seguir ningun orden sobre las etiquetas a modificar)
+    changed_labels = change_labels(dataset, labels, 0.1)
+
+    # Mostramos de nuevo la grafica con las etiquetas cambiadas
+    print("Mostramos el etiquetado cambiado y la recta de clasificacion original")
+    scatter_plot_with_classes_and_straight_line(
+        dataset,
+        changed_labels,
+        target_names=["Signo Negativo", "Signo positivo"],
+        feature_names=["Eje X", "Eje Y"],
+        title="Datos etiquetados con ruido y recta de clasificacion original",
+        line_coeffs=line_coeffs
+    )
+
 
 
 # Funcion principal
