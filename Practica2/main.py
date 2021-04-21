@@ -16,6 +16,11 @@ def wait_for_user_input():
     """Esperamos a que el usuario pulse una tecla para continuar con la ejecucion"""
     input("Pulse ENTER para continuar...")
 
+
+def get_straight_line(a, b):
+    """Devuelve la funcion recta de la forma a*x + b"""
+    return lambda x: a * x + b
+
 # Funciones dadas por los profesores
 # ===================================================================================================
 
@@ -79,9 +84,6 @@ def readData(file_x, file_y, digits, labels):
 # Graficos
 # ===================================================================================================
 
-# Funciones para mostrar graficos
-# ===================================================================================================
-
 
 def scatter_plot(x_values, y_values, title="Scatter Plot Simple", x_label="Eje X", y_label="Eje Y"):
     """
@@ -116,6 +118,136 @@ def scatter_plot(x_values, y_values, title="Scatter Plot Simple", x_label="Eje X
     plt.show()
     wait_for_user_input()
 
+
+def scatter_plot_with_classes(data, classes, target_names, feature_names, title, ignore_first_column: bool = False, show: bool = True):
+    """
+    Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados en distintos grupos
+
+    Mucho del codigo esta tomado de la practica anterior, en concreto, de hacer
+    el plot de iris dataset
+
+    Parameters:
+    ===========
+    data: coordeandas de los distintos puntos
+    classes: etiquetas numericas de las clases a la que pertenencen los datos
+    target_names: nombres que le doy a cada una de las clases
+    feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
+    ignore_first_column: indica si tenemos que ignorar o no la primera columna
+                         Esto pues en algunos casos la primera columna de la matriz de datos
+                         tiene todo unos para representar el sumando del termino independiente
+                         en las ecuaciones lineales. En esta practica, no va a ser el caso
+    show: indica si queremos mostrar o no la grafica
+          Nos puede interesar no mostrar la grafica para añadir nuevos elementos
+          a esta grafica sin tener que repetir codigo
+
+    data y classes ya en un tipo de dato numpy para poder operar con ellos
+    """
+
+    # Tomo las coordenadas de la matriz de datos, es decir, separo coordenadas
+    # x e y de una matriz de datos que contiene pares de coordenadas
+    x_values = data[:, 0]
+    y_values = data[:, 1]
+
+    # Cuando ignore_first_column = True, para poder operar con la matriz X,
+    # su primera columna es todo unos (que representan los terminos independientes
+    # en las operaciones matriciales). Para estas graficas logicamente no nos interesa esa columna
+    if ignore_first_column is True:
+        x_values = data[:, 1]
+        y_values = data[:, 2]
+
+    # Colores que voy a utilizar para cada una de las clases
+    # Rojo para un numero, azul para otro color.
+    colormap = ['red', 'blue']
+
+    # Separacion de indices. Con esto, consigo la lista de los indices de la
+    # clase i-esima, cada uno en un vector distinto. Esto lo necesitare para
+    # colorear cada clase de un color y ponerle de label el nombre de la planta
+
+    # Separo los indices correspondientes a la clase del numero 1 y la clase del
+    # numero 5
+    first_class_indexes = np.where(classes == -1)
+    second_class_indexes = np.where(classes == 1)
+
+    # Asi puedo referirme a la primera clase como splitted_indixes[0] en vez
+    # de usar el nombre de la variable (para acceder a los indices en el siguiente
+    # bucle)
+    splitted_indixes = [first_class_indexes, second_class_indexes]
+
+    # Tomo estos elementos para hacer graficas elaboradas
+    fig, ax = plt.subplots()
+
+    # Itero sobre las clases
+    for index, target_name in enumerate(target_names):
+
+        # Tomo las coordenadas de la clase index-esima
+        current_x = x_values[splitted_indixes[index]]
+        current_y = y_values[splitted_indixes[index]]
+
+        # Muestro la clase index-esima, con su color y su etiqueta correspondiente
+        # Ponemos alpha para apreciar donde se acumulan muchos datos (que seran
+        # zonas mas oscuras que aquellas en las que no hay acumulaciones)
+        ax.scatter(current_x, current_y,
+                   c=colormap[index], label=target_name, alpha=0.6)
+
+    # Titulo para la grafica
+    plt.title(title)
+
+    # Tomo los titulos de las caracteristicas y los asigno al grafico
+    # Tomo la idea de: https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_iris_scatter.html
+    x_legend = feature_names[0]
+    y_legend = feature_names[1]
+    plt.xlabel(x_legend)
+    plt.ylabel(y_legend)
+
+    # Muestro la grafica en caso de que show = True
+    if show is True:
+        plt.show()
+        wait_for_user_input()
+
+
+def scatter_plot_with_classes_and_straight_line(data, classes, target_names, feature_names, title, line_coeffs):
+    """
+    Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados a partir de una
+    recta (usando el signo de la distancia del punto a la recta). Ademas, mostramos la recta que
+    ha sido usada para etiquetar.
+
+    Parameters:
+    ===========
+    data: coordeandas de los distintos puntos
+    classes: etiquetas numericas de las clases a la que pertenencen los datos
+    target_names: nombres que le doy a cada una de las clases
+    feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
+    title: titulo que le queremos poner a la grafica
+    line_coeffs: coeficientes de la recta de clasificacion. [a, b] donde y = ax + b
+    """
+
+    # Usamos la funcion que hace scatter plot de los datos etiquetados
+    # Hacemos show = False para que no se muestre la grafica, porque queremos seguir haciendo
+    # modificaciones sobre esta
+    scatter_plot_with_classes(
+        data, classes, target_names, feature_names, title, show=False)
+
+    # Tomamos el valor minimo y maximo en el eje de ordenadas
+    # Los escalamos un poco por encima para que la linea quede bien
+    lower_x = np.amin(data[:, 0])
+    upper_x = np.amax(data[:, 0])
+    lower_x = lower_x * 1.1
+    upper_x = upper_x * 1.1
+
+
+    # Calculamos los dos valores de y a partir de la recta
+    f = get_straight_line(line_coeffs[0], line_coeffs[1])
+    lower_y = f(lower_x)
+    upper_y = f(upper_x)
+
+    # Mostramos la recta que ha generado el etiquetado
+    plt.plot([lower_x, upper_x], [lower_y, upper_y])
+
+    # Mostramos la grafica
+    plt.show()
+    wait_for_user_input()
+
+
 # Ejercicio 1
 # ===================================================================================================
 
@@ -125,11 +257,17 @@ def ejercicio1():
     print("Lanzando ejercicio 1")
     print("=" * 80)
 
+    # Primer apartado
     ejercicio1_apartado1()
+
+    # Segundo apartado
+    ejercicio1_apartado2()
 
 
 def ejercicio1_apartado1():
     """Codigo que lanza la tarea del primer apartado del primer ejercicio"""
+    print("Ejercicio 1 Apartado 1")
+
     # Parametros de la tarea pedida
     number_of_points = 50   # Numero de datos
     dimensions = 2          # Dimensiones de cada dato
@@ -151,6 +289,8 @@ def ejercicio1_apartado1():
     )
 
     # Mostramos los dos datasets obtenidos
+    # Hacemos dataset[:, 0], dataset[:, 1] para quedarnos con todos los datos de la primera y
+    # segunda columna en arrays distintos. Esto es, separamos las coordenadas x1 y x2
     print("Dataset generado con una distribucion uniforme")
     scatter_plot(uniform_dataset[:, 0], uniform_dataset[:, 1],
                  f"Scatter Plot de la distribucion uniforme de {number_of_points} puntos en el rango [{lower}, {upper}]")
@@ -158,6 +298,77 @@ def ejercicio1_apartado1():
     print("Dataset generado con una distribucion gaussiana")
     scatter_plot(gauss_dataset[:, 0], gauss_dataset[:, 1],
                  f"Scatter Plot de la distribucion gaussiana de {number_of_points} puntos con sigma en [{lower_sigma, upper_sigma}]")
+
+
+def generate_labels_with_random_straight_line(dataset, lower, upper):
+    """
+    Genera las etiquetas para una muestra de datos de dos dimensiones usando el signo de la distancia
+    a la recta simulada (a partir del codigo de los profesores). Tambien devuelve la recta que
+    ha sido usada para el etiquetado
+
+    Parameters:
+    ===========
+    dataset: conjunto de datos que queremos etiquetar
+    lower: extremo inferior del dominio de los datos
+    upper: extremo superior del dominio de los datos
+
+    Returns:
+    ========
+    labels: np.array en el dominio {-1, 1} con el etiquetado
+    line_coeffs: los coeficientes de la recta que ha sido usada para generar el etiquetado
+    """
+
+    # Recta simulada que nos servira para etiquetar los datos y funciones para etiquetar
+    a, b = simula_recta(intervalo=[lower, upper])
+    # Recta que generamos aleatoriamente
+    def f(x): return a * x + b
+    # Distancia de un punto a la recta aleatoria
+    def distance(x, y): return y - f(x)
+    def labeling(x, y): return np.sign(distance(x, y))  # Funcion de etiquetado
+
+    # Etiquetamos la muestra
+    labels = []
+    for data_point in dataset:
+        # Descomponemos las coordenadas
+        x, y = data_point[0], data_point[1]
+
+        # Tomamos el signo de la distancia a la recta
+        label = labeling(x, y)
+
+        # Añadimos la etiqueta
+        labels.append(label)
+
+    return np.array(labels), [a, b]
+
+
+def ejercicio1_apartado2():
+    """Codigo que lanza la tarea del segundo apartado del primer ejercicio"""
+    print("Ejercicio 1 Apartado 2")
+
+    # Generamos el dataset que se nos indica para este apartado
+    number_of_points = 100  # Numero de datos
+    dimensions = 2          # Dimensiones de cada dato
+    lower = -50             # Extremo inferior del intervalo en cada coordenada
+    upper = 50              # Extremo superior del intervalo en cada coordenada
+    dataset = simula_unif(number_of_points, dimensions, rango=[lower, upper])
+
+    # Generamos las etiquetas como se indica
+    labels, line_coeffs = generate_labels_with_random_straight_line(
+        dataset,
+        lower,
+        upper
+    )
+
+    # Mostramos el etiquetado de los datos junto a la recta que se ha usado para etiquetar
+    print("Mostramos los datos generados y el etiquetado realizado a partir de una linea aleatoria")
+    scatter_plot_with_classes_and_straight_line(
+        dataset,
+        labels,
+        target_names=["Signo Negativo", "Signo positivo"],
+        feature_names=["Eje X", "Eje Y"],
+        title="Datos etiquetados por la linea aleatoria",
+        line_coeffs=line_coeffs
+    )
 
 
 # Funcion principal
