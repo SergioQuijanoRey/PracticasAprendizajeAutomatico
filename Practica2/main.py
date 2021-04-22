@@ -826,7 +826,7 @@ def ejercicio2_apartado1():
     dimensions = 2              # Dimensiones de cada dato
     lower = -50                 # Extremo inferior del intervalo en cada coordenada
     upper = 50                  # Extremo superior del intervalo en cada coordenada
-    max_iterations = 1e3        # Numero maximo de iteraciones (no se especifica en el guion)
+    max_iterations = 1e5        # Numero maximo de iteraciones (no se especifica en el guion)
 
     # Generamos los dos conjuntos de datos
     dataset = simula_unif(
@@ -856,7 +856,8 @@ def ejercicio2_apartado1():
         ignore_first_column = True
     )
 
-    # Lanzamos el algoritmo con vector inicial cero
+    # Lanzamos el algoritmo con vector inicial cero a solas para mostrar las graficas
+    print("-> Mostrando una unica ejecucion para la solucion inicial zero")
     zero_solution = np.zeros_like(dataset[0])
     perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorihtm(dataset, labels, max_iterations, zero_solution, verbose = True)
     print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
@@ -879,6 +880,83 @@ def ejercicio2_apartado1():
         get_frontier_function(perceptron_weights),
         ignore_first_column = True
     )
+
+    # Hacemos lo mismo pero para una solucion inicial aleatoria
+    print("-> Mostrando una unica ejecucion para la solucion inicial zero")
+    rand_solution = np.random.rand(len(dataset[0]))
+    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorihtm(dataset, labels, max_iterations, rand_solution, verbose = True)
+    print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
+    print(f"Iteraciones consumidas: {consumed_iterations}")
+    print(f"Porcentaje mal clasificado: {percentage_error(dataset, labels, perceptron_weights) * 100}%")
+    wait_for_user_input()
+
+    # Mostramos la grafica de progreso del error
+    print("Mostrando grafica de la evolucion del error")
+    plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
+
+    # Mostramos como clasifica nuestra solucion
+    print("Mostrando el resultado obtenido")
+    scatter_plot_with_classes_and_labeling_function(
+        dataset,
+        labels,
+        ["Valor positivo", "Valor negativo"],
+        ["Eje X", "Eje Y"],
+        "Clasificacion de los datos usando una recta",
+        get_frontier_function(perceptron_weights),
+        ignore_first_column = True
+    )
+
+    # Repetimos ahora el experimento 10 veces con vectores aleatorios
+    print("Repetimos ambos experimentos 10 veces:")
+
+    # Experimento para vector inicial zero
+    # Valores que guardamos para promediar
+    final_errors = []
+    consumed_iterations = []
+
+    for _ in range(10):
+        # Tomamos una solucion aleatoria
+        init_solution = np.random.rand(len(dataset[0]))
+
+        # Calculamos todos los valores para la inicializacion aleatoria
+        curr_sol, curr_cons_it = perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False)
+        curr_err = percentage_error(dataset, labels, curr_sol)
+
+        # Guardamos el valor
+        final_errors.append(curr_err)
+        consumed_iterations.append(curr_cons_it)
+
+    # Mostramos los resultados
+    print("Resultado de las 10 iteraciones -- Vector Inicial Cero:")
+    print(f"\t-> Errores finales(tanto por uno): {final_errors}")
+    print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
+    print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
+    wait_for_user_input()
+
+    # Experimento para vector inicial aleatorio
+    # Valores que guardamos para promediar
+    final_errors = []
+    consumed_iterations = []
+
+    for _ in range(10):
+        # Tomamos una solucion aleatoria
+        init_solution = np.random.rand(len(dataset[0]))
+
+        # Calculamos todos los valores para la inicializacion aleatoria
+        curr_sol, curr_cons_it = perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False)
+        curr_err = percentage_error(dataset, labels, curr_sol)
+
+        # Guardamos el valor
+        final_errors.append(curr_err)
+        consumed_iterations.append(curr_cons_it)
+
+    # Mostramos los resultados
+    print("Resultado de las 10 iteraciones -- Vector inicial aleaotiro:")
+    print(f"\t-> Errores finales(tanto por uno): {final_errors}")
+    print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
+    print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
+    wait_for_user_input()
+
 
 # Funcion principal
 # ===================================================================================================
