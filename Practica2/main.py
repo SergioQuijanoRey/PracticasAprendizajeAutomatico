@@ -233,7 +233,7 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title,
         wait_for_user_input()
 
 
-def scatter_plot_with_classes_and_labeling_function(data, classes, target_names, feature_names, title, labeling_function):
+def scatter_plot_with_classes_and_labeling_function(data, classes, target_names, feature_names, title, labeling_function, ignore_first_column = False):
     """
     Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados a partir de una
     funcion de etiquetado que mostramos en la grafica. Notar que las etiquetas pueden tener ruido,
@@ -254,18 +254,26 @@ def scatter_plot_with_classes_and_labeling_function(data, classes, target_names,
                        (recordar que las etiquetas pueden tener ruido)
                        Debe ser una funcion de una variable despejada para el valor de y, es decir,
                        en la forma y = f(x), globalmente
+    ignore_first_column: si queremos ignorar una primera columna de unos añadida para representar el
+                         termino independiente de un modelo lineal
     """
 
     # Usamos la funcion que hace scatter plot de los datos etiquetados
     # Hacemos show = False para que no se muestre la grafica, porque queremos seguir haciendo
     # modificaciones sobre esta
     scatter_plot_with_classes(
-        data, classes, target_names, feature_names, title, show=False)
+        data, classes, target_names, feature_names, title, ignore_first_column = ignore_first_column, show=False)
+
+    # Establecemos la columna que representa el valor x
+    # Depende de si tenemos una primera columna de unos o no
+    x_col = 0
+    if ignore_first_column == True:
+        x_col = 1
 
     # Tomamos el valor minimo y maximo en el eje de ordenadas
-    # Los escalamos un poco por encima para que la grafica de la funcion quede bien
-    lower_x = np.amin(data[:, 0])
-    upper_x = np.amax(data[:, 0])
+    # Los escalamos un poco por encima para que la grafica de la funcion quede bien V
+    lower_x = np.amin(data[:, x_col])
+    upper_x = np.amax(data[:, x_col])
     lower_x = lower_x * 1.1
     upper_x = upper_x * 1.1
 
@@ -549,7 +557,7 @@ def ejercicio1_apartado1():
                  f"Scatter Plot de la distribucion gaussiana de {number_of_points} puntos con sigma en [{lower_sigma, upper_sigma}]")
 
 
-def generate_labels_with_random_straight_line(dataset, lower, upper):
+def generate_labels_with_random_straight_line(dataset, lower, upper, ignore_first_column = False):
     """
     Genera las etiquetas para una muestra de datos de dos dimensiones usando el signo de la distancia
     a la recta simulada (a partir del codigo de los profesores). Tambien devuelve la recta que
@@ -565,6 +573,8 @@ def generate_labels_with_random_straight_line(dataset, lower, upper):
     ========
     labels: np.array en el dominio {-1, 1} con el etiquetado
     line_coeffs: los coeficientes de la recta que ha sido usada para generar el etiquetado
+    ignore_first_column: si queremos ignorar una primera columna de unos añadida para representar el
+                         termino independiente de un modelo lineal
     """
 
     # Recta simulada que nos servira para etiquetar los datos y funciones para etiquetar
@@ -578,10 +588,10 @@ def generate_labels_with_random_straight_line(dataset, lower, upper):
 
     # Usamos la funcion generica de etiquetado para generar el etiquetado
     # Devolvemos tambien los coeficientes tomados
-    return generate_labels_with_function(dataset, distance), [a, b]
+    return generate_labels_with_function(dataset, distance, ignore_first_column), [a, b]
 
 
-def generate_labels_with_function(dataset, labeling_function):
+def generate_labels_with_function(dataset, labeling_function, ignore_first_column = False):
     """
     Genera las etiquetas para una muestra de datos de dos dimensiones usando el signo de una funcion
     de etiquetado dada
@@ -594,6 +604,8 @@ def generate_labels_with_function(dataset, labeling_function):
     Returns:
     ========
     labels: np.array en el dominio {-1, 1} con el etiquetado
+    ignore_first_column: si queremos ignorar una primera columna de unos añadida para representar el
+                         termino independiente de un modelo lineal
     """
 
     # Funcion de etiquetado que vamos a usar
@@ -603,7 +615,10 @@ def generate_labels_with_function(dataset, labeling_function):
     labels = []
     for data_point in dataset:
         # Descomponemos las coordenadas
+        # Tenemos que controlar si ignoramos o no la primera columna de la matriz
         x, y = data_point[0], data_point[1]
+        if ignore_first_column == True:
+            x, y = data_point[1], data_point[2]
 
         # Tomamos el signo de la distancia a la recta
         label = labeling(x, y)
@@ -809,8 +824,26 @@ def ejercicio2_apartado1():
         rango=[lower, upper]
     )
 
+    # Añadimos una columna de unos para que esto represente el termino independiente en la combinacion
+    # lineal. El codigo lo tomo de la practica anterior en la que teniamos que añadir columnas
+    # a la matriz de entrada
+    number_of_rows = int(np.shape(dataset)[0])
+    new_column = np.ones(number_of_rows)
+    dataset = np.insert(dataset, 0, new_column, axis = 1)
+
     # Generamos las etiquetas para estos datos
-    labels, lin_coeffs = generate_labels_with_random_straight_line(dataset, lower, upper)
+    labels, lin_coeffs = generate_labels_with_random_straight_line(dataset, lower, upper, ignore_first_column = True)
+
+    # Mostramos el dataset con el que trabajamos y el etiquetado generado
+    scatter_plot_with_classes_and_labeling_function(
+        dataset,
+        labels,
+        ["Valor positivo", "Valor negativo"],
+        ["Eje X", "Eje Y"],
+        "Clasificacion de los datos usando una recta",
+        get_straight_line(lin_coeffs[0], lin_coeffs[1]),
+        ignore_first_column = True
+    )
 
     # Lanzamos el algoritmo con vector inicial cero
     zero_solution = np.zeros_like(dataset[0])
@@ -824,6 +857,17 @@ def ejercicio2_apartado1():
     print("Mostrando grafica de la evolucion del error")
     plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
 
+    # Mostramos como clasifica nuestra solucion
+    print("Mostrando el resultado obtenido")
+    scatter_plot_with_classes_and_labeling_function(
+        dataset,
+        labels,
+        ["Valor positivo", "Valor negativo"],
+        ["Eje X", "Eje Y"],
+        "Clasificacion de los datos usando una recta",
+        get_straight_line(perceptron_weights[1], perceptron_weights[2]),
+        ignore_first_column = True
+    )
 
 # Funcion principal
 # ===================================================================================================
