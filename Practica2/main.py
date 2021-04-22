@@ -25,6 +25,17 @@ def get_straight_line(a, b):
     """Devuelve la funcion recta de la forma a*x + b"""
     return lambda x: a * x + b
 
+def get_frontier_function(weights):
+    """
+    Dado un clasificador lineal de la forma w0 + w1x + w2y, devuelve la recta y = f(x) frontera del
+    clasificador lineal
+
+    Parameters:
+    ===========
+    weights: pesos del clasificador. np.array de tres elementos
+    """
+    return lambda x: (1.0 / weights[2]) * (-weights[0] - weights[1] * x)
+
 
 # Valores de las etiquetas
 #===================================================================================================
@@ -865,7 +876,7 @@ def ejercicio2_apartado1():
         ["Valor positivo", "Valor negativo"],
         ["Eje X", "Eje Y"],
         "Clasificacion de los datos usando una recta",
-        get_straight_line(perceptron_weights[1], perceptron_weights[2]),
+        get_frontier_function(perceptron_weights),
         ignore_first_column = True
     )
 
