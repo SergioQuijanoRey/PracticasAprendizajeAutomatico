@@ -3,14 +3,11 @@ Practica 2: Aprendizaje Automatico
 Sergio Quijano Rey, sergioquijano@correo.ugr.es
 Enlaces usados:
     [1]: https://stackoverflow.com/questions/28663856/how-to-count-the-occurrence-of-certain-item-in-an-ndarray
+    [2]: https://glowingpython.blogspot.com/2012/01/how-to-plot-two-variable-functions-with.html
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-# Para hallar los ceros de una funcion sin tener que despejar a mano las funciones
-from scipy.optimize import fsolve
-
 
 # Para contar los numeros de apariciones de cierto elemento en un array numpy
 import collections
@@ -235,9 +232,10 @@ def scatter_plot_with_classes_and_labeling_function(data, classes, target_names,
     """
     Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados a partir de una
     funcion de etiquetado que mostramos en la grafica. Notar que las etiquetas pueden tener ruido,
-    por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion que mostramos
-    recta (usando el signo de la distancia del punto a la recta). Ademas, mostramos la recta que
-    ha sido usada para etiquetar.
+    por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion dada
+    Ademas, mostramos la recta que ha sido usada para etiquetar.
+
+    Se usa esta funcion cuando podemos expresar y = f(x) de forma global
 
     Parameters:
     ===========
@@ -249,7 +247,7 @@ def scatter_plot_with_classes_and_labeling_function(data, classes, target_names,
     labeling_function: funcion de etiquetado que ha generado la parte deterministica del etiquetas
                        (recordar que las etiquetas pueden tener ruido)
                        Debe ser una funcion de una variable despejada para el valor de y, es decir,
-                       en la forma y = f(x)
+                       en la forma y = f(x), globalmente
     """
 
     # Usamos la funcion que hace scatter plot de los datos etiquetados
@@ -277,16 +275,18 @@ def scatter_plot_with_classes_and_labeling_function(data, classes, target_names,
     plt.show()
     wait_for_user_input()
 
-# TODO -- escribir bien la documentacion para esta clase
-
-
 def scatter_plot_with_classes_and_labeling_region(data, classes, target_names, feature_names, title, labeling_function):
     """
     Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados a partir de una
     funcion de etiquetado que mostramos en la grafica. Notar que las etiquetas pueden tener ruido,
-    por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion que mostramos
-    recta (usando el signo de la distancia del punto a la recta). Ademas, mostramos la recta que
-    ha sido usada para etiquetar.
+    por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion dada
+
+    Mostramos las regiones positivas y negativas de la funcion. Lo hacemos asi porque la idea de
+    esta funcion es ser usada cuando labeling_function no tenga un despeje de una variable en funcion
+    de la otra variable global (las funciones de etiquetado son funciones implicitas)
+
+    Podriamos trabajar con los despejes locales del teorema de la funcion implicita, pero al ser
+    funciones locales da mucho trabajo a la hora de generar las graficas
 
     Parameters:
     ===========
@@ -297,9 +297,11 @@ def scatter_plot_with_classes_and_labeling_region(data, classes, target_names, f
     title: titulo que le queremos poner a la grafica
     labeling_function: funcion de etiquetado que ha generado la parte deterministica del etiquetas
                        (recordar que las etiquetas pueden tener ruido)
-                       TODO -- esto es mentira
-                       Debe ser una funcion de una variable despejada para el valor de y, es decir,
-                       en la forma y = f(x)
+                       Debe ser una funcion de dos variables de la que no podamos obtener una funcion
+                       despejada global de la forma xi = f(xj). En caso de poder realizar este calculo
+                       deberiamos usar scatter_plot_with_classes_and_labeling_function
+
+    La idea para pintar una funcion real-valuada de dos variables con un contourf la tomo de [2]
     """
 
     # Tomamos el valor minimo y maximo en el eje de ordenadas
