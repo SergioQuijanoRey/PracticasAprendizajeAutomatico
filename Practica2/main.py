@@ -133,9 +133,6 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title,
     """
     Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados en distintos grupos
 
-    Mucho del codigo esta tomado de la practica anterior, en concreto, de hacer
-    el plot de iris dataset
-
     Parameters:
     ===========
     data: coordeandas de los distintos puntos
@@ -156,6 +153,14 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title,
             distintos. Es claro que para que tenga buen comportamiento, canvas != None => show == false
 
     data y classes ya en un tipo de dato numpy para poder operar con ellos
+
+    Un ejemplo de canvas != None es hacer un contourf de una funcion y despues, encima del contourf,
+    hacer el scatterplot. Si hiciesemos el scatterplot primero, el contourf, al estar encima, taparia
+    por completo los puntos pintados.
+
+    De nuevo, si tomamos fig, ax dentro de esta funcion buscando hacer lo anterior, generariamos dos
+    graficos por separado, uno con el scatter y otro con el contourf, y este no es el comportamiento
+    que esperamos
     """
 
     # Tomo las coordenadas de la matriz de datos, es decir, separo coordenadas
@@ -235,7 +240,8 @@ def scatter_plot_with_classes_and_labeling_function(data, classes, target_names,
     por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion dada
     Ademas, mostramos la recta que ha sido usada para etiquetar.
 
-    Se usa esta funcion cuando podemos expresar y = f(x) de forma global
+    Se usa esta funcion cuando podemos expresar y = f(x) de forma global, pues recordar que las
+    funciones de etiquetado son funciones de dos variables implicitas
 
     Parameters:
     ===========
@@ -633,6 +639,8 @@ def ejercicio1_apartado2():
             labeling_function=labeling_function
         )
 
+# Ejercicio 2
+# ===================================================================================================
 
 # Funcion principal
 # ===================================================================================================
