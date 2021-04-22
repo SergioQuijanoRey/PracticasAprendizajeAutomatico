@@ -4,13 +4,16 @@ Sergio Quijano Rey, sergioquijano@correo.ugr.es
 Enlaces usados:
     [1]: https://stackoverflow.com/questions/28663856/how-to-count-the-occurrence-of-certain-item-in-an-ndarray
 """
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-from mpl_toolkits.mplot3d import Axes3D  # Para hacer graficas en 3D
-from matplotlib import cm               # Para cambiar el color del grafico 3D
+# Para hallar los ceros de una funcion sin tener que despejar a mano las funciones
+from scipy.optimize import fsolve
 
-import collections  # Para contar los numeros de apariciones de cierto elemento en un array numpy
+
+# Para contar los numeros de apariciones de cierto elemento en un array numpy
+import collections
 
 # Funciones auxiliares
 # ===================================================================================================
@@ -25,8 +28,9 @@ def get_straight_line(a, b):
     """Devuelve la funcion recta de la forma a*x + b"""
     return lambda x: a * x + b
 
+
 # Valores de las etiquetas
-#===================================================================================================
+# ===================================================================================================
 label_pos = 1
 label_neg = -1
 
@@ -128,7 +132,7 @@ def scatter_plot(x_values, y_values, title="Scatter Plot Simple", x_label="Eje X
     wait_for_user_input()
 
 
-def scatter_plot_with_classes(data, classes, target_names, feature_names, title, ignore_first_column: bool = False, show: bool = True):
+def scatter_plot_with_classes(data, classes, target_names, feature_names, title, ignore_first_column: bool = False, show: bool = True, canvas=None):
     """
     Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados en distintos grupos
 
@@ -148,6 +152,11 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title,
     show: indica si queremos mostrar o no la grafica
           Nos puede interesar no mostrar la grafica para añadir nuevos elementos
           a esta grafica sin tener que repetir codigo
+    canvas: fig, ax que se obtienen con plt.subplots(). Cuando vale None, realizamos la llamada
+            dentro de la funcion, generando asi una grafica desde cero. Cuando no valen None, usamos
+            los parametros pasados. Este ultimo caso se usa para llamar primero a esta funcion, y
+            despues dibujar sobre el grafico que esta funcion genere sin que se separe en dos graficos
+            distintos. Es claro que para que tenga buen comportamiento, canvas != None => show == false
 
     data y classes ya en un tipo de dato numpy para poder operar con ellos
     """
@@ -182,8 +191,16 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title,
     # bucle)
     splitted_indixes = [first_class_indexes, second_class_indexes]
 
-    # Tomo estos elementos para hacer graficas elaboradas
-    fig, ax = plt.subplots()
+    # Tomo los elementos para dibujar la grafica elaborada
+    fig, ax = None, None
+
+    # Los genero desde dentro porque el caller no ha pasado valor
+    if canvas is None:
+        fig, ax = plt.subplots()
+
+    # Los tomo desade parametro porque el caller si que ha pasado valor
+    else:
+        fig, ax = canvas[0], canvas[1]
 
     # Itero sobre las clases
     for index, target_name in enumerate(target_names):
@@ -214,9 +231,11 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title,
         wait_for_user_input()
 
 
-def scatter_plot_with_classes_and_straight_line(data, classes, target_names, feature_names, title, line_coeffs):
+def scatter_plot_with_classes_and_labeling_function(data, classes, target_names, feature_names, title, labeling_function):
     """
     Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados a partir de una
+    funcion de etiquetado que mostramos en la grafica. Notar que las etiquetas pueden tener ruido,
+    por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion que mostramos
     recta (usando el signo de la distancia del punto a la recta). Ademas, mostramos la recta que
     ha sido usada para etiquetar.
 
@@ -227,7 +246,10 @@ def scatter_plot_with_classes_and_straight_line(data, classes, target_names, fea
     target_names: nombres que le doy a cada una de las clases
     feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
     title: titulo que le queremos poner a la grafica
-    line_coeffs: coeficientes de la recta de clasificacion. [a, b] donde y = ax + b
+    labeling_function: funcion de etiquetado que ha generado la parte deterministica del etiquetas
+                       (recordar que las etiquetas pueden tener ruido)
+                       Debe ser una funcion de una variable despejada para el valor de y, es decir,
+                       en la forma y = f(x)
     """
 
     # Usamos la funcion que hace scatter plot de los datos etiquetados
@@ -237,22 +259,91 @@ def scatter_plot_with_classes_and_straight_line(data, classes, target_names, fea
         data, classes, target_names, feature_names, title, show=False)
 
     # Tomamos el valor minimo y maximo en el eje de ordenadas
-    # Los escalamos un poco por encima para que la linea quede bien
+    # Los escalamos un poco por encima para que la grafica de la funcion quede bien
     lower_x = np.amin(data[:, 0])
     upper_x = np.amax(data[:, 0])
     lower_x = lower_x * 1.1
     upper_x = upper_x * 1.1
 
+    # Generamos un mapeado de los valores para dibujar la grafica de la funcion
+    resolution = 1000  # Numero de puntos que vamos a usar para dibujar la grafica de la funcion
+    x_values = np.linspace(lower_x, upper_x, resolution)
+    y_values = labeling_function(x_values)
 
-    # Calculamos los dos valores de y a partir de la recta
-    f = get_straight_line(line_coeffs[0], line_coeffs[1])
-    lower_y = f(lower_x)
-    upper_y = f(upper_x)
-
-    # Mostramos la recta que ha generado el etiquetado
-    plt.plot([lower_x, upper_x], [lower_y, upper_y])
+    # Generamos la grafica
+    plt.plot(x_values, y_values)
 
     # Mostramos la grafica
+    plt.show()
+    wait_for_user_input()
+
+# TODO -- escribir bien la documentacion para esta clase
+
+
+def scatter_plot_with_classes_and_labeling_region(data, classes, target_names, feature_names, title, labeling_function):
+    """
+    Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados a partir de una
+    funcion de etiquetado que mostramos en la grafica. Notar que las etiquetas pueden tener ruido,
+    por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion que mostramos
+    recta (usando el signo de la distancia del punto a la recta). Ademas, mostramos la recta que
+    ha sido usada para etiquetar.
+
+    Parameters:
+    ===========
+    data: coordeandas de los distintos puntos
+    classes: etiquetas numericas de las clases a la que pertenencen los datos
+    target_names: nombres que le doy a cada una de las clases
+    feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
+    title: titulo que le queremos poner a la grafica
+    labeling_function: funcion de etiquetado que ha generado la parte deterministica del etiquetas
+                       (recordar que las etiquetas pueden tener ruido)
+                       TODO -- esto es mentira
+                       Debe ser una funcion de una variable despejada para el valor de y, es decir,
+                       en la forma y = f(x)
+    """
+
+    # Tomamos el valor minimo y maximo en el eje de ordenadas
+    # Los escalamos un poco por encima para que la grafica de la funcion quede bien
+    lower_x = np.amin(data[:, 0])
+    upper_x = np.amax(data[:, 0])
+    lower_y = np.amin(data[:, 1])
+    upper_y = np.amax(data[:, 1])
+    lower_x = lower_x * 1.1
+    upper_x = upper_x * 1.1
+    lower_y = lower_y * 1.1
+    upper_y = upper_y * 1.1
+
+    # Generamos un mapeado de los valores para dibujar la grafica de la funcion
+    resolution = 1000  # Numero de puntos que vamos a usar para dibujar la grafica de la funcion
+    x_values = np.linspace(lower_x, upper_x, resolution)
+    y_values = np.linspace(lower_y, upper_y, resolution)
+
+    # Generamos una matriz con estos dos arrays para poder evaluar una funcion de dos variables
+    # sobre todas las combinaciones (como si estuviesemos haciendo un producto cartesiano)
+    X, Y = np.meshgrid(x_values, y_values)
+
+    # Tomamos los valores de la funcion en lo anterio
+    Z = np.sign(labeling_function(X, Y))
+
+    # Tomamos los elementos para generar las graficas elaboradas
+    fig, ax = plt.subplots()
+
+    # Mostramos la grafica de la region de separacion
+    plt.contourf(X, Y, Z)
+
+    # Ahora generamos la grafica de scatter plot
+    scatter_plot_with_classes(
+        data=data,
+        classes=classes,
+        target_names=target_names,
+        feature_names=feature_names,
+        title=title,
+        ignore_first_column=False,
+        show=False,
+        canvas=[fig, ax]  # Para evitar que se generen dos graficos distintos
+    )
+
+    # Mostramos la grafica compuesta
     plt.show()
     wait_for_user_input()
 
@@ -329,11 +420,35 @@ def generate_labels_with_random_straight_line(dataset, lower, upper):
 
     # Recta simulada que nos servira para etiquetar los datos y funciones para etiquetar
     a, b = simula_recta(intervalo=[lower, upper])
+
     # Recta que generamos aleatoriamente
     def f(x): return a * x + b
-    # Distancia de un punto a la recta aleatoria
+
+    # Distancia de un punto a la recta aleatoria y funcion de etiquetado
     def distance(x, y): return y - f(x)
-    def labeling(x, y): return np.sign(distance(x, y))  # Funcion de etiquetado
+
+    # Usamos la funcion generica de etiquetado para generar el etiquetado
+    # Devolvemos tambien los coeficientes tomados
+    return generate_labels_with_function(dataset, distance), [a, b]
+
+
+def generate_labels_with_function(dataset, labeling_function):
+    """
+    Genera las etiquetas para una muestra de datos de dos dimensiones usando el signo de una funcion
+    de etiquetado dada
+
+    Parameters:
+    ===========
+    dataset: conjunto de datos que queremos etiquetar, con dos coordenadas
+    labeling_function: funcion de etiquetado usada, con parametros de entrada x e y
+
+    Returns:
+    ========
+    labels: np.array en el dominio {-1, 1} con el etiquetado
+    """
+
+    # Funcion de etiquetado que vamos a usar
+    def labeling(x, y): return np.sign(labeling_function(x, y))
 
     # Etiquetamos la muestra
     labels = []
@@ -347,9 +462,10 @@ def generate_labels_with_random_straight_line(dataset, lower, upper):
         # Añadimos la etiqueta
         labels.append(label)
 
-    return np.array(labels), [a, b]
+    return np.array(labels)
 
-def change_labels(dataset, labels, percentage):
+
+def change_labels(labels, percentage):
     """
     Cambiamos un porcentaje dado de las etiquetas. Las etiquetas que se cambian se escogen en orden
     aleatorio. La cantidad de cambios no es aleatoria, pues la fija el percentage de forma
@@ -380,6 +496,13 @@ def change_labels(dataset, labels, percentage):
     number_of_positives = counter.get(label_pos)
     number_of_negatives = counter.get(label_neg)
 
+    # Comprobacion de seguridad. Cuando no hay etiquetas de algun tipo, en vez de devolver un 0
+    # se devuelve un None
+    if number_of_positives is None:
+        number_of_positives = 0
+    if number_of_negatives is None:
+        number_of_negatives = 0
+
     # Tomamos el numero de elementos a cambiar usando el porcentage
     num_positives_to_change = int(number_of_positives * percentage)
     num_negatives_to_change = int(number_of_negatives * percentage)
@@ -396,7 +519,8 @@ def change_labels(dataset, labels, percentage):
         elif label == label_neg:
             negative_index.append(index)
         else:
-            raise Exception(f"Una etiqueta no tiene valor en {-1, 1}. El valor encontrado fue {label}")
+            raise Exception(
+                f"Una etiqueta no tiene valor en {-1, 1}. El valor encontrado fue {label}")
 
     # Como el cambio debe ser aleatorio, hacemos shuffle de los indices
     np.random.shuffle(positive_index)
@@ -419,8 +543,6 @@ def change_labels(dataset, labels, percentage):
 
         # Cambiamos ese indice por una etiqueta positiva
         new_labels[index_to_change] = label_neg
-
-
 
     return new_labels
 
@@ -446,32 +568,68 @@ def ejercicio1_apartado2():
 
     # Mostramos el etiquetado de los datos junto a la recta que se ha usado para etiquetar
     print("Mostramos los datos generados y el etiquetado realizado a partir de una linea aleatoria")
-    scatter_plot_with_classes_and_straight_line(
+
+    # Tomamos la funcion de etiquetado, que ya esta despejada para el valor de y
+    labeling_function = get_straight_line(line_coeffs[0], line_coeffs[1])
+
+    # Mostramos la grafica de etiquetado deterministico
+    scatter_plot_with_classes_and_labeling_function(
         dataset,
         labels,
         target_names=["Signo Negativo", "Signo positivo"],
         feature_names=["Eje X", "Eje Y"],
         title="Datos etiquetados por la linea aleatoria",
-        line_coeffs=line_coeffs
+        labeling_function=labeling_function
     )
 
     print("Subapartado b)")
     print("Cambiamos aleatoriamente el 10% de las etiquetas")
     # Modificamos el 10% de las etiquetas positivas y el 10% de las etiquetas negativas, escogiendo
     # los elementos a cambiar de forma aleatoria (sin seguir ningun orden sobre las etiquetas a modificar)
-    changed_labels = change_labels(dataset, labels, 0.1)
+    changed_labels = change_labels(labels, 0.1)
 
-    # Mostramos de nuevo la grafica con las etiquetas cambiadas
+    # Mostramos de nuevo la grafica, con etiquetas sonoras y la funcion que fue usada para el
+    # etiquetado deterministico
     print("Mostramos el etiquetado cambiado y la recta de clasificacion original")
-    scatter_plot_with_classes_and_straight_line(
+    scatter_plot_with_classes_and_labeling_function(
         dataset,
         changed_labels,
         target_names=["Signo Negativo", "Signo positivo"],
         feature_names=["Eje X", "Eje Y"],
         title="Datos etiquetados con ruido y recta de clasificacion original",
-        line_coeffs=line_coeffs
+        labeling_function=labeling_function
     )
 
+    print("Subapartado c)")
+    # Generamos las funciones de etiquetado
+    f1 = lambda x,y: (x - 10.0)*(x-10.0) + (y-20)*(y-20) - 400
+    f2 = lambda x,y: 0.5 * (x + 10.0)*(x+10.0) + (y-20)*(y-20) - 400
+    f3 = lambda x,y: 0.5 * (x - 10.0)*(x-10.0) - (y+20)*(y+20) - 400
+    f4 = lambda x,y: y - 20.0 * x*x - 5.0*x + 3.0
+    labeling_functions = [f1, f2, f3, f4]
+
+    # Realizamos el mismo experimento que en apartado anterior pero usando las nuevas funciones de
+    # etiquetado
+    for index, labeling_function in enumerate(labeling_functions):
+        # Generamos el etiquetado con la funcion que pasamos
+        deterministic_labels = generate_labels_with_function(
+            dataset,
+            labeling_function
+        )
+
+        # Modificamos aleatoriamente algunas etiquetas
+        noisy_labels = change_labels(deterministic_labels, 0.1)
+
+        # Mostramos la grafica de etiquetado de las funciones junto a la funcion clasificadora
+        print(f"Mostrando el etiquetado con ruido de la funcion {index+1}-esima")
+        scatter_plot_with_classes_and_labeling_region(
+            data=dataset,
+            classes=noisy_labels,
+            target_names=["Signo Negativo", "Sigo positivo"],
+            feature_names=["Eje X", "Eje Y"],
+            title=f"Puntos etiquetados con ruido por la funcion f{index}",
+            labeling_function=labeling_function
+        )
 
 
 # Funcion principal
