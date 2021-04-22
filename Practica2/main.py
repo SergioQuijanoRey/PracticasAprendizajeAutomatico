@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import collections
 
 # Funciones auxiliares
-# ===================================================================================================
+#===================================================================================================
 
 
 def wait_for_user_input():
@@ -27,12 +27,12 @@ def get_straight_line(a, b):
 
 
 # Valores de las etiquetas
-# ===================================================================================================
+#===================================================================================================
 label_pos = 1
 label_neg = -1
 
 # Funciones dadas por los profesores
-# ===================================================================================================
+#===================================================================================================
 
 
 def simula_unif(N, dim, rango):
@@ -92,7 +92,7 @@ def readData(file_x, file_y, digits, labels):
     return x, y
 
 # Graficos
-# ===================================================================================================
+#===================================================================================================
 
 
 def scatter_plot(x_values, y_values, title="Scatter Plot Simple", x_label="Eje X", y_label="Eje Y"):
@@ -355,14 +355,100 @@ def scatter_plot_with_classes_and_labeling_region(data, classes, target_names, f
     plt.show()
     wait_for_user_input()
 
+# Algoritmos
+# ===================================================================================================
+def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution):
+    """
+    Algoritmo de aprendizaje para perceptron
+
+    Parameters:
+    ===========
+    dataset: conjunto de puntos que vamos a clasificar. Cada punto tiene sus coordenadas en una fila
+             de la matriz
+    labels: vector de etiquetas
+    max_iterations: numero maximo de iteraciones
+    init_solution: vector de pesos iniciales que representan la solucion inicial
+
+    Returns:
+    ========
+    current_solution: la solucion que se alcanza al final del proceso
+    current_iteration: numero de iteraciones necesarias para alcanzar la solucion
+
+    TODO -- añadir vector con la evolucion del error
+    """
+
+    # Valores iniciales para el algoritmo
+    current_solution = init_solution
+    current_iteration = 0
+
+    # Para controlar si debemos parar de iterar al haber encontrado una solucion que respeta todo
+    # el etiquetado
+    full_pass_without_changes = False
+
+    # Iteramos sobre el algoritmo
+    while full_pass_without_changes == False and current_iteration < max_iterations:
+        full_pass_without_changes = True
+
+        # Iteramos sobre todos los puntos del dataset junto a las correspondientes etiquetas
+        for point, label in zip(dataset, labels):
+
+            # A partir de los pesos, obtenemos la funcion de clasificacion
+            perceptron = get_perceptron(current_solution)
+
+            # Comprobamos que estamos etiquetando bien este punto
+            if perceptron(point) != label:
+                # Actualizamos los pesos y la funcion que representa
+                current_solution = current_solution + label * point
+                perceptron = get_perceptron(current_solution)
+
+                # Estamos cambiando un dato, asi que esta pasada sobre los datos no es limpia
+                full_pass_without_changes = False
+
+
+            # Aumentamos la iteracion
+            current_iteration = current_iteration + 1
+
+            # Comprobamos si hemos agotado el maximo de iteraciones en este bucle interno
+            if current_iteration >= max_iterations:
+                break
+
+    # Devolvemos los resultados
+    return current_solution, current_iteration
+
+def get_perceptron(weights):
+    """
+    Devuelve la funcion de clasificacion perceptron representada por los pesos dados
+
+    Parameters:
+    ===========
+    weights: pesos que queremos convertir a perceptron. Deben ser un np.array para poder operar
+             con estos comodamente
+    """
+    return lambda x: np.sign(np.dot(weights.T, x))
+
+def percentage_error(dataset, labels, weights):
+    # Tomamos el perceptron representado por los pesos dados
+    perceptron = get_perceptron(weights)
+
+    # Cantidad de puntos mal etiquetados
+    misclassified_count = 0
+
+    # Iteramos los puntos junto a sus etiquetas
+    for point, label in zip(dataset, labels):
+        if perceptron(point) != label:
+            misclassified_count += 1
+
+    # Devolvemos el porcentaje (en tantos por uno)
+    return misclassified_count / len(dataset)
+
 
 # Ejercicio 1
-# ===================================================================================================
+#===================================================================================================
 
 
 def ejercicio1():
     """Codigo que lanza todos los apartados del primer ejercicio"""
-    print("Lanzando ejercicio 1")
+    print("==> Lanzando ejercicio 1")
     print("=" * 80)
 
     # Primer apartado
@@ -374,7 +460,7 @@ def ejercicio1():
 
 def ejercicio1_apartado1():
     """Codigo que lanza la tarea del primer apartado del primer ejercicio"""
-    print("Ejercicio 1 Apartado 1")
+    print("--> Ejercicio 1 Apartado 1")
 
     # Parametros de la tarea pedida
     number_of_points = 50   # Numero de datos
@@ -557,7 +643,7 @@ def change_labels(labels, percentage):
 
 def ejercicio1_apartado2():
     """Codigo que lanza la tarea del segundo apartado del primer ejercicio"""
-    print("Ejercicio 1 Apartado 2")
+    print("--> Ejercicio 1 Apartado 2")
 
     print("Subapartado a)")
     # Generamos el dataset que se nos indica para este apartado
@@ -641,6 +727,42 @@ def ejercicio1_apartado2():
 
 # Ejercicio 2
 # ===================================================================================================
+def ejercicio2():
+    """Codigo que lanza todas las tareas del segundo ejercicio"""
+
+    print("==> Lanzando ejercicio 2")
+
+    # Lanzamos el primer apartado
+    ejercicio2_apartado1()
+
+def ejercicio2_apartado1():
+    """Codigo que lanza las tareas del apartado primero del segundo ejercicio"""
+    print("--> Lanzando apartado 1")
+
+    # TODO -- tomar los mismos datos que en el ejercicio 1 Apartado 2a
+    # Parametros de la tarea pedida
+    number_of_points = 100      # Numero de datos
+    dimensions = 2              # Dimensiones de cada dato
+    lower = -50                 # Extremo inferior del intervalo en cada coordenada
+    upper = 50                  # Extremo superior del intervalo en cada coordenada
+    max_iterations = 1e5        # Numero maximo de iteraciones (no se especifica en el guion)
+
+    # Generamos los dos conjuntos de datos
+    dataset = simula_unif(
+        number_of_points,
+        dimensions,
+        rango=[lower, upper]
+    )
+
+    # Generamos las etiquetas para estos datos
+    labels, lin_coeffs = generate_labels_with_random_straight_line(dataset, lower, upper)
+
+    # Lanzamos el algoritmo con vector inicial cero
+    zero_solution = np.zeros_like(dataset[0])
+    perceptron_weights, consumed_iterations = perceptron_learning_algorihtm(dataset, labels, max_iterations, zero_solution)
+    print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
+    print(f"Iteraciones consumidas: {consumed_iterations}")
+    print(f"Porcentaje mal clasificado: {percentage_error(dataset, labels, perceptron_weights) * 100}%")
 
 # Funcion principal
 # ===================================================================================================
@@ -651,4 +773,8 @@ if __name__ == "__main__":
     # np.random.seed(123456789)
 
     # Lanzamos el primer ejercicio
-    ejercicio1()
+    # TODO -- descomentar este codigo para lanzar el primer ejercicio
+    #ejercicio1()
+
+    # Lanzamos el segundo ejercicio
+    ejercicio2()
