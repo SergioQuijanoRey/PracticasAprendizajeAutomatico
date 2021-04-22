@@ -355,9 +355,36 @@ def scatter_plot_with_classes_and_labeling_region(data, classes, target_names, f
     plt.show()
     wait_for_user_input()
 
+def plot_error_evolution(error_at_iteration, title = "Evolucion del error", x_label = "Iteraciones", y_label = "Error"):
+    """
+    Muestra la grafica de evolucion del error con el paso de algun tipo de iteraciones
+    Con 'un tipo de iteraciones' me refiero a que podemos estar indicando error
+    por cada iteracion, por cada recorrido del minibatch, por cada epoch...
+    Sea cual sea el 'tipo de iteracion', esta grafica es la misma
+
+    Parameters:
+    ===========
+    error_at_iteration: el error en cada 'tipo de iteracion'
+    title: titulo de la grafica
+    x_label: para indicar el 'tipo de iteracion'
+    y_label: por si queremos especificar algo sobre la medida el error
+    """
+
+    # Generamos los datos necesarios
+    Y = error_at_iteration
+    X = np.arange(0, len(Y))
+
+    # Mostramos el grafico
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.plot(X, Y)
+    plt.show()
+    wait_for_user_input()
+
 # Algoritmos
 # ===================================================================================================
-def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution):
+def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False):
     """
     Algoritmo de aprendizaje para perceptron
 
@@ -368,11 +395,14 @@ def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution
     labels: vector de etiquetas
     max_iterations: numero maximo de iteraciones
     init_solution: vector de pesos iniciales que representan la solucion inicial
+    verbose: indica si queremos devolver mas datos de los estrictamente necesarios
+             Al tener que evaluar el error, hace que el algoritmo corra mas lento
 
     Returns:
     ========
     current_solution: la solucion que se alcanza al final del proceso
     current_iteration: numero de iteraciones necesarias para alcanzar la solucion
+    error_at_iteration: error en cada iteracion. Solo cuando verbose == True
 
     TODO -- añadir vector con la evolucion del error
     """
@@ -380,6 +410,7 @@ def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution
     # Valores iniciales para el algoritmo
     current_solution = init_solution
     current_iteration = 0
+    error_at_iteration = [] # Se usa cuando verbose == True
 
     # Para controlar si debemos parar de iterar al haber encontrado una solucion que respeta todo
     # el etiquetado
@@ -404,6 +435,26 @@ def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution
                 # Estamos cambiando un dato, asi que esta pasada sobre los datos no es limpia
                 full_pass_without_changes = False
 
+                # Hemos cambiado el valor de los pesos, asi que tenemos que calcular el error de nuevo
+                if verbose == True:
+                    curr_err = percentage_error(dataset, labels, current_solution)
+                    error_at_iteration.append(curr_err)
+            else:
+                # No cambia el valor de los pesos, asi que el error tampoco cambia
+                # Esto nos ahorra bastante tiempo de computo
+                if verbose == True:
+                    if len(error_at_iteration) > 0:
+                        last_error = error_at_iteration[-1]
+                    # No tenemos un ultimo error (primer error que calculamos)
+                    # Asi que tenemos que calcular a mano el error
+                    else:
+                        last_error = percentage_error(dataset, labels, current_solution)
+
+                    # Añadimos el error que en la mayoria de los casos (salvo en el primer calculo
+                    # de error), es un valor 'cacheado'
+                    error_at_iteration.append(last_error)
+
+
 
             # Aumentamos la iteracion
             current_iteration = current_iteration + 1
@@ -412,7 +463,11 @@ def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution
             if current_iteration >= max_iterations:
                 break
 
-    # Devolvemos los resultados
+    # Devolvemos los resultados en el caso verbose
+    if verbose == True:
+        return current_solution, current_iteration, error_at_iteration
+
+    # Devolvemos los resultados sin datos adicionales
     return current_solution, current_iteration
 
 def get_perceptron(weights):
@@ -745,7 +800,7 @@ def ejercicio2_apartado1():
     dimensions = 2              # Dimensiones de cada dato
     lower = -50                 # Extremo inferior del intervalo en cada coordenada
     upper = 50                  # Extremo superior del intervalo en cada coordenada
-    max_iterations = 1e5        # Numero maximo de iteraciones (no se especifica en el guion)
+    max_iterations = 1e3        # Numero maximo de iteraciones (no se especifica en el guion)
 
     # Generamos los dos conjuntos de datos
     dataset = simula_unif(
@@ -759,10 +814,16 @@ def ejercicio2_apartado1():
 
     # Lanzamos el algoritmo con vector inicial cero
     zero_solution = np.zeros_like(dataset[0])
-    perceptron_weights, consumed_iterations = perceptron_learning_algorihtm(dataset, labels, max_iterations, zero_solution)
+    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorihtm(dataset, labels, max_iterations, zero_solution, verbose = True)
     print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
     print(f"Iteraciones consumidas: {consumed_iterations}")
     print(f"Porcentaje mal clasificado: {percentage_error(dataset, labels, perceptron_weights) * 100}%")
+    wait_for_user_input()
+
+    # Mostramos la grafica de progreso del error
+    print("Mostrando grafica de la evolucion del error")
+    plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
+
 
 # Funcion principal
 # ===================================================================================================
