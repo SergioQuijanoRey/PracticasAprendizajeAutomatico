@@ -515,6 +515,184 @@ def percentage_error(dataset, labels, weights):
     # Devolvemos el porcentaje (en tantos por uno)
     return misclassified_count / len(dataset)
 
+def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: float = 0.001, batch_size: int = 1, max_minibatch_iterations: int = 200, target_error: float = None, target_epoch_delta: float = None, gradient_function = None, error_function = None, verbose: bool = False):
+
+    """
+    Implementa el algoritmo de Stochastic Gradient Descent, con minibatches
+
+    Parameters:
+    ===========
+    data: datos de entrada sobre los que queremos hacer predicciones
+    labels: verdaderos valores que queremos predecir. Pueden representar etiquetas
+            de una categoria para clasificacion o valores reales para regresion.
+            Gracias a las etiquetas podemos calcular el gradiente del error usando los datos de la
+            muestra dada
+    starting_solution: np.array del que parte las soluciones iterativas
+    learning_rate: tasa de aprendizaje
+    max_minibatch_iterations: maximo numero de iteraciones
+                              Por iteracion entendemos cada vez que modificamos los
+                              pesos de la solucion iterativa (ie. cada recorrido de
+                              un minibatch)
+                              Si max_minibatch_iterations = None, no lo tenemos en cuenta
+    target_error: error por debajo del cual dejamos de iterar
+                  Puede ser None para indicar que no comprobemos el error para dejar de iterar
+    target_epoch_delta: variacion de las soluciones entre dos epochs consecutivas por debajo del
+                        cual queremos estar
+                        Si es None, no lo tenemos en cuenta
+                        Notar que target_error es el error en una iteracion concreta. Esta medida
+                        mide la distancia entre dos distancias consecutivas
+    gradient_function: funcion que toma la matriz de datos, el vector de etiquetas y el vector de
+                       pesos actuales, y computa el gradiente usando los datos de la muestra
+    error_function: funcion que toma la matriz de datos, el vector de etiquetas y el vector de pesos
+                    actuales, y computa el error
+    verbose: indica si queremos que se guarden metricas en cada epoch
+    """
+
+    # Si verbose == True, guardamos algunas metricas parciales durante el proceso
+
+    # Error que tenemos en cada epoca (en cada iteracion seria algo excesivo, asi
+    # como en cada minibatch). Pero si que guardamos en cada iteracion sobre el
+    # minibatech
+    error_at_epoch = None
+    error_at_minibatch = None
+    if verbose is True:
+        error_at_epoch = []
+        error_at_minibatch = []
+
+    # Establecemos la solucion actual (que vamos a ir modificando) a la solucion
+    # inicial dada
+    current_solution = starting_solution
+
+    # Para controlar current_minibatch_iterations < max_minibatch_iterations de
+    # forma comoda, porque tenemos dos bucles for
+    current_minibatch_iterations = 0
+
+    # Si no tenemos max_minibatch_iterations iteramos sin control de contador
+    # En otro caso, acotamos el numero maximo de iteraciones
+    while max_minibatch_iterations is None or current_minibatch_iterations < max_minibatch_iterations:
+        # Generamos los minibatches a partir de los datos de entrada
+        # Trabajamos por comodidad y eficiencia con indices, como se indica en la funcion
+        mini_batches_index_groups = get_minibatches(data, batch_size)
+
+        # Para calcular la diferencia de soluciones entre dos epochs consecutivos
+        solution_at_last_epoch = current_solution
+
+        # Iteramos en los minibatches
+        for mini_batches_indixes in mini_batches_index_groups:
+            # Tomo los datos y etiquetas asociadas a los indices de este minibatch
+            minibatch_data = data[mini_batches_indixes]
+            minibatch_labels = labels[mini_batches_indixes]
+
+            # Calculo la aproximacion al gradiente con estos datos
+            minibatch_approx_gradient = gradient_function(minibatch_data, minibatch_labels, current_solution)
+
+            # Actualizo la solucion con este minibatch
+            current_solution = current_solution - learning_rate * minibatch_approx_gradient
+
+
+            # Añadimos el error sobre la iteracion del minibatch
+            if verbose is True:
+                # Tomamos la solucion como un array, no como una matriz de una unica fila
+                # pues esto provoca fallos en otras funciones (como la del calculo del error)
+                tmp_solution = current_solution
+                if(len(np.shape(current_solution)) == 2):
+                    tmp_solution = current_solution[0]
+
+                error_at_minibatch.append(error_function(data, labels, tmp_solution))
+
+            # Hemos hecho una pasada completa al minibatch, aumentamos el contador
+            # y comprobamos si hemos superado el maximo (tenemos que hacer esta
+            # compobracion por estar en un doble bucle)
+            current_minibatch_iterations += 1
+            if current_minibatch_iterations >= max_minibatch_iterations:
+                break
+
+        # Comprobamos si hemos alcanzado el error objetivo para dejar de iterar
+        if target_error is not None:
+            # Tomamos la solucion como un array, no como una matriz de una unica fila
+            # pues esto provoca fallos en otras funciones (como la del calculo del error)
+            tmp_solution = current_solution
+            if(len(np.shape(current_solution)) == 2):
+                tmp_solution = current_solution[0]
+
+            if error_function(data, labels, tmp_solution) < target_error:
+                break
+
+        # Comprobamos si hemos alcanzado la variacion entre soluciones objetivo
+        if target_epoch_delta is not None:
+            # Calculamos la variacion con la solucion de la epoca anterior
+            curr_delta = np.linalg.norm(current_solution - solution_at_last_epoch)
+
+            # Realizamos la comprobacion
+            if curr_delta < target_epoch_delta:
+                break
+
+
+        # Añadimos el error en este epoch
+        if verbose is True:
+            # Tomamos la solucion como un array, no como una matriz de una unica fila
+            # pues esto provoca fallos en otras funciones (como la del calculo del error)
+            tmp_solution = current_solution
+            if(len(np.shape(current_solution)) == 2):
+                tmp_solution = current_solution[0]
+
+            error_at_epoch.append(error_function(data, labels, tmp_solution))
+
+
+    # Devolvemos la solucion como un array, no como una matriz de una unica fila
+    # pues esto provoca fallos en otras funciones (como la del calculo del error)
+    if(len(np.shape(current_solution)) == 2):
+        current_solution = current_solution[0]
+
+    return current_solution, error_at_epoch, error_at_minibatch
+
+def get_minibatches(data, batch_size: int):
+    """
+    Dados unos datos de entrada, mezcla los datos y los devuelve en subconjuntos
+    de batch_size elementos. Realmente devolvemos un array de conjuntos de indices
+    que representan este mezclado y empaquetado, pues asi es mas facil de operar
+    (no alteramos los datos de entrada y no tenemos que considerar como quedarian
+    ordenadas las etiquetas asociadas a los datos) y mas eficiente (trabajamos
+    con indices, no con datos multidimensionales)
+
+    Paramters:
+    ==========
+    data: matriz de datos de entrada que queremos mezclar y agrupar
+    batch_size: tamaño de los paquetes en los que agrupamos los datos
+
+    Returns:
+    ========
+    indixes: array de conjuntos de indices (array tambien) que representa la operacion
+             descrita anteriormente
+    """
+
+    # Los indices de todos los datos de entrada
+    # Me quedo con las filas porque indican el numero de datos con los que trabajamos
+    # Las columnas indican el numero de caracteristicas de cada dato
+    all_indixes = np.arange(start = 0, stop = np.shape(data)[0])
+
+    # Mezclo estos indices antes de dividirlos en minibatches
+    np.random.shuffle(all_indixes)
+
+    # Array de conjuntos de indices (array de arrays)
+    grouped_indixes = []
+
+    # Agrupamos los indices que ya han sido mezclados en los minibatches
+    last_group = []
+    for value in all_indixes:
+
+        # El ultimo minibatch no esta completo, podemos añadir un nuevo punto
+        if len(last_group) < batch_size:
+            last_group.append(value)
+
+        # El minibatch esta completo, asi que hay que hay que añadirlo al grupo
+        # de minibatches y reiniciar el grupo
+        if len(last_group) == batch_size:
+            grouped_indixes.append(last_group)
+            last_group = []
+
+    return np.array(grouped_indixes)
+
 
 # Ejercicio 1
 #===================================================================================================
@@ -1108,6 +1286,12 @@ def ejercicio2_apartado2():
         random_line,
         ignore_first_column = True
     )
+
+    # Lanzamos el algorimto de gradiente descendente para regresion logistica
+    # Parametros del algoritmo
+    init_solution = np.zeros_like(dataset[0])
+    learning_rate = 0.01
+    target_epoch_error = 0.01
 
 
 
