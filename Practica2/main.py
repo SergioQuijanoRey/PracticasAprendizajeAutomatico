@@ -1454,7 +1454,7 @@ def ejercicio2_apartado2():
     # Generamos la recta de etiquetado a partir de dos puntos aleatorios de la poblacion
     two_pop_points = generate_dataset(2)
     random_line = calculate_straight_line_from_two_points(two_pop_points[0], two_pop_points[1])
-    labeling_function = lambda x, y: y - random_line(x) # Etiquetamos con la distancia a la recta
+    deterministic_labeling_function = lambda x, y: y - random_line(x) # Etiquetamos con la distancia a la recta
 
     # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
     # en el sumando de la combinacion lineal
@@ -1464,7 +1464,7 @@ def ejercicio2_apartado2():
 
     # Generamos el etiquetado de los datos, y mostramos como queda la grafica de los puntos etiquetados
     # junto a la recta que los ha generado
-    labels = generate_labels_with_function(dataset, labeling_function, ignore_first_column=True)
+    labels = generate_labels_with_function(dataset, deterministic_labeling_function, ignore_first_column=True)
     print("Mostrando etiquetado de la muestra de datos generada, a partir de una recta que pasa por dos puntos de la poblacion")
     scatter_plot_with_classes_and_labeling_function(
         dataset,
@@ -1522,6 +1522,41 @@ def ejercicio2_apartado2():
     # Mostramos la grafica de puntos mal clasificados
     print("Mostramos la grafica de puntos mal clasificados")
     plot_misclassified_classification_predictions(dataset, labels, get_logistic_classifier(solution), ["Eje X", "Eje Y"], ignore_first_column = True)
+
+    # TODO -- a partir de aqui no estoy muy seguro de que este bien. Creo que hay errores con
+    # el tema de tener la columna extra para expresar el termino independiente de la combinacion
+    # lineal
+
+    # Calculamos el error fuera de la muestra generando otra muestra aleatoria de un alto numero de datos
+    # etiquetandolos con la recta dada (lo que seria el etiquetado deterministico verdadero) y
+    # calculando como fallamos en la muestra de test
+    print("--> Generamos una muestra de datos de test para evaluar el error fuera de la muestra")
+    size_of_test_sample = int(1e4)
+    test_dataset = generate_dataset(size_of_test_sample)
+    test_labels = generate_labels_with_function(test_dataset, deterministic_labeling_function)
+
+    # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
+    # en el sumando de la combinacion lineal
+    number_of_rows = int(np.shape(test_dataset)[0])
+    new_column = np.ones(number_of_rows)
+    test_dataset = np.insert(test_dataset, 0, new_column, axis = 1)
+
+    # Calculamos el error porcentual
+    percentage_error = percentage_logistic_error(test_dataset, test_labels, solution) * 100
+    print(f"\t- Porcentaje de puntos mal clasificados en el test: {percentage_error}%")
+    wait_for_user_input()
+
+    # Mostramos el grafico de puntos mal clasificados
+    print("Mostrando puntos mal clasificados en el test sample")
+    plot_misclassified_classification_predictions(
+        test_dataset,
+        test_labels,
+        get_logistic_classifier(solution),
+        ["Eje X", "Eje Y"],
+        title = "Puntos mal clasificados en la muestra de test",
+        ignore_first_column = True
+    )
+
 
 
 
