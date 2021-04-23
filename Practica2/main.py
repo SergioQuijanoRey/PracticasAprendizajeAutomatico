@@ -530,22 +530,31 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
     starting_solution: np.array del que parte las soluciones iterativas
     learning_rate: tasa de aprendizaje
     max_minibatch_iterations: maximo numero de iteraciones
-                              Por iteracion entendemos cada vez que modificamos los
-                              pesos de la solucion iterativa (ie. cada recorrido de
-                              un minibatch)
+                              Por iteracion entendemos cada vez que modificamos los pesos de la
+                              solucion iterativa (ie. cada recorrido de un minibatch). No confundir
+                              con el numero maximo de epochs
                               Si max_minibatch_iterations = None, no lo tenemos en cuenta
     target_error: error por debajo del cual dejamos de iterar
                   Puede ser None para indicar que no comprobemos el error para dejar de iterar
+                  El error se comprueba en cada EPOCH completo, no sobre una iteracion concreta de
+                  minibatches
     target_epoch_delta: variacion de las soluciones entre dos epochs consecutivas por debajo del
-                        cual queremos estar
+                        cual queremos estar.
                         Si es None, no lo tenemos en cuenta
-                        Notar que target_error es el error en una iteracion concreta. Esta medida
-                        mide la distancia entre dos distancias consecutivas
+                        Notar que target_error mide que estemos por debajo de un umbral de error.
+                        Mientras que esta medida no tiene en cuenta valores del error, sino la
+                        diferencia entre dos soluciones consecutivas
     gradient_function: funcion que toma la matriz de datos, el vector de etiquetas y el vector de
                        pesos actuales, y computa el gradiente usando los datos de la muestra
     error_function: funcion que toma la matriz de datos, el vector de etiquetas y el vector de pesos
                     actuales, y computa el error
     verbose: indica si queremos que se guarden metricas en cada epoch
+
+    Returns:
+    ========
+    current_solution: solucion que se alcanza
+    error_at_epoch: error en cada EPOCH
+    error_at_minibatch: error en cada iteracion sobre minibatch
     """
 
     # Si verbose == True, guardamos algunas metricas parciales durante el proceso
@@ -603,8 +612,9 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
             # Hemos hecho una pasada completa al minibatch, aumentamos el contador
             # y comprobamos si hemos superado el maximo (tenemos que hacer esta
             # compobracion por estar en un doble bucle)
+            # Hacemos la comporbacion solo si max_minibatch_iterations no es None
             current_minibatch_iterations += 1
-            if current_minibatch_iterations >= max_minibatch_iterations:
+            if max_minibatch_iterations is not None and current_minibatch_iterations >= max_minibatch_iterations:
                 break
 
         # Comprobamos si hemos alcanzado el error objetivo para dejar de iterar
@@ -1291,10 +1301,49 @@ def ejercicio2_apartado2():
     # Parametros del algoritmo
     init_solution = np.zeros_like(dataset[0])
     learning_rate = 0.01
-    target_epoch_error = 0.01
+    target_epoch_delta = 0.01
+    batch_size = 32 # TODO -- El guion no lo especifica
 
+    print("Lanzando Stochastic Gradient Descent...")
+    solution, error_at_epoch, error_at_minibatch_iteration = stochastic_gradient_descent(
+        data = dataset,
+        labels = labels,
+        starting_solution = init_solution,
+        learning_rate = learning_rate, batch_size = batch_size,
+        max_minibatch_iterations = 500,
+        target_error = None,
+        target_epoch_delta = target_epoch_delta,
+        gradient_function = logistic_gradient,
+        error_function = logistic_error,
+        verbose = True
+    )
 
+    plot_error_evolution(error_at_minibatch_iteration)
 
+def logistic_gradient(dataset, labels, solution):
+    """Gradiente para la regresion logistica usando una muiestra de datos"""
+    grad = 0.0
+
+    # Iteramos los puntos con sus etiquetas para calcular la parte del sumatorio
+    for point, label in zip(dataset, labels):
+        grad += np.log(1.0 + np.exp(-label * solution.T * point))
+
+    # Devolvemos la media de la suma calculada
+    return grad / len(dataset)
+
+def logistic_error(dataset, labels, solution):
+    """Error para la regresion logistica usando una muiestra de datos"""
+    err = 0.0
+
+    # Funcion sigmoide que necesitamos para calcular el error
+    sigmoid = lambda x: 1.0 / (1.0 + np.exp(-x))
+
+    # Iteramos los puntos con sus etiquetas para calcular la parte del sumatorio
+    for point, label in zip(dataset, labels):
+        err += -label * point * sigmoid(-label * solution.T * point)
+
+    # Devolvemos la media de la anterior suma
+    return err / len(dataset)
 
 
 # Funcion principal
