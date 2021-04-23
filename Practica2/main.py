@@ -816,9 +816,52 @@ def ejercicio2():
     # Lanzamos el primer apartado
     ejercicio2_apartado1()
 
+def PLA_experiment(dataset, labels, max_iterations = 1e5, repetitions = 10, init_type: str = "zero"):
+    """
+    Lanza el experimento consistente en lanzar un numero de veces dado el algoritmo PLA sobre un
+    dataset. El usuario especifica el tipo de vector inicial a usar
+
+    Parameters:
+    ===========
+    dataset: conjunto de datos a etiquetar
+    labels: etiquetas del conjunto de datos
+    max_iterations: numero maximo de iteraciones
+    repetitions: numero de veces que repetimos el experimento
+    init_type: tipo de vector inicial que queremos usar. Los valores pueden ser:
+                    - "zero"
+                    - "random"
+
+    Returns:
+    ========
+    final_errors: vector con los errores alcanzados en cada repeticion del algoritmo
+    consumed_iterations: iteraciones consumidas por cada repeticion del algoritmo
+
+    Es muy facil a partir de estor vectores calcular los valores medios que se nos piden, como
+    hago en el codigo del segundo ejercicio
+    """
+    # Experimento para vector inicial aleatorio
+    # Valores que guardamos para promediar
+    final_errors = []
+    consumed_iterations = []
+
+    for _ in range(10):
+        # Tomamos una solucion aleatoria
+        init_solution = np.random.rand(len(dataset[0]))
+
+        # Calculamos todos los valores para la inicializacion aleatoria
+        curr_sol, curr_cons_it = perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False)
+        curr_err = percentage_error(dataset, labels, curr_sol)
+
+        # Guardamos el valor
+        final_errors.append(curr_err)
+        consumed_iterations.append(curr_cons_it)
+
+    return final_errors, consumed_iterations
+
 def ejercicio2_apartado1():
     """Codigo que lanza las tareas del apartado primero del segundo ejercicio"""
     print("--> Lanzando apartado 1")
+    print("--> Subapartado 1")
 
     # TODO -- tomar los mismos datos que en el ejercicio 1 Apartado 2a
     # Parametros de la tarea pedida
@@ -846,6 +889,7 @@ def ejercicio2_apartado1():
     labels, lin_coeffs = generate_labels_with_random_straight_line(dataset, lower, upper, ignore_first_column = True)
 
     # Mostramos el dataset con el que trabajamos y el etiquetado generado
+    print("Dataset y etiquetado con el que trabajamos en este apartado:")
     scatter_plot_with_classes_and_labeling_function(
         dataset,
         labels,
@@ -855,6 +899,44 @@ def ejercicio2_apartado1():
         get_straight_line(lin_coeffs[0], lin_coeffs[1]),
         ignore_first_column = True
     )
+
+    # Lanzamos las diez repeticiones con vector inicial cero y mostramos los resultados
+    print("Lanzamos 10 repeticiones del experimento, para vector inicial cero")
+    final_errors, consumed_iterations = PLA_experiment(
+        dataset,
+        labels,
+        max_iterations = max_iterations,
+        repetitions=10,
+        init_type="zero"
+    )
+
+    # Mostramos los resultados
+    print("Resultado de las 10 iteraciones -- Vector Inicial Cero:")
+    print(f"\t-> Errores finales(tanto por uno): {final_errors}")
+    print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
+    print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
+    wait_for_user_input()
+
+    # Experimento para vector inicial aleatorio
+    print("Lanzamos 10 repeticiones del experimento, para vector inicial aleatorio")
+    final_errors, consumed_iterations = PLA_experiment(
+        dataset,
+        labels,
+        max_iterations = max_iterations,
+        repetitions=10,
+        init_type="random"
+    )
+
+    # Mostramos los resultados
+    print("Resultado de las 10 iteraciones -- Vector inicial aleatorio:")
+    print(f"\t-> Errores finales(tanto por uno): {final_errors}")
+    print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
+    print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
+    wait_for_user_input()
+
+    # Ahora vamos a lanzar dos ejecuciones individuales, con vector inicial cero y vector inicial
+    # aleatorio, y mostramos las graficas para poder añadirlas a la memoria y tener una pequeña
+    # intuicion sobre el comportamiento del algoritmo sobre este dataset
 
     # Lanzamos el algoritmo con vector inicial cero a solas para mostrar las graficas
     print("-> Mostrando una unica ejecucion para la solucion inicial zero")
@@ -870,7 +952,7 @@ def ejercicio2_apartado1():
     plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
 
     # Mostramos como clasifica nuestra solucion
-    print("Mostrando el resultado obtenido")
+    print("Mostrando el clasificador obtenido")
     scatter_plot_with_classes_and_labeling_function(
         dataset,
         labels,
@@ -882,7 +964,7 @@ def ejercicio2_apartado1():
     )
 
     # Hacemos lo mismo pero para una solucion inicial aleatoria
-    print("-> Mostrando una unica ejecucion para la solucion inicial zero")
+    print("-> Mostrando una unica ejecucion para la solucion inicial aletoria")
     rand_solution = np.random.rand(len(dataset[0]))
     perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorihtm(dataset, labels, max_iterations, rand_solution, verbose = True)
     print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
@@ -895,7 +977,7 @@ def ejercicio2_apartado1():
     plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
 
     # Mostramos como clasifica nuestra solucion
-    print("Mostrando el resultado obtenido")
+    print("Mostrando el clasificador obtenido")
     scatter_plot_with_classes_and_labeling_function(
         dataset,
         labels,
@@ -906,56 +988,68 @@ def ejercicio2_apartado1():
         ignore_first_column = True
     )
 
-    # Repetimos ahora el experimento 10 veces con vectores aleatorios
-    print("Repetimos ambos experimentos 10 veces:")
+    print("--> Subapartado 2")
+    print("Repetimos el experimento usando etiquetas con ruido y vectores iniciales zero y aleatorio")
+    # Repetimos el experimento con los datos del ejercicio 1 Apartado 2 Subapartado b
+    # Para ello, modifcamos aleatoriamente el 10% de las etiquetas positivas y el 10% de las
+    # etiquetas negativas
+    noisy_labels = change_labels(labels, 0.1)
 
-    # Experimento para vector inicial zero
-    # Valores que guardamos para promediar
-    final_errors = []
-    consumed_iterations = []
-
-    for _ in range(10):
-        # Tomamos una solucion aleatoria
-        init_solution = np.random.rand(len(dataset[0]))
-
-        # Calculamos todos los valores para la inicializacion aleatoria
-        curr_sol, curr_cons_it = perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False)
-        curr_err = percentage_error(dataset, labels, curr_sol)
-
-        # Guardamos el valor
-        final_errors.append(curr_err)
-        consumed_iterations.append(curr_cons_it)
-
-    # Mostramos los resultados
-    print("Resultado de las 10 iteraciones -- Vector Inicial Cero:")
+    # Lanzamos las diez repeticiones con vector inicial cero y mostramos los resultados
+    final_errors, consumed_iterations = PLA_experiment(
+        dataset,
+        noisy_labels,
+        max_iterations = max_iterations,
+        repetitions=10,
+        init_type="zero"
+    )
+    print("Resultado de las 10 iteraciones -- Vector inicial cero:")
     print(f"\t-> Errores finales(tanto por uno): {final_errors}")
     print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
     print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
     wait_for_user_input()
 
-    # Experimento para vector inicial aleatorio
-    # Valores que guardamos para promediar
-    final_errors = []
-    consumed_iterations = []
-
-    for _ in range(10):
-        # Tomamos una solucion aleatoria
-        init_solution = np.random.rand(len(dataset[0]))
-
-        # Calculamos todos los valores para la inicializacion aleatoria
-        curr_sol, curr_cons_it = perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False)
-        curr_err = percentage_error(dataset, labels, curr_sol)
-
-        # Guardamos el valor
-        final_errors.append(curr_err)
-        consumed_iterations.append(curr_cons_it)
-
-    # Mostramos los resultados
-    print("Resultado de las 10 iteraciones -- Vector inicial aleaotiro:")
+    # Lanzamos las diez repeticiones con vector inicial aleatorio y mostramos los resultados
+    final_errors, consumed_iterations = PLA_experiment(
+        dataset,
+        noisy_labels,
+        max_iterations = max_iterations,
+        repetitions=10,
+        init_type="randon"
+    )
+    print("Resultado de las 10 iteraciones -- Vector inicial aleatorio:")
     print(f"\t-> Errores finales(tanto por uno): {final_errors}")
     print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
     print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
     wait_for_user_input()
+
+    # Esta vez lanzamos una unica ejecucion de PLA para mostrar las graficas
+    # Elegimos vector inicial PLA de forma arbitraria para mostrar la grafica
+    print("-> Mostrando una unica ejecucion para la solucion inicial aletoria")
+    rand_solution = np.random.rand(len(dataset[0]))
+    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorihtm(dataset, noisy_labels, max_iterations, rand_solution, verbose = True)
+    print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
+    print(f"Iteraciones consumidas: {consumed_iterations}")
+    print(f"Porcentaje mal clasificado: {percentage_error(dataset, labels, perceptron_weights) * 100}%")
+    wait_for_user_input()
+
+    # Mostramos la grafica de progreso del error
+    print("Mostrando grafica de la evolucion del error")
+    plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
+
+    # Mostramos como clasifica nuestra solucion
+    print("Mostrando el clasificador obtenido")
+    scatter_plot_with_classes_and_labeling_function(
+        dataset,
+        noisy_labels,
+        ["Valor positivo", "Valor negativo"],
+        ["Eje X", "Eje Y"],
+        "Clasificacion de los datos usando una recta",
+        get_frontier_function(perceptron_weights),
+        ignore_first_column = True
+    )
+
+
 
 
 # Funcion principal
