@@ -611,20 +611,22 @@ def generate_labels_with_function(dataset, labeling_function, ignore_first_colum
     ===========
     dataset: conjunto de datos que queremos etiquetar, con dos coordenadas
     labeling_function: funcion de etiquetado usada, con parametros de entrada x e y
+    ignore_first_column: si queremos ignorar una primera columna de unos añadida para representar el
+                         termino independiente de un modelo lineal
 
     Returns:
     ========
     labels: np.array en el dominio {-1, 1} con el etiquetado
-    ignore_first_column: si queremos ignorar una primera columna de unos añadida para representar el
-                         termino independiente de un modelo lineal
     """
 
     # Funcion de etiquetado que vamos a usar
-    def labeling(x, y): return np.sign(labeling_function(x, y))
+    labeling = lambda x,y: np.sign(labeling_function(x, y))
 
     # Etiquetamos la muestra
     labels = []
+
     for data_point in dataset:
+
         # Descomponemos las coordenadas
         # Tenemos que controlar si ignoramos o no la primera columna de la matriz
         x, y = data_point[0], data_point[1]
@@ -814,7 +816,11 @@ def ejercicio2():
     print("==> Lanzando ejercicio 2")
 
     # Lanzamos el primer apartado
-    ejercicio2_apartado1()
+    # TODO -- descomentar esto para que se ejecute el codigo
+    #ejercicio2_apartado1()
+
+    # Lanzamos el segundo apartado
+    ejercicio2_apartado2()
 
 def PLA_experiment(dataset, labels, max_iterations = 1e5, repetitions = 10, init_type: str = "zero"):
     """
@@ -1048,6 +1054,61 @@ def ejercicio2_apartado1():
         get_frontier_function(perceptron_weights),
         ignore_first_column = True
     )
+
+def generate_dataset(number_of_points):
+    """
+    Simula el efecto de extraer number_of_points elementos de la poblacion. La poblacion es el
+    intervalo [0,2] x [0,2] en el que los puntos se distribuyen con probabilidad uniforme. Por ello,
+    para realizar la simulacion basta con generar dos numeros aleatorios en el intervalo [0, 2] y
+    devolverlos como coordenadas
+    """
+
+    # Datos distribuidos uniformemente en [0, 1] x [0, 1]
+    dataset = np.random.rand(number_of_points, 2)
+
+    # Devolvemos los datos distribuidos uniformemente en [0, 2] x [0, 2]
+    return dataset*2
+
+def calculate_straight_line_from_two_points(first, second):
+    """Dados dos puntos bidimensionales, devuelve la recta que pasa por esos dos puntos"""
+    slope = (second[1] - first[1]) / (second[0] - first[0])
+    offset = second[1] - slope * second[0]
+    return lambda x: slope * x + offset
+
+
+def ejercicio2_apartado2():
+    """Codigo que lanza las tareas del segundo apartado del segundo ejercicio"""
+    print("--> Apartado 2")
+
+    # Generamos el dataset como se indica en el enunciado
+    number_of_points = 100
+    dataset = generate_dataset(number_of_points)
+
+    # Generamos la recta de etiquetado a partir de dos puntos aleatorios de la poblacion
+    two_pop_points = generate_dataset(2)
+    random_line = calculate_straight_line_from_two_points(two_pop_points[0], two_pop_points[1])
+    labeling_function = lambda x, y: y - random_line(x) # Etiquetamos con la distancia a la recta
+
+    # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
+    # en el sumando de la combinacion lineal
+    number_of_rows = int(np.shape(dataset)[0])
+    new_column = np.ones(number_of_rows)
+    dataset = np.insert(dataset, 0, new_column, axis = 1)
+
+    # Generamos el etiquetado de los datos, y mostramos como queda la grafica de los puntos etiquetados
+    # junto a la recta que los ha generado
+    labels = generate_labels_with_function(dataset, labeling_function, ignore_first_column=True)
+    print("Mostrando etiquetado de la muestra de datos generada, a partir de una recta que pasa por dos puntos de la poblacion")
+    scatter_plot_with_classes_and_labeling_function(
+        dataset,
+        labels,
+        ["Datos positivos", "Datos negativos"],
+        ["Eje X", "Eje Y"],
+        "Etiquetado de los datos con una recta aleatoria",
+        random_line,
+        ignore_first_column = True
+    )
+
 
 
 
