@@ -625,8 +625,13 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
     Returns:
     ========
     current_solution: solucion que se alcanza
-    error_at_epoch: error en cada EPOCH
-    error_at_minibatch: error en cada iteracion sobre minibatch
+    iterations_consumed: cuantas iteraciones de minibatch se han consumido en el proceso
+                         Si verbose == True, se pueden calcular usando error_at_minibatch. Pero
+                         cuando verbose == False, necesitamos devolver este valor
+    epochs_consumed: cuantas iteraciones de epochs (pasadas con minibatches sobre todos los datos)
+                     hemos consumido. Misma discusion que iterations_consumed y verbose
+    error_at_epoch: error en cada EPOCH <-- Cuando verbose == True
+    error_at_minibatch: error en cada iteracion sobre minibatch <-- Cuando verbose == True
     """
 
     # Si verbose == True, guardamos algunas metricas parciales durante el proceso
@@ -648,9 +653,15 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
     # forma comoda, porque tenemos dos bucles for
     current_minibatch_iterations = 0
 
+    # Para llevar la cuenta de cuantos epochs hemos consumido
+    current_epoch_iterations = 0
+
     # Si no tenemos max_minibatch_iterations iteramos sin control de contador
     # En otro caso, acotamos el numero maximo de iteraciones
     while max_minibatch_iterations is None or current_minibatch_iterations < max_minibatch_iterations:
+        # Empezamos una nueva epoca
+        current_epoch_iterations += 1
+
         # Generamos los minibatches a partir de los datos de entrada
         # Trabajamos por comodidad y eficiencia con indices, como se indica en la funcion
         mini_batches_index_groups = get_minibatches(data, batch_size)
@@ -725,7 +736,11 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
     if(len(np.shape(current_solution)) == 2):
         current_solution = current_solution[0]
 
-    return current_solution, error_at_epoch, error_at_minibatch
+    # Hacemos renaming de la variable para que quede mas explicito lo que estamos devolviendo
+    iterations_consumed = current_minibatch_iterations
+    epochs_consumed = current_epoch_iterations
+
+    return current_solution, iterations_consumed, epochs_consumed, error_at_epoch, error_at_minibatch
 
 def get_minibatches(data, batch_size: int):
     """
@@ -1491,7 +1506,7 @@ def ejercicio2_apartado2():
                     # Con valor 32: muy pocas iteraciones, error demasiado alto
 
     print("Lanzando Stochastic Gradient Descent para regresion logistica...")
-    solution, error_at_epoch, error_at_minibatch_iteration = stochastic_gradient_descent(
+    solution, _, _, error_at_epoch, error_at_minibatch_iteration = stochastic_gradient_descent(
         data = dataset,
         labels = labels,
         starting_solution = init_solution,
@@ -1557,8 +1572,125 @@ def ejercicio2_apartado2():
         ignore_first_column = True
     )
 
+    # TODO -- mirar si al final si que he incluido lo anterior en la memoria
+    # Una vez hecho esto, que incluiremos en la memoria, repetimos el experimento 100 veces
+    print("--> Lanzamos 100 veces el experimento anterior")
+    minibatch_iterations, epoch_iterations, percentage_error_at_test_sample = logistic_regresion_experiment(100)
+
+    # Tomamos algunas estadisticas de los experimentos
+    mean_minibatch = float(sum(minibatch_iterations)) / float(len(minibatch_iterations))
+    mean_epoch = float(sum(epoch_iterations)) / float(len(minibatch_iterations))
+    mean_err = sum(percentage_error_at_test_sample) / len(percentage_error_at_test_sample)
+    dev_err = np.std(percentage_error_at_test_sample)
+
+    # Mostramos las estadisticas
+    print("--> Resultados del experimento")
+    print(f"\t--> Media de iteraciones sobre minibatches consumidas: {mean_minibatch}")
+    print(f"\t--> Media de iteraciones sobre epochs consumidas: {mean_epoch}")
+    print(f"\t--> Media del porcentaje de puntos mal clasificados fuera de la muestra: {mean_err*100}%")
+    print(f"\t--> Desviacion tipica del error fuera de la muestra: {dev_err}")
+    wait_for_user_input()
 
 
+def logistic_regresion_experiment(number_of_repetitions):
+    """
+    Lanzamos un numero dado de veces el experimento sobre regresion logistica. Al lanzar muchas veces
+    el experimento, no mostramos mensajes por pantalla ni mostramos graficas
+
+    Parameters:
+    ===========
+    number_of_repetitions: numero de veces que repetimos el experimento
+
+    Returns:
+    ========
+    minibatch_iterations: iteraciones sobre minibatches necesarias en cada repeticion del experimento
+                          para que SGD converja
+    epoch_iterations: iteraciones sobre EPOCHS necesarias en cada repeticion para que SGD converja
+    percentage_error_at_test_samle: porcentaje de puntos mal clasificados en las muestras de test
+                                    de cada repeticion. Notar que en cada repeticion se genera una
+                                    nueva muestra de testing
+    """
+
+    # Parametros del experimento
+    learning_rate = 0.01
+    target_epoch_delta = 0.01
+    batch_size = 1
+
+    # Valores que guardamos en el experimento
+    # Iteraciones de minibatch necesarias para que converja SGD
+    minibatch_iterations = []
+
+    # Iteraciones de epoc necesarias para que converja SGD
+    epoch_iterations = []
+
+    # Error en el test_sample
+    # TODO -- es esto cierto?
+    # No guardamos el error dentro de la muestra porque es menos interesante a la hora de ser
+    # analizado
+    percentage_error_at_test_samle = []
+
+    for _ in range(number_of_repetitions):
+        # Generamos el dataset como se indica en el enunciado
+        number_of_points = 100
+        dataset = generate_dataset(number_of_points)
+
+        # Generamos la recta de etiquetado a partir de dos puntos aleatorios de la poblacion
+        two_pop_points = generate_dataset(2)
+        random_line = calculate_straight_line_from_two_points(two_pop_points[0], two_pop_points[1])
+        deterministic_labeling_function = lambda x, y: y - random_line(x) # Etiquetamos con la distancia a la recta
+
+        # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
+        # en el sumando de la combinacion lineal
+        # TODO -- extraer esto en un metodo porque lo repetimos muchas veces. Aqui y en otros lados
+        number_of_rows = int(np.shape(dataset)[0])
+        new_column = np.ones(number_of_rows)
+        dataset = np.insert(dataset, 0, new_column, axis = 1)
+
+        # Generamos el etiquetado de los datos
+        labels = generate_labels_with_function(dataset, deterministic_labeling_function, ignore_first_column=True)
+
+        # Lanzamos el algorimto de gradiente descendente para regresion logistica
+        init_solution = np.zeros_like(dataset[0])
+        solution, minibatch_iterations_consumed, epoch_iterations_consumed, error_at_epoch, error_at_minibatch_iteration = stochastic_gradient_descent(
+            data = dataset,
+            labels = labels,
+            starting_solution = init_solution,
+            learning_rate = learning_rate, batch_size = batch_size,
+            max_minibatch_iterations = None,
+            target_error = None,
+            target_epoch_delta = target_epoch_delta,
+            gradient_function = logistic_gradient,
+            error_function = logistic_error,
+            verbose = False
+        )
+
+        # TODO -- borrar este mensaje
+        print("\t--> Done with this SGD")
+
+        # Añadimos los valores calculados
+        minibatch_iterations.append(minibatch_iterations_consumed)
+        epoch_iterations.append(epoch_iterations_consumed)
+
+        # Calculamos el error fuera de la muestra generando otra muestra aleatoria de un alto numero de datos
+        # etiquetandolos con la recta dada (lo que seria el etiquetado deterministico verdadero) y
+        # calculando como fallamos en la muestra de test
+        size_of_test_sample = int(1e4)
+        test_dataset = generate_dataset(size_of_test_sample)
+        test_labels = generate_labels_with_function(test_dataset, deterministic_labeling_function)
+
+        # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
+        # en el sumando de la combinacion lineal
+        # TODO -- refactorizar este codigo porque lo estamos repitiendo muchas veces
+        number_of_rows = int(np.shape(test_dataset)[0])
+        new_column = np.ones(number_of_rows)
+        test_dataset = np.insert(test_dataset, 0, new_column, axis = 1)
+
+        # Calculamos el error porcentual y lo añadimos a los datos que devolvemos
+        percentage_error = percentage_logistic_error(test_dataset, test_labels, solution)
+        percentage_error_at_test_samle.append(percentage_error)
+
+    # Devolvemos los resultados del experimento
+    return minibatch_iterations, epoch_iterations, percentage_error_at_test_samle
 
 # Funcion principal
 # ===================================================================================================
