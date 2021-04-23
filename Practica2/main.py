@@ -401,8 +401,80 @@ def plot_error_evolution(error_at_iteration, title = "Evolucion del error", x_la
     plt.show()
     wait_for_user_input()
 
+def plot_misclassified_classification_predictions(data, labels, labeling_function, feature_names, title: str = "Grafica de predicciones", ignore_first_column = False):
+    """
+    Mostramos un scatter plot en el que visualizamos que datos se han clasificado mal. Si predecimos
+    correctamente la etiqueta, se pinta el punto en un color gris. Si se falla la prediccion, se
+    pinta en un color rojo
+
+    Parameters:
+    ===========
+    data: los datos de entrada sobre los que predecimos
+    labels: los verdaderos valores que deberiamos predecir
+    labeling_function: la funcion que se usa para clasificar
+    feature_names: el nombre de las caracteristicas en base a las que hacemos
+                   las predicciones
+    ignore_first_column: si queremos ignorar una primera columna de unos añadida para representar el
+                         termino independiente de un modelo lineal
+    """
+    # Tomo las coordenadas de la matriz de datos, es decir, separo coordenadas
+    # x e y de una matriz de datos que contiene pares de coordenadas
+    # Segun si ignoramos o no la primera columna, accedemos a unas posiciones u otras
+    x_col, y_col = 0, 1
+    if ignore_first_column == True:
+        x_col, y_col = 1, 2
+
+    x_values = data[:, x_col]
+    y_values = data[:, y_col]
+
+    # Predicciones sobre el conjunto de datos a partir de la funcion de etiquetado dada
+    predictions = [labeling_function(x) for x in data]
+
+    # Separo los indices en indices de puntos que hemos predicho correctamente
+    # e indices de puntos mal predichos
+    good_predicion_indexes = np.where(predictions == labels)
+    bad_prediction_indexes = np.where(predictions != labels)
+
+    # Gris para los puntos bien predichos, rojo para los puntos mal predichos
+    colormap = ['grey', 'red']
+
+    # Nombre que vamos a poner en la leyenda
+    target_names = ['Puntos BIEN predichos', 'Puntos MAL predichos']
+
+    # Asi puedo referirme a la clase de puntos bien predichos como splitted_indixes[0]
+    # (para acceder a los indices en el siguiente bucle)
+    splitted_indixes = [good_predicion_indexes, bad_prediction_indexes]
+
+    # Tomo estos elementos para hacer graficas elaboradas
+    fig, ax = plt.subplots()
+
+    # Itero sobre las clases
+    for index, target_name in enumerate(target_names):
+
+        # Tomo las coordenadas de la clase index-esima
+        current_x = x_values[splitted_indixes[index]]
+        current_y = y_values[splitted_indixes[index]]
+
+        # Muestro la clase index-esima, con su color y su etiqueta correspondiente
+        # Ponemos alpha para apreciar donde se acumulan muchos datos (que seran
+        # zonas mas oscuras que aquellas en las que no hay acumulaciones)
+        ax.scatter(current_x, current_y, c=colormap[index], label=target_name, alpha = 0.6)
+
+    # Titulo para la grafica
+    plt.title(title)
+
+    # Tomo los titulos de las caracteristicas y los asigno al grafico
+    # Tomo la idea de: https://scipy-lectures.org/packages/scikit-learn/auto_examples/plot_iris_scatter.html
+    x_legend = feature_names[0]
+    y_legend = feature_names[1]
+    plt.xlabel(x_legend)
+    plt.ylabel(y_legend)
+
+    plt.show()
+    wait_for_user_input()
+
 # Algoritmos
-# ===================================================================================================
+#===================================================================================================
 def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False):
     """
     Algoritmo de aprendizaje para perceptron
@@ -593,11 +665,10 @@ def stochastic_gradient_descent(data, labels, starting_solution, learning_rate: 
             minibatch_labels = labels[mini_batches_indixes]
 
             # Calculo la aproximacion al gradiente con estos datos
-            minibatch_approx_gradient = gradient_function(minibatch_data, minibatch_labels, current_solution)
+            minibatch_sample_gradient = gradient_function(minibatch_data, minibatch_labels, current_solution)
 
             # Actualizo la solucion con este minibatch
-            current_solution = current_solution - learning_rate * minibatch_approx_gradient
-
+            current_solution = current_solution - learning_rate * minibatch_sample_gradient
 
             # Añadimos el error sobre la iteracion del minibatch
             if verbose is True:
@@ -702,6 +773,114 @@ def get_minibatches(data, batch_size: int):
             last_group = []
 
     return np.array(grouped_indixes)
+
+def sigmoid(x):
+    """Funcion sigmoide, que se usa extensivamente en logistic regression"""
+    return 1.0 / (1.0 + np.exp(-x))
+
+def logistic_gradient(dataset, labels, solution):
+    """
+    Gradiente para la regresion logistica usando una muestra de datos
+
+    Parmeters:
+    ==========
+    dataset: conjunto de entrada de datos
+    labels: etiquetas sobre los datos
+    solution: pesos que representan el clasificador logistico solucion. Solucion respecto de la cual
+              calculamos el gradiente
+    """
+
+    # Sumatoria recorriendo los puntos y sus etiquetas
+    gradient = 0.0
+    for point, label in zip(dataset, labels):
+        signal = np.dot(solution.T, point)
+        gradient += (label * point) / (1 + np.exp(label * signal))
+
+    # Devolvemos la sumatoria por -1 / N
+    return -gradient / len(dataset)
+
+def logistic_error(dataset, labels, solution):
+    """
+    Error para la regresion logistica usando una muestra de datos. Es el error que vamos a optimizar,
+    el que se deriva de maximizar el likelihood. No es tan intuitivo como el error porcentual, que
+    se puede tomar llamando a percentage_logistic_error
+
+    Parmeters:
+    ==========
+    dataset: conjunto de entrada de datos
+    labels: etiquetas sobre los datos
+    solution: pesos que representan el clasificador logistico solucion. Solucion de la que calculamos
+              el error
+    """
+    err = 0.0
+
+    # Iteramos los puntos con sus etiquetas para calcular la parte del sumatorio
+    for point, label in zip(dataset, labels):
+        # Señal lineal con la que operamos
+        signal = np.dot(solution.T, point)
+
+        err += -label * point * sigmoid(-label * signal)
+
+    # Devolvemos la media de la anterior suma
+    return err / len(dataset)
+
+def get_logistic_classifier(weights):
+    """
+    Devuelve el clasificador asociado a los pesos que representan una solucion de regresion logistica
+
+    La función sigmoide sobre la señal de entrada da un valor en [0, 1] que representa la probabilidad
+    de que el dato pertenezca al label_pos. Por tanto, 1 - sigmoid(signal) es la probabilidad de que
+    el dato pertenezca a label_neg.
+
+    Para que el valor sigmoid(signal) sea interpretado en clasificacion, devolvemos label_pos si
+    sigmoid esta por encima de un umbral. Devolvemos label_neg en otro caso
+
+    Lo mas logido es definir el umbral como 0.5
+    """
+    # Cota que debe superarse para considerarse etiquetado positivo o negativo
+    threshold = 0.5
+
+    # Funcion que vamos a devolver
+    def classifier(x):
+        # Calculamos la probabilidad de ser de la clase label_pos
+        signal = np.dot(weights.T, x)
+        probability = sigmoid(signal)
+
+        if probability < threshold:
+            return label_neg
+        else:
+            return label_pos
+
+    # Devolvemos la funcion de clasificacion
+    return classifier
+
+def percentage_logistic_error(dataset, labels, weights):
+    """
+    Calcula el porcentaje de puntos mal clasificados por regresion logistica
+
+    Paramters:
+    ==========
+    dataset: conjunto de datos
+    labels: etiqutas sobre los datos
+    weights: pesos que representan el clasificador de regresion lineal
+
+    Returns:
+    ========
+    percentage: porcentaje de puntos mal clasificados
+    """
+
+    # Tomamos el clasificador
+    classifier = get_logistic_classifier(weights)
+
+    # Miramos la cantidad de puntos mal clasificados
+    missclasified = 0
+    for point, label in zip(dataset, labels):
+        if classifier(point) != label:
+            missclasified += 1
+
+    # Devolvemos la media de la suma
+    percentage = missclasified / len(dataset)
+    return percentage
 
 
 # Ejercicio 1
@@ -1302,15 +1481,22 @@ def ejercicio2_apartado2():
     init_solution = np.zeros_like(dataset[0])
     learning_rate = 0.01
     target_epoch_delta = 0.01
-    batch_size = 32 # TODO -- El guion no lo especifica
+    batch_size = 1  # TODO -- Explorar distintos valores para este dato
+                    # Tener en cuenta que este estudio es sin poner un maximo de iteraciones, que
+                    # tambien podria ser explorado
+                    # Con valor 1: Muchas iteraciones pero muy buen error approx 0.005 - 0.01
+                    # Con valor 4: entre 1400 - 5000 iteraciones, error approx 0.01 - 0.05
+                    # Con valor 8: buenas iteraciones (apporx 1500) y error apporx 0.1
+                    # Con valor 16: muy pocas iteraciones, error alto
+                    # Con valor 32: muy pocas iteraciones, error demasiado alto
 
-    print("Lanzando Stochastic Gradient Descent...")
+    print("Lanzando Stochastic Gradient Descent para regresion logistica...")
     solution, error_at_epoch, error_at_minibatch_iteration = stochastic_gradient_descent(
         data = dataset,
         labels = labels,
         starting_solution = init_solution,
         learning_rate = learning_rate, batch_size = batch_size,
-        max_minibatch_iterations = 500,
+        max_minibatch_iterations = None, # TODO -- esto ponerlo a None como se indica en el guion
         target_error = None,
         target_epoch_delta = target_epoch_delta,
         gradient_function = logistic_gradient,
@@ -1318,32 +1504,25 @@ def ejercicio2_apartado2():
         verbose = True
     )
 
-    plot_error_evolution(error_at_minibatch_iteration)
+    # Calculamos el porcentaje de puntos mal clasificados para mostrarlo con los resultados
+    percentage_error = percentage_logistic_error(dataset, labels, solution) * 100
 
-def logistic_gradient(dataset, labels, solution):
-    """Gradiente para la regresion logistica usando una muiestra de datos"""
-    grad = 0.0
+    # Mostramos los resultados
+    print("-->Resultados del gradiente descendente")
+    print(f"\t- Pesos obtenidos: {solution}")
+    print(f"\t- Iteraciones consumidas: {len(error_at_minibatch_iteration * batch_size)}")
+    print(f"\t- Error final alcanzado (error LGR): {error_at_minibatch_iteration[-1]}")
+    print(f"\t- Error final alcanzado (porcentaje mal clasificado): {percentage_error}%")
+    wait_for_user_input()
 
-    # Iteramos los puntos con sus etiquetas para calcular la parte del sumatorio
-    for point, label in zip(dataset, labels):
-        grad += np.log(1.0 + np.exp(-label * solution.T * point))
+    # Mostramos el grafico de evolucion del error
+    print("Mostrando el grafico de evolucion del error")
+    plot_error_evolution(error_at_minibatch_iteration, title="Evolucion del error", x_label="Minibatch Iteration")
 
-    # Devolvemos la media de la suma calculada
-    return grad / len(dataset)
+    # Mostramos la grafica de puntos mal clasificados
+    print("Mostramos la grafica de puntos mal clasificados")
+    plot_misclassified_classification_predictions(dataset, labels, get_logistic_classifier(solution), ["Eje X", "Eje Y"], ignore_first_column = True)
 
-def logistic_error(dataset, labels, solution):
-    """Error para la regresion logistica usando una muiestra de datos"""
-    err = 0.0
-
-    # Funcion sigmoide que necesitamos para calcular el error
-    sigmoid = lambda x: 1.0 / (1.0 + np.exp(-x))
-
-    # Iteramos los puntos con sus etiquetas para calcular la parte del sumatorio
-    for point, label in zip(dataset, labels):
-        err += -label * point * sigmoid(-label * solution.T * point)
-
-    # Devolvemos la media de la anterior suma
-    return err / len(dataset)
 
 
 # Funcion principal
