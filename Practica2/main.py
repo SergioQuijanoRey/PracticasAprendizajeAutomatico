@@ -1225,6 +1225,11 @@ def change_labels(labels, percentage):
 
 
 def ejercicio1_apartado2():
+
+    # Fijamos la semilla para no depender tanto de la aleatoriedad y conseguir resultados
+    # reproducibles
+    np.random.seed(123456789)
+
     """Codigo que lanza la tarea del segundo apartado del primer ejercicio"""
     print("--> Ejercicio 1 Apartado 2")
 
@@ -1312,6 +1317,10 @@ def ejercicio1_apartado2():
 #===================================================================================================
 def ejercicio2():
     """Codigo que lanza todas las tareas del segundo ejercicio"""
+
+    # Fijamos la semilla para no depender tanto de la aleatoriedad y conseguir resultados
+    # reproducibles
+    np.random.seed(123456789)
 
     print("==> Lanzando ejercicio 2")
 
@@ -1803,6 +1812,11 @@ def logistic_regresion_experiment(number_of_repetitions):
 #===================================================================================================
 def ejercicio_bonus():
     """Lanzamos todo el codigo para resolver la tarea extra"""
+
+    # Fijamos la semilla para no depender tanto de la aleatoriedad y conseguir resultados
+    # reproducibles
+    np.random.seed(123456789)
+
     print("==> Lanzando ejercicio extra")
 
     print("--> Cargando los datos de entrenamiento y test")
@@ -1899,18 +1913,12 @@ def ejercicio_bonus():
 # Funcion principal
 #===================================================================================================
 if __name__ == "__main__":
-    # Fijamos la semilla para no depender tanto de la aleatoriedad y conseguir resultados
-    # reproducibles
-    # TODO -- descomentar esto para fijar la semilla aleatoria
-    # np.random.seed(123456789)
 
     # Lanzamos el primer ejercicio
-    # TODO -- descomentar este codigo para lanzar el primer ejercicio
-    #ejercicio1()
+    ejercicio1()
 
     # Lanzamos el segundo ejercicio
-    # TODO -- descomentar este codigo para lanzar el segundo ejercicio
-    #ejercicio2()
+    ejercicio2()
 
     # Lanzamos el ejercicio extra
     ejercicio_bonus()
