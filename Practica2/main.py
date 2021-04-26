@@ -44,6 +44,36 @@ def get_frontier_function(weights):
     """
     return lambda x: (1.0 / weights[2]) * (-weights[0] - weights[1] * x)
 
+def add_colum_of_ones(matrix):
+    """
+    Dada una matriz, devuelve la misma matriz a la que añadimos una columna de unos. Esta columna de
+    unos se coloca en la primera columna de la matriz. Este añadido se realiza para representar el
+    termino independiente de una combinacion lineal
+
+    Parameters:
+    ===========
+    matrix: la matriz a la que añadimos la nueva columna
+            No se modifica
+
+    Returns:
+    ========
+    new_matrix: la matriz con la nueva columna
+    """
+
+    # Para evita que la matriz original se modifique
+    new_matrix = matrix
+
+    # Tomamos el numero de filas que tiene la matriz
+    number_of_rows = int(np.shape(new_matrix)[0])
+
+    # Generamos la nueva columna de unos
+    new_column = np.ones(number_of_rows)
+
+    # Añadimos la columna de unos
+    new_matrix = np.insert(new_matrix, 0, new_column, axis = 1)
+
+    return new_matrix
+
 
 # Valores de las etiquetas
 #===================================================================================================
@@ -515,8 +545,6 @@ def perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution
     current_solution: la solucion que se alcanza al final del proceso
     current_iteration: numero de iteraciones necesarias para alcanzar la solucion
     error_at_iteration: error en cada iteracion. Solo cuando verbose == True
-
-    TODO -- añadir vector con la evolucion del error
     """
 
     # Valores iniciales para el algoritmo
@@ -969,9 +997,6 @@ def perceptron_learning_algorithm_pocket(dataset, labels, max_iterations, init_s
                 perceptron = get_perceptron(current_solution)
 
                 # Hemos cambiado el valor de los pesos y hemos obtenido una mejor solucion
-                # TODO -- tenemos que hacer las comprobaciones con el error porcentual?
-                # TODO -- creo que deberia hacerse con el error asociado a PLA
-                # TODO -- este error PLA es el mismo que el percentual, pero en forma derivable
                 curr_err = percentage_error(dataset, labels, current_solution)
                 if curr_err < best_solution_error:
                     best_solution = current_solution
@@ -1360,11 +1385,8 @@ def ejercicio2_apartado1():
     )
 
     # Añadimos una columna de unos para que esto represente el termino independiente en la combinacion
-    # lineal. El codigo lo tomo de la practica anterior en la que teniamos que añadir columnas
-    # a la matriz de entrada
-    number_of_rows = int(np.shape(dataset)[0])
-    new_column = np.ones(number_of_rows)
-    dataset = np.insert(dataset, 0, new_column, axis = 1)
+    # lineal
+    dataset = add_colum_of_ones(dataset)
 
     # Generamos las etiquetas para estos datos
     labels, lin_coeffs = generate_labels_with_random_straight_line(dataset, lower, upper, ignore_first_column = True)
@@ -1566,9 +1588,7 @@ def ejercicio2_apartado2():
 
     # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
     # en el sumando de la combinacion lineal
-    number_of_rows = int(np.shape(dataset)[0])
-    new_column = np.ones(number_of_rows)
-    dataset = np.insert(dataset, 0, new_column, axis = 1)
+    dataset = add_colum_of_ones(dataset)
 
     # Generamos el etiquetado de los datos, y mostramos como queda la grafica de los puntos etiquetados
     # junto a la recta que los ha generado
@@ -1604,7 +1624,7 @@ def ejercicio2_apartado2():
         labels = labels,
         starting_solution = init_solution,
         learning_rate = learning_rate, batch_size = batch_size,
-        max_minibatch_iterations = None, # TODO -- esto ponerlo a None como se indica en el guion
+        max_minibatch_iterations = None,
         target_error = None,
         target_epoch_delta = target_epoch_delta,
         gradient_function = logistic_gradient,
@@ -1645,9 +1665,7 @@ def ejercicio2_apartado2():
 
     # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
     # en el sumando de la combinacion lineal
-    number_of_rows = int(np.shape(test_dataset)[0])
-    new_column = np.ones(number_of_rows)
-    test_dataset = np.insert(test_dataset, 0, new_column, axis = 1)
+    test_dataset = add_colum_of_ones(test_dataset)
 
     # Calculamos el error porcentual
     percentage_error = percentage_logistic_error(test_dataset, test_labels, solution) * 100
@@ -1717,12 +1735,12 @@ def logistic_regresion_experiment(number_of_repetitions):
     epoch_iterations = []
 
     # Error en el test_sample
-    # TODO -- es esto cierto?
     # No guardamos el error dentro de la muestra porque es menos interesante a la hora de ser
-    # analizado
+    # analizado. Seria interesante guardarlo en el caso en el que detectasemos problemas para que
+    # el algoritmo convergiese en la muestra de entrenamiento
     percentage_error_at_test_samle = []
 
-    for _ in range(number_of_repetitions):
+    for it in range(number_of_repetitions):
         # Generamos el dataset como se indica en el enunciado
         number_of_points = 100
         dataset = generate_dataset(number_of_points)
@@ -1734,10 +1752,7 @@ def logistic_regresion_experiment(number_of_repetitions):
 
         # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
         # en el sumando de la combinacion lineal
-        # TODO -- extraer esto en un metodo porque lo repetimos muchas veces. Aqui y en otros lados
-        number_of_rows = int(np.shape(dataset)[0])
-        new_column = np.ones(number_of_rows)
-        dataset = np.insert(dataset, 0, new_column, axis = 1)
+        dataset = add_colum_of_ones(dataset)
 
         # Generamos el etiquetado de los datos
         labels = generate_labels_with_function(dataset, deterministic_labeling_function, ignore_first_column=True)
@@ -1757,9 +1772,6 @@ def logistic_regresion_experiment(number_of_repetitions):
             verbose = False
         )
 
-        # TODO -- borrar este mensaje
-        print("\t--> Done with this SGD")
-
         # Añadimos los valores calculados
         minibatch_iterations.append(minibatch_iterations_consumed)
         epoch_iterations.append(epoch_iterations_consumed)
@@ -1773,14 +1785,16 @@ def logistic_regresion_experiment(number_of_repetitions):
 
         # Añadimos la columna de unos a la matriz de datos para representar el termino independiente
         # en el sumando de la combinacion lineal
-        # TODO -- refactorizar este codigo porque lo estamos repitiendo muchas veces
-        number_of_rows = int(np.shape(test_dataset)[0])
-        new_column = np.ones(number_of_rows)
-        test_dataset = np.insert(test_dataset, 0, new_column, axis = 1)
+        test_dataset = add_colum_of_ones(test_dataset)
 
         # Calculamos el error porcentual y lo añadimos a los datos que devolvemos
         percentage_error = percentage_logistic_error(test_dataset, test_labels, solution)
         percentage_error_at_test_samle.append(percentage_error)
+
+        # Mostramos el progreso del experimento
+        if it % 10 == 0:
+            print(f"\t--> Iteracion {it} finalizada")
+
 
     # Devolvemos los resultados del experimento
     return minibatch_iterations, epoch_iterations, percentage_error_at_test_samle
@@ -1837,6 +1851,7 @@ def ejercicio_bonus():
     print("--> Lanzando algoritmo PLA-Pocket")
     max_iterations = 1e4 # TODO -- comentar en la memoria que no se consigue mejora poniendo 1e5 en vez de 1e4
                          # TODO -- probar con 1e3 a ver si es suficiente para ver la convergencia
+                         # TODO -- con 1e3 no es suficiente
     init_solution = np.zeros_like(learning_dataset[0])
     solution, iterations_consumed, error_at_iteration = perceptron_learning_algorithm_pocket(learning_dataset, learning_labels, max_iterations, init_solution)
     print(f"\t- Solucion: {solution}")
