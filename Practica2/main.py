@@ -1022,6 +1022,11 @@ def perceptron_learning_algorithm_pocket(dataset, labels, max_iterations, init_s
 
 def ejercicio1():
     """Codigo que lanza todos los apartados del primer ejercicio"""
+
+    # Fijamos la semilla para no depender tanto de la aleatoriedad y conseguir resultados
+    # reproducibles
+    np.random.seed(123456789)
+
     print("==> Lanzando ejercicio 1")
     print("=" * 80)
 
@@ -1226,10 +1231,6 @@ def change_labels(labels, percentage):
 
 def ejercicio1_apartado2():
 
-    # Fijamos la semilla para no depender tanto de la aleatoriedad y conseguir resultados
-    # reproducibles
-    np.random.seed(123456789)
-
     """Codigo que lanza la tarea del segundo apartado del primer ejercicio"""
     print("--> Ejercicio 1 Apartado 2")
 
@@ -1325,8 +1326,7 @@ def ejercicio2():
     print("==> Lanzando ejercicio 2")
 
     # Lanzamos el primer apartado
-    # TODO -- descomentar esto para que se ejecute el codigo
-    #ejercicio2_apartado1()
+    ejercicio2_apartado1()
 
     # Lanzamos el segundo apartado
     ejercicio2_apartado2()
