@@ -25,6 +25,14 @@ def get_straight_line(a, b):
     """Devuelve la funcion recta de la forma a*x + b"""
     return lambda x: a * x + b
 
+def get_straight_line_from_implicit(weights):
+    """Devuelve la recta y = ax + b a partir de los pesos que representan una funcion lineal
+    implicita ax + by + c = label, haciendo label = 0
+
+    En concreto, tenemos la funcion implicita en x, y: w0 + w1 x + w2 y = label
+    """
+    return lambda x: (1 / weights[2]) * (-weights[0] - x * weights[1])
+
 def get_frontier_function(weights):
     """
     Dado un clasificador lineal de la forma w0 + w1x + w2y, devuelve la recta y = f(x) frontera del
@@ -82,6 +90,19 @@ def readData(file_x, file_y, digits, labels):
     """
     Funcion dada por los profesores para leer un fichero de datos
     Funcion COPIADA COMPLETAMENTE de la plantilla dada por los profesores
+
+    Parameters:
+    file_x: fichero con las caracteristicas de los digitos
+    file_y: fichero con las etiquetas de los puntos
+    digits: clases que queremos extraer. Vector con dos elemento indicando los digitos que queremos
+            extraer del fichero
+    labels: etiquetas que queremos asignar a los dos digitos
+
+    Returns:
+    ========
+    x: matriz con las caracteristicas de los datos. Incluye la columna de unos para representar el
+       termino independiente en las combinaciones lineales
+    y: vector con las etiquetas de los datos
     """
     # Leemos los ficheros
     datax = np.load(file_x)
@@ -142,11 +163,11 @@ def scatter_plot(x_values, y_values, title="Scatter Plot Simple", x_label="Eje X
 
 def scatter_plot_with_classes(data, classes, target_names, feature_names, title, ignore_first_column: bool = False, show: bool = True, canvas=None):
     """
-    Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados en distintos grupos
+    Hacemos un scatter plot de puntos con dos coordenadas que estan etiquetados en distintos grupos
 
     Parameters:
     ===========
-    data: coordeandas de los distintos puntos
+    data: coordenadas de los distintos puntos
     classes: etiquetas numericas de las clases a la que pertenencen los datos
     target_names: nombres que le doy a cada una de las clases
     feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
@@ -246,17 +267,17 @@ def scatter_plot_with_classes(data, classes, target_names, feature_names, title,
 
 def scatter_plot_with_classes_and_labeling_function(data, classes, target_names, feature_names, title, labeling_function, ignore_first_column = False):
     """
-    Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados a partir de una
+    Hacemos un scatter plot de puntos con dos coordenadas que estan etiquetados a partir de una
     funcion de etiquetado que mostramos en la grafica. Notar que las etiquetas pueden tener ruido,
     por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion dada
-    Ademas, mostramos la recta que ha sido usada para etiquetar.
+    Ademas, mostramos la funcion que ha sido usada para etiquetar.
 
     Se usa esta funcion cuando podemos expresar y = f(x) de forma global, pues recordar que las
     funciones de etiquetado son funciones de dos variables implicitas
 
     Parameters:
     ===========
-    data: coordeandas de los distintos puntos
+    data: coordenadas de los distintos puntos
     classes: etiquetas numericas de las clases a la que pertenencen los datos
     target_names: nombres que le doy a cada una de las clases
     feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
@@ -302,7 +323,7 @@ def scatter_plot_with_classes_and_labeling_function(data, classes, target_names,
 
 def scatter_plot_with_classes_and_labeling_region(data, classes, target_names, feature_names, title, labeling_function):
     """
-    Hacemos un scatter plot de puntos con dos coordeandas que estan etiquetados a partir de una
+    Hacemos un scatter plot de puntos con dos coordenadas que estan etiquetados a partir de una
     funcion de etiquetado que mostramos en la grafica. Notar que las etiquetas pueden tener ruido,
     por lo que la grafica puede mostrar puntos mal etiquetados segun la funcion dada
 
@@ -315,7 +336,7 @@ def scatter_plot_with_classes_and_labeling_region(data, classes, target_names, f
 
     Parameters:
     ===========
-    data: coordeandas de los distintos puntos
+    data: coordenadas de los distintos puntos
     classes: etiquetas numericas de las clases a la que pertenencen los datos
     target_names: nombres que le doy a cada una de las clases
     feature_names: nombre de los ejes de coordenadas que le queremos dar al grafico
@@ -475,7 +496,7 @@ def plot_misclassified_classification_predictions(data, labels, labeling_functio
 
 # Algoritmos
 #===================================================================================================
-def perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False):
+def perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution, verbose = False):
     """
     Algoritmo de aprendizaje para perceptron
 
@@ -897,6 +918,78 @@ def percentage_logistic_error(dataset, labels, weights):
     percentage = missclasified / len(dataset)
     return percentage
 
+def perceptron_learning_algorithm_pocket(dataset, labels, max_iterations, init_solution):
+    """
+    Algoritmo de aprendizaje para perceptron, modificacion Pocket (en cada iteracion guardamos la
+    mejor solucion hasta el momento)
+
+    Parameters:
+    ===========
+    dataset: conjunto de puntos que vamos a clasificar. Cada punto tiene sus coordenadas en una fila
+             de la matriz
+    labels: vector de etiquetas
+    max_iterations: numero maximo de iteraciones
+    init_solution: vector de pesos iniciales que representan la solucion inicial
+
+    Returns:
+    ========
+    best_solution: la solucion que se alcanza al final del proceso
+    current_iteration: numero de iteraciones necesarias para alcanzar la solucion
+    error_at_iteration: error en cada iteracion. Solo cuando verbose == True
+                        Al estar lanzando PLA-Pocket, es el error asociado a la mejor funcion
+                        encontrada hasta el momento
+
+    Como vamos a estar usando el error para best_solution, no tiene sentido distinguir si queremos
+    verbose o no: siempre usamos modo 'verbose'
+    """
+
+    # Valores iniciales para el algoritmo
+    current_solution = init_solution
+    best_solution = init_solution
+    current_iteration = 0
+    error_at_iteration = []
+
+    # Error de la mejor solucion hasta el momento
+    # Esto nos evita calcular el error una y otra vez sobre la misma solucion mejor hasta el momento
+    best_solution_error = percentage_error(dataset, labels, best_solution)
+
+    # Iteramos sobre el algoritmo hasta alcanzar error cero o hasta agotar las iteraciones
+    while best_solution_error > 0 and current_iteration < max_iterations:
+
+        # Iteramos sobre todos los puntos del dataset junto a las correspondientes etiquetas
+        for point, label in zip(dataset, labels):
+
+            # A partir de los pesos, obtenemos la funcion de clasificacion
+            perceptron = get_perceptron(current_solution)
+
+            # Comprobamos que estamos etiquetando bien este punto
+            if perceptron(point) != label:
+                # Actualizamos los pesos y la funcion que representa
+                current_solution = current_solution + label * point
+                perceptron = get_perceptron(current_solution)
+
+                # Hemos cambiado el valor de los pesos y hemos obtenido una mejor solucion
+                # TODO -- tenemos que hacer las comprobaciones con el error porcentual?
+                # TODO -- creo que deberia hacerse con el error asociado a PLA
+                # TODO -- este error PLA es el mismo que el percentual, pero en forma derivable
+                curr_err = percentage_error(dataset, labels, current_solution)
+                if curr_err < best_solution_error:
+                    best_solution = current_solution
+                    best_solution_error = curr_err
+
+                # Añadimos el error de la mejor solucion
+                error_at_iteration.append(best_solution_error)
+
+            # Aumentamos la iteracion
+            current_iteration = current_iteration + 1
+
+            # Comprobamos si hemos agotado el maximo de iteraciones en este bucle interno
+            if current_iteration >= max_iterations:
+                break
+
+    # Devolvemos los resultados sin datos adicionales
+    return best_solution, current_iteration, error_at_iteration
+
 
 # Ejercicio 1
 #===================================================================================================
@@ -1191,7 +1284,7 @@ def ejercicio1_apartado2():
         )
 
 # Ejercicio 2
-# ===================================================================================================
+#===================================================================================================
 def ejercicio2():
     """Codigo que lanza todas las tareas del segundo ejercicio"""
 
@@ -1237,7 +1330,7 @@ def PLA_experiment(dataset, labels, max_iterations = 1e5, repetitions = 10, init
         init_solution = np.random.rand(len(dataset[0]))
 
         # Calculamos todos los valores para la inicializacion aleatoria
-        curr_sol, curr_cons_it = perceptron_learning_algorihtm(dataset, labels, max_iterations, init_solution, verbose = False)
+        curr_sol, curr_cons_it = perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution, verbose = False)
         curr_err = percentage_error(dataset, labels, curr_sol)
 
         # Guardamos el valor
@@ -1329,7 +1422,7 @@ def ejercicio2_apartado1():
     # Lanzamos el algoritmo con vector inicial cero a solas para mostrar las graficas
     print("-> Mostrando una unica ejecucion para la solucion inicial zero")
     zero_solution = np.zeros_like(dataset[0])
-    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorihtm(dataset, labels, max_iterations, zero_solution, verbose = True)
+    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorithm(dataset, labels, max_iterations, zero_solution, verbose = True)
     print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
     print(f"Iteraciones consumidas: {consumed_iterations}")
     print(f"Porcentaje mal clasificado: {percentage_error(dataset, labels, perceptron_weights) * 100}%")
@@ -1354,7 +1447,7 @@ def ejercicio2_apartado1():
     # Hacemos lo mismo pero para una solucion inicial aleatoria
     print("-> Mostrando una unica ejecucion para la solucion inicial aletoria")
     rand_solution = np.random.rand(len(dataset[0]))
-    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorihtm(dataset, labels, max_iterations, rand_solution, verbose = True)
+    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorithm(dataset, labels, max_iterations, rand_solution, verbose = True)
     print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
     print(f"Iteraciones consumidas: {consumed_iterations}")
     print(f"Porcentaje mal clasificado: {percentage_error(dataset, labels, perceptron_weights) * 100}%")
@@ -1415,7 +1508,7 @@ def ejercicio2_apartado1():
     # Elegimos vector inicial PLA de forma arbitraria para mostrar la grafica
     print("-> Mostrando una unica ejecucion para la solucion inicial aletoria")
     rand_solution = np.random.rand(len(dataset[0]))
-    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorihtm(dataset, noisy_labels, max_iterations, rand_solution, verbose = True)
+    perceptron_weights, consumed_iterations, error_at_iteration = perceptron_learning_algorithm(dataset, noisy_labels, max_iterations, rand_solution, verbose = True)
     print(f"Pesos del perceptron obtenidos: {perceptron_weights}")
     print(f"Iteraciones consumidas: {consumed_iterations}")
     print(f"Porcentaje mal clasificado: {percentage_error(dataset, labels, perceptron_weights) * 100}%")
@@ -1692,8 +1785,104 @@ def logistic_regresion_experiment(number_of_repetitions):
     # Devolvemos los resultados del experimento
     return minibatch_iterations, epoch_iterations, percentage_error_at_test_samle
 
+# Ejercicio Bonus
+#===================================================================================================
+def ejercicio_bonus():
+    """Lanzamos todo el codigo para resolver la tarea extra"""
+    print("==> Lanzando ejercicio extra")
+
+    print("--> Cargando los datos de entrenamiento y test")
+
+    # Parametros para extraer los datos a partir de la funcion dada por los profesores
+    learning_path_caracteristics = "./datos/X_train.npy"
+    learning_path_labels = "./datos/y_train.npy"
+    test_path_caracteristics = "./datos/X_test.npy"
+    test_path_labels = "./datos/y_test.npy"
+    digits = [4, 8]
+    labels = [-1, 1]
+
+    # Vamos a usar estos parametros para mostrar las graficas repetidamente
+    target_names = ["Digito 4", "Digito 8"]
+    feature_names = ["Intensidad promedio", "Simetria"]
+
+    # Cargamos los datos de training
+    learning_dataset, learning_labels = readData(learning_path_caracteristics, learning_path_labels, digits, labels)
+
+    # Cargamos los datos de test
+    test_dataset, test_labels = readData(test_path_caracteristics, test_path_labels, digits, labels)
+
+    # Mostramos las graficas de los datos cargados
+    print("--> Mostrando los datos cargados")
+    print("Datos de entrenamiento")
+    scatter_plot_with_classes(
+        learning_dataset,
+        learning_labels,
+        target_names,
+        feature_names,
+        title="Datos de entrenamiento",
+        ignore_first_column=True
+    )
+
+    print("Datos de testing")
+    scatter_plot_with_classes(
+        test_dataset,
+        test_labels,
+        target_names,
+        feature_names,
+        title="Datos de test",
+        ignore_first_column=True
+    )
+
+    # Lanzamos PLA-Pocket para separar los datos por una funcion lineal
+    print("--> Lanzando algoritmo PLA-Pocket")
+    max_iterations = 1e4 # TODO -- comentar en la memoria que no se consigue mejora poniendo 1e5 en vez de 1e4
+                         # TODO -- probar con 1e3 a ver si es suficiente para ver la convergencia
+    init_solution = np.zeros_like(learning_dataset[0])
+    solution, iterations_consumed, error_at_iteration = perceptron_learning_algorithm_pocket(learning_dataset, learning_labels, max_iterations, init_solution)
+    print(f"\t- Solucion: {solution}")
+    print(f"\t- Iteraciones consumidas: {iterations_consumed}")
+    print(f"\t- Error conseguido en la muestra: {error_at_iteration[-1]}")
+    print(f"\t- Error conseguido fuera de la muestra: {percentage_error(test_dataset, test_labels, solution)}")
+    wait_for_user_input()
+
+    # Mostramos la grafica de evolucion de Ein
+    print("--> Mostrando evolucion del error en la muestra durante el aprendizaje")
+    plot_error_evolution(
+        error_at_iteration,
+        title="Evolucion del error en la muestra durante el aprendizaje",
+        y_label="Error en la muestra"
+    )
+
+    # Para mostrar las siguientes graficas, necesitamos la funcion de etiquetado que representa
+    # los pesos de la solucion obtenida
+    labeling_function = get_straight_line_from_implicit(solution)
+
+    # Mostramos la clasificacion con la linea tanto en la muestra de entrenamiento como en la
+    # muestra de test
+    print("--> Mostrando el etiquetado en los datos de entrenamiento")
+    scatter_plot_with_classes_and_labeling_function(
+        learning_dataset,
+        learning_labels,
+        target_names,
+        feature_names,
+        title="Clasificado de los datos de aprendizaje",
+        labeling_function=labeling_function,
+        ignore_first_column=True
+    )
+
+    print("--> Mostrando el etiquetado en los datos de test")
+    scatter_plot_with_classes_and_labeling_function(
+        test_dataset,
+        test_labels,
+        target_names,
+        feature_names,
+        title="Clasificado de los datos de aprendizaje",
+        labeling_function=labeling_function,
+        ignore_first_column=True
+    )
+
 # Funcion principal
-# ===================================================================================================
+#===================================================================================================
 if __name__ == "__main__":
     # Fijamos la semilla para no depender tanto de la aleatoriedad y conseguir resultados
     # reproducibles
@@ -1705,4 +1894,8 @@ if __name__ == "__main__":
     #ejercicio1()
 
     # Lanzamos el segundo ejercicio
-    ejercicio2()
+    # TODO -- descomentar este codigo para lanzar el segundo ejercicio
+    #ejercicio2()
+
+    # Lanzamos el ejercicio extra
+    ejercicio_bonus()
