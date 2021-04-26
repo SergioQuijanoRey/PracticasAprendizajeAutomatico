@@ -536,6 +536,7 @@ def perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution
              de la matriz
     labels: vector de etiquetas
     max_iterations: numero maximo de iteraciones
+                    Por iteracion consideramos una pasada completa sobre todos los datos
     init_solution: vector de pesos iniciales que representan la solucion inicial
     verbose: indica si queremos devolver mas datos de los estrictamente necesarios
              Al tener que evaluar el error, hace que el algoritmo corra mas lento
@@ -593,7 +594,6 @@ def perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution
                     # Añadimos el error que en la mayoria de los casos (salvo en el primer calculo
                     # de error), es un valor 'cacheado'
                     error_at_iteration.append(last_error)
-
 
 
             # Aumentamos la iteracion
