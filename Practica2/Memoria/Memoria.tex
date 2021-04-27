@@ -185,6 +185,8 @@ Así queda justificado que el proceso de introducción de ruido no es muy inform
 
 Esto nos daría más información sobre la robustez de nuestro clasificador frente al ruido. Por ejemplo, en el caso de la recta, un punto alejado de la frontera no cambiaría de etiqueta (con un rango de variación de coordenadas razonable), mientras que un punto muy cercano a la frontera sí que cambiaría. Como se puede ver en la imagen, la mayoría de puntos no se encuentran muy pegados a la frontera. Por otro lado, considerando $f_3$, podríamos pensar que todos los puntos de etiquetado negativo se saldrían de la región de etiquetado negativo, al ser esta muy estrecha, concluyendo que el clasificador es muy frágil frente al ruido.
 
+Otra forma de medir esta \emph{robustez} sería calcular la longitud de las fronteras de nuestro clasificador. A mayor longitud, tenemos un modelo más complejo, que es más probable de sobreajustar. Además, a mayor longitud es más probable que un cambio de coordenadas aleatoria, anteriormente discutida, provoque un cambio de etiqueta. Y por tanto es más probable que el ruido afecte a nuestro problema.
+
 Resumiendo, consideramos insuficiente la información dada para comparar las funciones de clasificación. Por tanto, realizamos nuevas consideraciones para tratar de realizar un mejor análisis, y proponemos una forma sintética de introducir ruido que pensamos que puede ser más adecuada a la hora de analizar la robustez de los clasificadores frente al ruido.
 
 
