@@ -544,8 +544,10 @@ def perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution
     Returns:
     ========
     current_solution: la solucion que se alcanza al final del proceso
-    current_iteration: numero de iteraciones necesarias para alcanzar la solucion
-    error_at_iteration: error en cada iteracion. Solo cuando verbose == True
+    current_iteration: numero de iteraciones necesarias para alcanzar la solucion. Iteraciones sobre
+                       todos los datos (por tanto, EPOCHs consumidas)
+    error_at_iteration: error en cada iteracion (iteracion sobre todos los datos, sobre EPOCH).
+                        Solo cuando verbose == True
     """
 
     # Valores iniciales para el algoritmo
@@ -576,32 +578,14 @@ def perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution
                 # Estamos cambiando un dato, asi que esta pasada sobre los datos no es limpia
                 full_pass_without_changes = False
 
-                # Hemos cambiado el valor de los pesos, asi que tenemos que calcular el error de nuevo
-                if verbose == True:
-                    curr_err = percentage_error(dataset, labels, current_solution)
-                    error_at_iteration.append(curr_err)
-            else:
-                # No cambia el valor de los pesos, asi que el error tampoco cambia
-                # Esto nos ahorra bastante tiempo de computo
-                if verbose == True:
-                    if len(error_at_iteration) > 0:
-                        last_error = error_at_iteration[-1]
-                    # No tenemos un ultimo error (primer error que calculamos)
-                    # Asi que tenemos que calcular a mano el error
-                    else:
-                        last_error = percentage_error(dataset, labels, current_solution)
+        # Aumentamos la iteracion, pues hemos hecho una pasada completa sobre los datos
+        current_iteration = current_iteration + 1
 
-                    # Añadimos el error que en la mayoria de los casos (salvo en el primer calculo
-                    # de error), es un valor 'cacheado'
-                    error_at_iteration.append(last_error)
+        # Añadimos el error en esta iteracion sobre epoch
+        if verbose == True:
+            curr_err = percentage_error(dataset, labels, current_solution)
+            error_at_iteration.append(curr_err)
 
-
-            # Aumentamos la iteracion
-            current_iteration = current_iteration + 1
-
-            # Comprobamos si hemos agotado el maximo de iteraciones en este bucle interno
-            if current_iteration >= max_iterations:
-                break
 
     # Devolvemos los resultados en el caso verbose
     if verbose == True:
@@ -963,9 +947,13 @@ def perceptron_learning_algorithm_pocket(dataset, labels, max_iterations, init_s
     ========
     best_solution: la solucion que se alcanza al final del proceso
     current_iteration: numero de iteraciones necesarias para alcanzar la solucion
-    error_at_iteration: error en cada iteracion. Solo cuando verbose == True
+    error_at_iteration: error en cada iteracion sobre datos, no sobre EPOCH
                         Al estar lanzando PLA-Pocket, es el error asociado a la mejor funcion
                         encontrada hasta el momento
+                        No hacemos error por cada EPOCH porque como en Pocket tenemos que estar
+                        evaluando el error dato a dato, y la grafica es monotona (se visualiza por
+                        tanto bien), consideramos mas conveniente devolver error por cada iteracion
+                        de dato
 
     Como vamos a estar usando el error para best_solution, no tiene sentido distinguir si queremos
     verbose o no: siempre usamos modo 'verbose'
@@ -1005,12 +993,8 @@ def perceptron_learning_algorithm_pocket(dataset, labels, max_iterations, init_s
                 # Añadimos el error de la mejor solucion
                 error_at_iteration.append(best_solution_error)
 
-            # Aumentamos la iteracion
-            current_iteration = current_iteration + 1
-
-            # Comprobamos si hemos agotado el maximo de iteraciones en este bucle interno
-            if current_iteration >= max_iterations:
-                break
+        # Aumentamos la iteracion, pues hemos hecho una pasada completa sobre los datos
+        current_iteration = current_iteration + 1
 
     # Devolvemos los resultados sin datos adicionales
     return best_solution, current_iteration, error_at_iteration
