@@ -10,6 +10,9 @@
 \usepackage{graphicx}
 \graphicspath{ {./Imagenes/} }
 
+% Para fijar las imagenes en la posicion deseada
+\usepackage{float}
+
 % Para que el codigo acepte caracteres en utf8
 \lstset{literate=
   {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
@@ -136,17 +139,57 @@ Se ve con claridad cómo esta operación introduce ruido sobre nuestras etiqueta
 Consideramos ahora las siguientes funciones que definen una frontera de clasificación:
 
 \begin{itemize}
-    \item $f_1(x, y):= (x - 10)^2 + (y - 20)^2 - 400$
-    \item $f_2(x, y):= \frac{1}{2} (x + 10)^2 + (y - 20)^2 - 400$
-    \item $f_3(x, y):= \frac{1}{2} (x - 10)^2 - (y + 20)^2 - 400$
-    \item $f_4(x, y):= y - 20x^2 -5x +3$
+    \item $f_0(x, y):= (x - 10)^2 + (y - 20)^2 - 400$
+    \item $f_1(x, y):= \frac{1}{2} (x + 10)^2 + (y - 20)^2 - 400$
+    \item $f_2(x, y):= \frac{1}{2} (x - 10)^2 - (y + 20)^2 - 400$
+    \item $f_3(x, y):= y - 20x^2 -5x +3$
 \end{itemize}
 
 Usamos estas funciones de frontera para clasificar los datos generados en el Subapartado a). También modificamos un 10\% de las etiquetas positivas y negativas aleatoriamente. Además, mostramos las regiones de clasificado positivo y negativo de las funciones empleadas.
 
-% TODO -- comente si estas funciones mas complejas son mejores clasificadores que la funcion lineal
-% TODO -- observe las graficas y diga que consecuencias extrae sobre la influencia del proceso de modificacion de etiquetas en el proceso de aprendizaje
-% TODO -- para esto ultimo decir que no tiene demasiado sentido. Cambiamos el valor de las etiquetas del 10% de los datos, independientemente de las caracteristicas de la función. Otra discusión seria posible si modificasemos las coordeandas de un punto, en cuyo caso si podemos considerar la tolerancia del clasificador frente al ruido. Esta forma sintética de introducir ruido no nos permite realizar consideraciones sobre lo buenas que son las funciones
+Con las funciones de frontera $f_i(x, y)$, realizamos el etiquetado de forma análoga que con la recta, etiquetando con el valor $sign(f_i(x,y))$.
+
+Podríamos haber intentado mostras las líneas de frontera de etiquetado, como hemos hecho con la recta. Pero para ello, tenemos que calcular un despeje de $f(x, y)$, o bien de $x$ o bien de $y$, pues $f(x, y)$ viene dada de forma implícita. No todas las funciones tienen un despeje global, por lo que habría que emplear el teorema de la función implícita para realizar despejes locales, y después concatenar las graficas obtenidas con los despejes locales. Hemos considerado que esto entorpecía demasiado el código. Así que la solución encontrada ha sido usar la función \lstinline{contourf} de la librería \lstinline{matplotlib.pyplot}, con la que pintaremos las regiones en las que clasificamos positivamente y las regiones en las que clasificamos negativamente.
+
+Mostramos las gráficas obtenidas:
+
+% TODO -- no se muestra donde quiero que se muestre
+\begin{figure}[H]
+    \includegraphics[width=0.60 \textwidth]{puntos_clasificados_f0.png}
+    \includegraphics[width=0.60 \textwidth]{puntos_clasificados_f1.png}
+
+    \includegraphics[width=0.60 \textwidth]{puntos_clasificados_f2.png}
+    \includegraphics[width=0.60 \textwidth]{puntos_clasificados_f3.png}
+
+    \caption{Etiquetado ruidoso con las cuatro funciones dadas}
+\end{figure}
+
+Es claro que la recta realiza una clasificación mucho más sencilla que estas nuevas funciones de clasificación, pues divide el espacio en dos regiones sencillas: la región por encima de la recta y la región por debajo de la recta. $f_0$ ya es más compleja pues estamos considerando la región fuera y dentro de un círculo, que no está centrado en el origen. $f_1$ es algo más compleja, pues ahora no consideramos un círculo, sino una elipse (añadimos un nuevo parámetro al modelo, el achatamiento del eje $x$ dado por el factor $\frac{1}{a^2}$). En $f_2$ estamos considerando regiones hiperbólicas, que viene determinada por el mismo número de parámetros que $f_1$, aunque la forma de las regiones cambie al cambiar la cónica cambiando el signo. Y en este caso, hay un predominio de región de etiquetado positivo frente a la región de etiquetado negativo. Y finalmente en $f_3$ consideramos una parábola, cuya región de etiquetado negativo tiene un área muy pequeña comparada a la región de etiquetado positivo.
+
+Bajo estas condiciones es algo complicado comentar si estas funciones más complejas son mejores clasificadores que la función lineal, pues esto dependerá de una serie de factores:
+
+Para empezar estamos trabajando con 100 puntos o datos. Debemos emplear algún método para concer si la complejidad de nuestras funciones se adecúa a la cantidad de datos con los que estamos trabajando. Esta herramienta será la \textbf{dimensión de Vapnik-Chervonenkis}. Sabemos que en el caso de la recta, $d_{VC} = d + 1 = 3$, y por tanto, la regla práctica para generalizar bien $N \geq 10 d_{VC}$ se cumple. Para el caso del círculo y de la elipse, tenemos también que $d_{VC} = 3$. Esto no es difícil de probar, al tener una dimensión tan baja, con ejemplos \footnotemark. Por tanto, a nivel de generalización, con los 100 datos que tenemos es suficiente pues $100 \geq 3 * 10$. Para el caso de la hipérbola y de la parábola hemos comprobado que $d_{VC} = 3$ yendo ejemplo por ejemplo (puede estar mal hecho el cálculo). Por lo cual, todas las funciones tienen una cantidad suficiente de datos acorde a $d_{VC}$ como para que no haya problemas para generalizar (siempre siguiendo la regla práctica $N \geq d_{VC} * 10$).
+\footnotetext{En \cite{PowerPoi66:online} se muestra de forma visual la prueba de esto con los conjuntos dados de datos. En \cite{machinel96:online} se realiza una prueba formal de este hecho.}
+
+Sería más adecuado realizar experimentos con un dataset de entrenamiento y otro de test para comprobar empíricamente que, efectivamente, con 100 datos no tenemos problemas de generalización.
+
+Notar que la función lineal sigue siendo más sencilla aunque $d_{VC}$ parezca indicar lo contrario. Esto se debe a que en el análisis \emph{VC}, nos situamos en el peor de los casos, es un análisis muy pesimista.
+
+Otro punto a tener en cuenta es el problema que estamos considerando. No tiene sentido plantearse el clasificado en abstracto y comparar lo bueno que son los clasificadores desde este punto de vista. Si las características del problema tienen un carácter lineal (al doble de ingresos, el doble de probabilidad de que nos acepten la solicitud de un crédito, por ejemplo), las funciones de clasificado no lineales no tienen demasiado sentido. Si por otro lado las características de los datos no son lineales, entonces puede tener más sentido usar clasificadores no lineales a pesar de que representen un modelo más complejo, pues serían más correctos desde la perspectiva del problema a resolver.
+
+Respecto al proceso de modificación de etiquetas, las condiciones en la que hemos realizado este proceso también complica algo las cosas. Hemos modificado, aleatoriamente, un 10\% de las etiquetas positivas y otro 10\% de las etiquetas negativas. En este proceso da bastante igual la forma que tome $f$. En el sentido en el que, podemos pensar que la recta es muy robusta frente al ruido, o más robusta que una elipse. Pero a la hora de ejecutar el cambio aleatorio, esto no se tiene en cuenta.
+
+Sin embargo, si que hemos detectado una característica en la que la forma de $f$ influye en el proceso. Esto se ve claro con $f_3$. Al tener una región mucho más pequeña que la contraria (en este caso, región de etiquetado negativo mucho más pequeña que la región de etiqetado positivo), es muy probable que no hayamos clasificado ningún punto como negativo, y por tanto realizamos modificaciones del tipo $negativo \rightarrow positivo$, solo modificaciones del tipo $positivo \rightarrow negativo$. Aún así, esto no es demasiado relevante
+
+Así queda justificado que el proceso de introducción de ruido no es muy informativo. Un proceso de introducción de ruido mucho más interesante podría haber sido seleccionar aleatoriamente un porcentaje de las etiquetas, tanto positivas como negativas, y en vez de cambiar arbitrariamente su etiqueta, modificar en un cierto rango acotado su posición, y ver si en esa nueva posición se etiquetaría con el otro valor.
+
+Esto nos daría más información sobre la robustez de nuestro clasificador frente al ruido. Por ejemplo, en el caso de la recta, un punto alejado de la frontera no cambiaría de etiqueta (con un rango de variación de coordenadas razonable), mientras que un punto muy cercano a la frontera sí que cambiaría. Como se puede ver en la imagen, la mayoría de puntos no se encuentran muy pegados a la frontera. Por otro lado, considerando $f_3$, podríamos pensar que todos los puntos de etiquetado negativo se saldrían de la región de etiquetado negativo, al ser esta muy estrecha, concluyendo que el clasificador es muy frágil frente al ruido.
+
+Resumiendo, consideramos insuficiente la información dada para comparar las funciones de clasificación. Por tanto, realizamos nuevas consideraciones para tratar de realizar un mejor análisis, y proponemos una forma sintética de introducir ruido que pensamos que puede ser más adecuada a la hora de analizar la robustez de los clasificadores frente al ruido.
+
+
+
+\pagebreak
 
 
 % Bibliografia
