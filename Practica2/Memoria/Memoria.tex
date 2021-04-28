@@ -110,9 +110,11 @@ Vamos a valorar la influencia del ruido en la selección dela complejidad de la 
 
 Una vez que generamos esta muestra de datos, los etiquetamos usando una recta generada aleatoriamente, usando la función dada por los profesores \lstinline{simula_recta}. Con la recta $f(x) = ax + b$, etiquetamos los datos con la función de etiquetado $(x, y) \rightarrow sign(y - ax - b)$. Esta función toma un punto $x, y$, calcula su distancia a la recta $f$ (que se corresponde con $y - f(x)$) y como etiqueta asigna el signo de esta distancia. Es decir, estamos mirando si un punto se queda por encima de la recta (etiqueta $+1$) o por debajo (etiqueta $-1$).
 
+\textbf{Observación importante}: en el subapartado c), hemos considerado una interpretación alternativa del ejercicio, pues parece tener más interés académico a la hora de analizar las propiedades de las funciones que se nos dan para clasificar. Por tanto, desarrollamos una sección \ref{section:apartado_obligatorio}, donde realizamos la tarea especificada, y una sección \ref{section:apartado_extra} donde realizamos el experimento alternativo. Ambos procesos nos parecen pobres a la hora de extraer información sobre dichas funciones (como se comentará en el análisis de cada uno de los subapartados), pero la interpretación alternativa parece dar algo más de juego para realizar los análisis.
+
 \subsubsection{Subapartado a)}
 
-El enunciado de este apartado especifica que se vuelva a generar la muestra de datos, como se especifica anteriormente. Por tanto, se puede ver que la nube de datos no es la misma que la nube de datos uniforme del Apartado 1.
+El enunciado de este apartado especifica que se vuelva a generar la muestra de datos, como se especifica anteriormente, o al menos así lo hemos interpretado. Por tanto, se puede ver que la nube de datos no es la misma que la nube de datos uniforme del Apartado 1.
 
 La gráfica de los datos etiquetados, junto a la recta que se usa para etiquetar, es la siguiente:
 
@@ -132,11 +134,11 @@ El gráfico de clasificación tras esta modificación aleatoria es:
 
 \includegraphics[width = 0.8 \textwidth]{puntos_clasificados_recta_aleatorizados01}
 
-Se ve con claridad cómo esta operación introduce ruido sobre nuestras etiquetas.
+Se ve con claridad cómo esta operación introduce ruido sobre nuestras etiquetas. Aproximadamente, tendremos un error entorno al 10\% por la forma en la que hemos modificado las etiquetas (dependendiendo del ratio positivos / negativos, el error porcentual puede ser de hasta el 9\%).
 
-\subsubsection{Subapartado c)}
+\subsubsection{Subapartado c)} \label{section:apartado_obligatorio}
 
-Consideramos ahora las siguientes funciones que definen una frontera de clasificación:
+En este apartado, debemos considerar las siguientes funciones que definen una frontera de clasificación:
 
 \begin{itemize}
     \item $f_0(x, y):= (x - 10)^2 + (y - 20)^2 - 400$
@@ -145,21 +147,43 @@ Consideramos ahora las siguientes funciones que definen una frontera de clasific
     \item $f_3(x, y):= y - 20x^2 -5x +3$
 \end{itemize}
 
-Usamos estas funciones de frontera para clasificar los datos generados en el Subapartado a). También modificamos un 10\% de las etiquetas positivas y negativas aleatoriamente. Además, mostramos las regiones de clasificado positivo y negativo de las funciones empleadas.
-
-Con las funciones de frontera $f_i(x, y)$, realizamos el etiquetado de forma análoga que con la recta, etiquetando con el valor $sign(f_i(x,y))$.
+Estas funciones no van a modificar el etiquetado que ya teníamos (el generado a partir de una recta y la introducción sintética de ruido). Simplemente mostramos las regiones de clasificación de estas nuevas funciones y los puntos con el clasificado original, buscando asi realizar un análisis sobre el uso de estos clasificadores más complejos.
 
 Podríamos haber intentado mostras las líneas de frontera de etiquetado, como hemos hecho con la recta. Pero para ello, tenemos que calcular un despeje de $f(x, y)$, o bien de $x$ o bien de $y$, pues $f(x, y)$ viene dada de forma implícita. No todas las funciones tienen un despeje global, por lo que habría que emplear el teorema de la función implícita para realizar despejes locales, y después concatenar las graficas obtenidas con los despejes locales. Hemos considerado que esto entorpecía demasiado el código. Así que la solución encontrada ha sido usar la función \lstinline{contourf} de la librería \lstinline{matplotlib.pyplot}, con la que pintaremos las regiones en las que clasificamos positivamente y las regiones en las que clasificamos negativamente.
 
-Mostramos las gráficas obtenidas:
+Una vez hechos estos comentarios, mostramos las gráficas obtenidas como se nos pedía:
 
-% TODO -- no se muestra donde quiero que se muestre
 \begin{figure}[H]
     \includegraphics[width=0.60 \textwidth]{puntos_clasificados_f0.png}
     \includegraphics[width=0.60 \textwidth]{puntos_clasificados_f1.png}
 
     \includegraphics[width=0.60 \textwidth]{puntos_clasificados_f2.png}
     \includegraphics[width=0.60 \textwidth]{puntos_clasificados_f3.png}
+
+    \caption{Etiquetado original sobre las nuevas funciones de etiquetado}
+\end{figure}
+
+% TODO -- Mirar la discusión que hago en el experimento, porque unas cuantas cosas que digo ahi las puedo decir aqui tambien
+
+\pagebreak
+
+\subsubsection{Subapartado c) - Interpretación alternativa} \label{section:apartado_extra}
+
+En este experimento, consideramos las mismas cuatro funciones que en \ref{section:apartado_obligatorio}. La diferencia ahora es que usamos estas funciones de frontera para clasificar los datos generados en el Subapartado a). Es decir, \emph{no estamos conservando el etiquetado original}, como sí se hacía en \ref{section:apartado_obligatorio}. También modificamos un 10\% de las etiquetas positivas y negativas aleatoriamente. Además, mostramos las regiones de clasificado positivo y negativo de las funciones empleadas.
+
+Con las funciones de frontera $f_i(x, y)$, realizamos el etiquetado de forma análoga que con la recta, etiquetando con el valor $sign(f_i(x,y))$.
+
+De nuevo, usamos la función \lstinline{contourf} para mostrar las regiones de clasificado que generan estas nuevas funciones dadas.
+
+Mostramos las gráficas obtenidas:
+
+% TODO -- esta bien mostrar estas graficas aqui?
+\begin{figure}[H]
+    \includegraphics[width=0.60 \textwidth]{puntos_clasificados_experimento_f0.png}
+    \includegraphics[width=0.60 \textwidth]{puntos_clasificados_experimento_f1.png}
+
+    \includegraphics[width=0.60 \textwidth]{puntos_clasificados_experimento_f2.png}
+    \includegraphics[width=0.60 \textwidth]{puntos_clasificados_experimento_f3.png}
 
     \caption{Etiquetado ruidoso con las cuatro funciones dadas}
 \end{figure}
@@ -179,6 +203,8 @@ Otro punto a tener en cuenta es el problema que estamos considerando. No tiene s
 
 Respecto al proceso de modificación de etiquetas, las condiciones en la que hemos realizado este proceso también complica algo las cosas. Hemos modificado, aleatoriamente, un 10\% de las etiquetas positivas y otro 10\% de las etiquetas negativas. En este proceso da bastante igual la forma que tome $f$. En el sentido en el que, podemos pensar que la recta es muy robusta frente al ruido, o más robusta que una elipse. Pero a la hora de ejecutar el cambio aleatorio, esto no se tiene en cuenta.
 
+Esto se refleja en que obtenemos constantemente un error del 9\%. Que no sea un 10\% puede ser por la cantidad de etiquetas negativas y positivas. Al no ser numeros que al multiplicarlos por $0.1$ den un entero, se puede redondear por la baja, obteniendo así este error porcentual algo más bajo que el 10\%.
+
 Sin embargo, si que hemos detectado una característica en la que la forma de $f$ influye en el proceso. Esto se ve claro con $f_3$. Al tener una región mucho más pequeña que la contraria (en este caso, región de etiquetado negativo mucho más pequeña que la región de etiqetado positivo), es muy probable que no hayamos clasificado ningún punto como negativo, y por tanto realizamos modificaciones del tipo $negativo \rightarrow positivo$, solo modificaciones del tipo $positivo \rightarrow negativo$. Aún así, esto no es demasiado relevante
 
 Así queda justificado que el proceso de introducción de ruido no es muy informativo. Un proceso de introducción de ruido mucho más interesante podría haber sido seleccionar aleatoriamente un porcentaje de las etiquetas, tanto positivas como negativas, y en vez de cambiar arbitrariamente su etiqueta, modificar en un cierto rango acotado su posición, y ver si en esa nueva posición se etiquetaría con el otro valor.
@@ -189,6 +215,8 @@ Otra forma de medir esta \emph{robustez} sería calcular la longitud de las fron
 
 Resumiendo, consideramos insuficiente la información dada para comparar las funciones de clasificación. Por tanto, realizamos nuevas consideraciones para tratar de realizar un mejor análisis, y proponemos una forma sintética de introducir ruido que pensamos que puede ser más adecuada a la hora de analizar la robustez de los clasificadores frente al ruido.
 
+
+% TODO -- estoy etiquetando con funciones mas complejas pero sigo teniendo el umbral del 10% de error. Comentar que esto sigue estando mal porque la introducción del ruido es ad-hoc. Sería mas interesante comprobar el hecho de introducir inicialmente el ruido
 
 
 \pagebreak
