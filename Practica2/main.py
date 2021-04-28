@@ -606,6 +606,15 @@ def get_perceptron(weights):
     return lambda x: np.sign(np.dot(weights.T, x))
 
 def percentage_error(dataset, labels, weights):
+    """
+    Calcula el error porcentual de un perceptron
+
+    Parameters:
+    ===========
+    dataset: conjunto de datos
+    labels: etiquetado real de los datos
+    weights: pesos que definen el perceptron del cual queremos calcular el error
+    """
     # Tomamos el perceptron representado por los pesos dados
     perceptron = get_perceptron(weights)
 
@@ -615,6 +624,34 @@ def percentage_error(dataset, labels, weights):
     # Iteramos los puntos junto a sus etiquetas
     for point, label in zip(dataset, labels):
         if perceptron(point) != label:
+            misclassified_count += 1
+
+    # Devolvemos el porcentaje (en tantos por uno)
+    return misclassified_count / len(dataset)
+
+def percentage_error_function(dataset, labels, classifier):
+    """
+    Devuelve el porcentaje de puntos mal clasificados usando un clasificador generico (tenemos otras
+    funciones para calcular porcentajes de clasificadores concretos como PLA o LGR)
+
+    Parameters:
+    ===========
+    dataset: conjunto de datos
+    labels: etiquetas verdaderas de los datos
+    classifier: funcion de clasificado. Debe admitir como entrada un punto del dataset y devolver
+                un valor que tenga sentido respecto a los labels que estamos pasando como paramtro
+
+    Returns:
+    ========
+    El porcentaje de puntos mal clasificados, EN TANTOS POR UNO
+    """
+
+    # Cantidad de puntos mal etiquetados
+    misclassified_count = 0
+
+    # Iteramos los puntos junto a sus etiquetas
+    for point, label in zip(dataset, labels):
+        if classifier(point) != label:
             misclassified_count += 1
 
     # Devolvemos el porcentaje (en tantos por uno)
@@ -1263,11 +1300,42 @@ def ejercicio1_apartado2():
         changed_labels,
         target_names=["Signo Negativo", "Signo positivo"],
         feature_names=["Eje X", "Eje Y"],
-        title="Datos etiquetados con ruido y recta de clasificacion original",
+        title=f"Datos etiquetados con ruido y recta de clasificacion original",
         labeling_function=labeling_function
     )
 
+
+
     print("Subapartado c)")
+    # Generamos las funciones de etiquetado
+    f1 = lambda x,y: (x - 10.0)*(x-10.0) + (y-20)*(y-20) - 400
+    f2 = lambda x,y: 0.5 * (x + 10.0)*(x+10.0) + (y-20)*(y-20) - 400
+    f3 = lambda x,y: 0.5 * (x - 10.0)*(x-10.0) - (y+20)*(y+20) - 400
+    f4 = lambda x,y: y - 20.0 * x*x - 5.0*x + 3.0
+    labeling_functions = [f1, f2, f3, f4]
+
+    # Usando estas funciones de etiquetado, mostramos las regiones de clasificacion y los puntos,
+    # que LLEVAN EL ETIQUETADO ORIGINAL a partir de la recta aleatoria y la introduccion de ruido
+    # sintetico
+    for index, labeling_function in enumerate(labeling_functions):
+
+        # Mostramos el etiquetado original del dataset junto con las regiones de clasificacion
+        # de las nuevas funciones dadas. En el titulo de la grafica mostramos el error porcentual
+        # cometido
+        print(f"Mostrando el etiquetado con ruido de la funcion {index+1}-esima")
+        percentage_error = 100 * percentage_error_function(dataset, changed_labels, lambda point: np.sign(labeling_function(point[0], point[1])))
+        scatter_plot_with_classes_and_labeling_region(
+            data=dataset,
+            classes=changed_labels,
+            target_names=["Signo Negativo", "Sigo positivo"],
+            feature_names=["Eje X", "Eje Y"],
+            title=f"Puntos etiquetados con ruido por la funcion f{index} -- {percentage_error}% mal clasificado",
+            labeling_function=labeling_function
+        )
+
+        # TODO -- ademas mostrar el error porcentual cometido
+
+    print("Subapartado c) -- Experimento alternativo")
     # Generamos las funciones de etiquetado
     f1 = lambda x,y: (x - 10.0)*(x-10.0) + (y-20)*(y-20) - 400
     f2 = lambda x,y: 0.5 * (x + 10.0)*(x+10.0) + (y-20)*(y-20) - 400
@@ -1288,13 +1356,15 @@ def ejercicio1_apartado2():
         noisy_labels = change_labels(deterministic_labels, 0.1)
 
         # Mostramos la grafica de etiquetado de las funciones junto a la funcion clasificadora
+        # Ademas, mostramos el porcentaje de puntos mal clasificados
         print(f"Mostrando el etiquetado con ruido de la funcion {index+1}-esima")
+        percentage_error = 100 * percentage_error_function(dataset, noisy_labels, lambda point: np.sign(labeling_function(point[0], point[1])))
         scatter_plot_with_classes_and_labeling_region(
             data=dataset,
             classes=noisy_labels,
             target_names=["Signo Negativo", "Sigo positivo"],
             feature_names=["Eje X", "Eje Y"],
-            title=f"Puntos etiquetados con ruido por la funcion f{index}",
+            title=f"Puntos etiquetados con ruido por la funcion f{index} -- {percentage_error}% mal clasificado",
             labeling_function=labeling_function
         )
 
@@ -1902,7 +1972,7 @@ if __name__ == "__main__":
     ejercicio1()
 
     # Lanzamos el segundo ejercicio
-    ejercicio2()
+    #ejercicio2()
 
     # Lanzamos el ejercicio extra
-    ejercicio_bonus()
+    #ejercicio_bonus()
