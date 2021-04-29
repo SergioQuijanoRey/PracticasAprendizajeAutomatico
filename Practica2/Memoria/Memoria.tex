@@ -353,6 +353,136 @@ Además, queda claro que 5000 iteraciones son más que suficientes, pues nunca v
 \pagebreak
 \subsection{Apartado b) - Regresión logística}
 
+Empezamos esta sección explicando cómo vamos a generar nuestra muestra de datos. Tenemos una población hipotética $\chi = [0, 2] \times [0, 2]$ y la probabilida de tomar un $x \in \chi$ es uniforme. Por tanto, para generar tanto las muestras de entrenamiento como de test, lo que hacemos es invocar a una función que nos da un punto aletorio con probabilidad uniforme en ese intervalo bidimensional.
+
+La función \lstinline{generate_dataset} toma un número dado de puntos aleatorios en $\chi$. Usaremos esta función tanto para las muestras de entrenamiento como para las de test.
+
+Para generar la recta aleatoria de etiquetado, tomamos dos puntos aleatorios (con \lstinline{generate_dataset(2)}) y calculamos la recta que pasa por esos dos puntos con \lstinline{calculate_straight_line_from_two_points}.
+
+En regresión logística, usamos la siguiente función de etiquetado:
+
+$$
+f_w(x):= \left\{ \begin{array}{lcc}
+        1 &  si & \sigma(signal) \geq 0.5 \\
+    \\ -1 &  si & \sigma(signal) < 0.5
+    \end{array}
+\right.
+$$
+
+donde $\sigma(x) := \frac{1}{1 + e^{-x}}$ y $signal$ es la señal lineal dada por $signal := w^T x$. Es claro que lo que aprendemos de este modelo son los valores de los pesos: $w$.
+
+\subsubsection{Regresión logística con Gradiente Descendente Estocástico}
+
+La primera consideración para implementar regresión logística junto a gradiente descendente estocástico es la necesidad de añadir una columna de unos a la matriz de datos. Esta columna en la primera práctica ya venía dada. Pero en este caso, necesitamos añadirla manualmente. Esta columna representa el término independiente de la combinación lineal que subyace al modelo lineal. Podríamos hacerlo sin esta columna, pero en ese caso no podemos fijar un \emph{offset} a los datos. Para añadir la columna de unos disponemos de la función \lstinline{add_colum_of_ones}.
+
+El algortimo de gradiente descendente estocástico ya fue explicado en la anterior práctica. Todas las consideraciones sobre la implementación de este algoritmo ya fueron expuestas en la anterior memoria (por ejemplo, la generación de \emph{minibatches} mezclados aleatoriamente de forma eficiente y cómoda). Así que para este problema, tenemos que realizar las siguientes modificaciones:
+
+\begin{itemize}
+    \item El error que consideramos viene dado por $E_{in} = \frac{1}{N} \sum ln(1 + e^{-y_i w^T x_i})$. Este es el error que vamos a mostrar en las gráficas de convergencia.
+    \item Por tanto, para el gradiente usamos la expresión $\nabla E_{in} = -\frac{1}{N} \sum \frac{y_n x_n}{1+e^{y_n w^T x_n}}$
+    \item La solución inicial será un vector de ceros
+    \item La condición de parada será $||w(t+1) - w(t)|| \leq 0.01$
+    \item Learning rate $\eta = 0.01$
+\end{itemize}
+
+Al tener una condición distinta de parada, dejamos el número máximo de iteraciones a \lstinline{None}, para iterar hasta que tengamos la distancia entre dos soluciones consecutivas por debajo de la cota dada.
+
+Otro aspecto crítico es establecer el \emph{batch size}. El guión nos indica que debemos usar un \lstinline{batch size = 1}, pero realizamos una corta exploración sobre distintos valores. Con un valor de 1, necesitamos muchas iteraciones pero llegamos a un muy buen error, aproximadamente en $[0.005 - 0.01]$ según la semilla aleatoria. Para \lstinline{batch_size = 4}, requerimos entre 1500 - 5000 iteraciones, pero el error pasa a estar en $[0.01 - 0.05]$. A partir de \lstinline{batch_size = 8}, tenemos muy pocas iteraciones (por debajo de 1000), pero con un error por encima de $0.2$. Por tanto, hemos comprobado de forma empírica y rápida que el valor adecuado para \lstinline{batch_size} es 1. No tenemos mucha intuición por lo que esto es así. Una hipótesis es que, al estar en un problema de clasificación, lo adecuado es visitar punto a punto e ir ajustando localmente con la información de ese punto. Este es un esquema parecido a \emph{PLA}, donde visitamos punto a punto y ajustamos si hemos fallado en ese punto. Además, al estar considerando solo la condición de distancia entre soluciones consecutivas, con $batch\_size > 1$ puede ser que acabemos compensando la dirección del error entre los múltiples puntos (por ejemplo, errores con la misma dirección pero distinto sentido), provocando una parada prematura. Intuimos por tanto que estableciendo otras condiciones de parada (como que el error esté por debajo de cierta cota) puede funcionar mejor si queremos establecer un $batch\_size  >1$. Esta última idea se refuerza más adelante, cuando vemos que la muestra de datos es linealmente separable, por lo que deberíamos ser capaces de alcanzar error 0.0\% en la muestra, iterando el suficiente número de veces.
+
+\subsubsection{Conjunto de datos con el que trabajamos} \label{section:conjunto_datos_lgr}
+
+Generamos el conjunto de datos, de la forma que ya hemos comentado:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.5\textwidth]{muestra_datos_lgr}
+    \caption{Muestra de datos etiquetada por la recta aleatoria}
+\end{figure}
+
+Claramente el proceso de etiquetado hace que la muestra de datos linealmente separable. Por tanto, es de esperar que regresión logística con gradiente descendente estocástico alcance un $E_{in} = 0.0\%$.
+
+\subsubsection{Entrenamiento y resultados}
+
+Al lanzar \emph{LGR} con \emph{SGD} obtenemos la siguiente salida por pantalla:
+
+\begin{lstlisting}[caption={Resultados del entrenamiento}, captionpos=b]
+
+- Pesos obtenidos: [-2.57253883 -4.89587868  7.85922036]
+- Iteraciones consumidas: 34600
+- Error final alcanzado (error LGR): 1.1013766997935295
+- Error final alcanzado (porcentaje mal clasificado): 0.0%
+
+\end{lstlisting}
+
+Los resultados obtenidos eran los que esperábamos. El error \emph{cross-entropy} no se anula, mientras que el porcentaje de puntos mal clasificados es cero. Mostramos la gráfica de convergencia:
+
+\begin{figure}[H]
+    \begin{subfigure}{0.4\textwidth}
+        \includegraphics[scale=0.3]{grafica_convergencia_lgr}
+        \caption{Gráfica de convergencia}
+        \label{figure:sin_ampliar}
+    \end{subfigure} \hspace{0.2\textwidth}
+    \begin{subfigure}{0.4\textwidth}
+        \includegraphics[scale=0.3]{grafica_convergencia_lgr_zoom}
+        \caption{Gráfica de convergencia ampliada}
+    \end{subfigure}
+    \caption{Gráficas de convergencia para LGR-SGD}
+\end{figure}
+
+Vemos que el comportamiento del gradiente descendiente es adecuado. Pareciera que en \ref{figure:sin_ampliar} tenemos convergencia monótona. Por eso mostramos un \emph{"zoom"} de la gráfica para ver que no es así, como es lo normal cuando usamos minibatches para el gradiente descendente.
+
+Podemos tambier mostrar la recta de frontera junto a los datos con su etiquetado original:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.35]{frontera_resultado_lgr}
+    \caption{Frontera solución junto al etiquetado original}
+\end{figure}
+
+Algunos puntos están más cercanos a la frontera que con la recta de etiquetado original. Con esto, podemos preveer que los puntos mal clasificados por el modelo estarán en esa zona fronteriza.
+
+\subsubsection{Un ejemplo concreto de $E_{test}$}
+
+Antes de lanzar los 100 experimentos, generamos un \emph{dataset} de test y mostramos cómo lo estamos haciendo fuera de la muestra. El tamaño de este \emph{test\_dataset} será de $10^4$ puntos. Este tamaño será también el usado en las 100 iteraciones del experimento.
+
+Por pantalla mostramos que estamos fallando el $3.08\%$ de los datos del test. Es un valor razonable fuera de la muestra, por lo que podemos suponer que estamos generalizando bastante bien. Mostramos los puntos que han sido mal clasificados:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.35]{lgr_puntos_mal_clasificados_test}
+    \caption{Puntos mal clasificados en el conjunto de test}
+\end{figure}
+
+Y como ya habíamos comentado, los puntos mal clasificados se encuentran en la región fronteriza
+
+\subsubsection{Experimento}
+
+Lanzamos 100 veces el experimento y mostramos los resultados. En cada iteración del experimento, generamos una nueva muestra de datos (como en \ref{section:conjunto_datos_lgr}). Con una recta aleatoria, etiquetamos los datos. Lanzamos \emph{LGR-SGD} para este etiquetado. Generamos del mismo modo un \emph{test\_dataset} de $10^4$ puntos, etiquetados con la recta aleatoria. Y con esto, evaluamos el valor de $E_{test}$.
+
+Este proceso es algo lento porque ya hemos visto que se necesitan muchas iteraciones de \emph{SGD} con \lstinline{batch_size = 1}.
+
+El resultado que mostramos por pantalla es:
+
+\begin{lstlisting}[caption={Resultado de las 100 iteraciones del experimento}, captionpos=b]
+--> Media de iteraciones sobre minibatches consumidas: 40640.0
+--> Media de iteraciones sobre epochs consumidas: 406.4
+--> Media del porcentaje de puntos mal clasificados fuera de
+    la muestra: 2.777%
+--> Desviacion tipica del error fuera de la muestra: 0.01779
+\end{lstlisting}
+
+Estos resultados reafirman lo que hemos ido comentando. Notar que no estamos mostrando el error dentro de la muestra, pues al generar \emph{datasets} linealmente separables, potencialmente estamos alcanzando un $E_{in} = 0.0\%$. Este $E_{in} = 0.0\%$ debería hacernos pensar si estamos cometiendo \emph{overfitting} sobre la muestra de entrenamiento. Sin embargo la media de error fuera de la muestra es de $2.777\%$, por lo que estamos obteniendo una buena generalización.
+
+Por otro lado, la desviación típica del error fuera de la muestra muestra una gran estabilidad de la capacidad de generalización fuera de la muestra, pues es un valor para la desviación muy bajo.
+
+Es notable la gran cantidad de épocas que necesita \emph{SGD} para converger. Sin embargo, los buenos resultados justifican estos tiempos de entrenamiento.
+
+
+
+
+
+
+
 \pagebreak
 
 
