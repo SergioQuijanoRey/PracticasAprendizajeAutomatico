@@ -1396,7 +1396,7 @@ def ejercicio2():
     print("==> Lanzando ejercicio 2")
 
     # Lanzamos el primer apartado
-    ejercicio2_apartado1()
+    #ejercicio2_apartado1()
 
     # Lanzamos el segundo apartado
     ejercicio2_apartado2()
@@ -1691,14 +1691,7 @@ def ejercicio2_apartado2():
     init_solution = np.zeros_like(dataset[0])
     learning_rate = 0.01
     target_epoch_delta = 0.01
-    batch_size = 1  # TODO -- Explorar distintos valores para este dato
-                    # Tener en cuenta que este estudio es sin poner un maximo de iteraciones, que
-                    # tambien podria ser explorado
-                    # Con valor 1: Muchas iteraciones pero muy buen error approx 0.005 - 0.01
-                    # Con valor 4: entre 1400 - 5000 iteraciones, error approx 0.01 - 0.05
-                    # Con valor 8: buenas iteraciones (apporx 1500) y error apporx 0.1
-                    # Con valor 16: muy pocas iteraciones, error alto
-                    # Con valor 32: muy pocas iteraciones, error demasiado alto
+    batch_size = 1
 
     print("Lanzando Stochastic Gradient Descent para regresion logistica...")
     solution, _, _, error_at_epoch, error_at_minibatch_iteration = stochastic_gradient_descent(
@@ -1729,13 +1722,22 @@ def ejercicio2_apartado2():
     print("Mostrando el grafico de evolucion del error")
     plot_error_evolution(error_at_minibatch_iteration, title="Evolucion del error", x_label="Minibatch Iteration")
 
+    # Mostramos la frontera de clasificación
+    print("Mostrando la frontera de clasificacion obtenida")
+    scatter_plot_with_classes_and_labeling_function(
+        dataset,
+        labels,
+        ["Datos positivos", "Datos negativos"],
+        ["Eje X", "Eje Y"],
+        "Etiquetado de los datos con una recta aleatoria",
+        get_straight_line_from_implicit(solution),
+        ignore_first_column = True
+    )
+
+
     # Mostramos la grafica de puntos mal clasificados
     print("Mostramos la grafica de puntos mal clasificados")
     plot_misclassified_classification_predictions(dataset, labels, get_logistic_classifier(solution), ["Eje X", "Eje Y"], ignore_first_column = True)
-
-    # TODO -- a partir de aqui no estoy muy seguro de que este bien. Creo que hay errores con
-    # el tema de tener la columna extra para expresar el termino independiente de la combinacion
-    # lineal
 
     # Calculamos el error fuera de la muestra generando otra muestra aleatoria de un alto numero de datos
     # etiquetandolos con la recta dada (lo que seria el etiquetado deterministico verdadero) y
@@ -1988,7 +1990,7 @@ def ejercicio_bonus():
 if __name__ == "__main__":
 
     # Lanzamos el primer ejercicio
-    ejercicio1()
+    #ejercicio1()
 
     # Lanzamos el segundo ejercicio
     ejercicio2()
