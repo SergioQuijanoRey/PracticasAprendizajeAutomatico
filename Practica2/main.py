@@ -981,7 +981,7 @@ def perceptron_learning_algorithm_pocket(dataset, labels, max_iterations, init_s
     dataset: conjunto de puntos que vamos a clasificar. Cada punto tiene sus coordenadas en una fila
              de la matriz
     labels: vector de etiquetas
-    max_iterations: numero maximo de iteraciones
+    max_iterations: numero maximo de iteraciones sobre EPOCHS
     init_solution: vector de pesos iniciales que representan la solucion inicial
 
     Returns:
@@ -1037,8 +1037,35 @@ def perceptron_learning_algorithm_pocket(dataset, labels, max_iterations, init_s
         # Aumentamos la iteracion, pues hemos hecho una pasada completa sobre los datos
         current_iteration = current_iteration + 1
 
+        if current_iteration % 10 == 0:
+            print(f"TODO -- iteracion {current_iteration}")
+
     # Devolvemos los resultados sin datos adicionales
     return best_solution, current_iteration, error_at_iteration
+
+def pseudo_inverse(data_matrix, label_vector):
+    """
+    Calcula los pesos de la regresion lineal a partir del algoritmo de la pseudo inversa
+
+    Se puede hacer con numpy.pinv pero lo he dejado asi porque no me da fallos
+
+    Parameters:
+    ===========
+    data_matrix: matriz numpy con los datos de entrada. X en notacion de los apuntes
+    label_vector: array numpy con los datos de salida. Y en notacion de los apuntes
+
+    Returns:
+    ========
+    weights: array numpy con los pesos del hiperplano que mejor se ajusta al modelo
+    """
+
+    # Para simplificar la formula que devolvemos (que el return sea mas compacto)
+    # En los parametros dejo los nombres como estan para que sea mas explicito
+    # el significado que tienen
+    X = data_matrix
+    Y = label_vector
+
+    return np.matmul(np.linalg.inv(np.matmul(X.T, X)), np.matmul(X.T, Y))
 
 
 # Ejercicio 1
@@ -1396,7 +1423,7 @@ def ejercicio2():
     print("==> Lanzando ejercicio 2")
 
     # Lanzamos el primer apartado
-    #ejercicio2_apartado1()
+    ejercicio2_apartado1()
 
     # Lanzamos el segundo apartado
     ejercicio2_apartado2()
@@ -1936,13 +1963,21 @@ def ejercicio_bonus():
         ignore_first_column=True
     )
 
-    # Lanzamos PLA-Pocket para separar los datos por una funcion lineal
+    # Lanzamos el algoritmo de la pseudo inversa como punto inicial para PLA-POCKET
+    print("--> Lanzando el algoritmo de la pseudoinversa")
+    first_solution = pseudo_inverse(learning_dataset, learning_labels)
+
+
+    # Mostramos los resultados de esta primera etapa
+    print(f"\t- Solucion inicial: {first_solution}")
+    print(f"\t- Error conseguido en la muestra: {percentage_error(learning_dataset, learning_labels, first_solution)}")
+    print(f"\t- Error conseguido fuera de la muestra: {percentage_error(test_dataset, test_labels, first_solution)}")
+    wait_for_user_input()
+
+    # Lanzamos PLA-Pocket para mejorar la solucion obtenida
     print("--> Lanzando algoritmo PLA-Pocket")
-    max_iterations = 1e4 # TODO -- comentar en la memoria que no se consigue mejora poniendo 1e5 en vez de 1e4
-                         # TODO -- probar con 1e3 a ver si es suficiente para ver la convergencia
-                         # TODO -- con 1e3 no es suficiente
-    init_solution = np.zeros_like(learning_dataset[0])
-    solution, iterations_consumed, error_at_iteration = perceptron_learning_algorithm_pocket(learning_dataset, learning_labels, max_iterations, init_solution)
+    max_iterations = 50
+    solution, iterations_consumed, error_at_iteration = perceptron_learning_algorithm_pocket(learning_dataset, learning_labels, max_iterations, first_solution)
     print(f"\t- Solucion: {solution}")
     print(f"\t- Iteraciones consumidas: {iterations_consumed}")
     print(f"\t- Error conseguido en la muestra: {error_at_iteration[-1]}")
@@ -1990,10 +2025,12 @@ def ejercicio_bonus():
 if __name__ == "__main__":
 
     # Lanzamos el primer ejercicio
+    # TODO -- descomentar esto
     #ejercicio1()
 
     # Lanzamos el segundo ejercicio
-    ejercicio2()
+    # TODO -- descomentar esto
+    #ejercicio2()
 
     # Lanzamos el ejercicio extra
-    #ejercicio_bonus()
+    ejercicio_bonus()
