@@ -80,6 +80,13 @@ def add_colum_of_ones(matrix):
 label_pos = 1
 label_neg = -1
 
+# Variables globales
+#===================================================================================================
+global_dataset = None
+global_labels = None
+global_lin_coeffs = None
+global_noisy_labels = None
+
 # Funciones dadas por los profesores
 #===================================================================================================
 
@@ -1270,6 +1277,16 @@ def ejercicio1_apartado2():
         upper
     )
 
+    # Guardamos los datos en una variable global para poder usarlos en el siguiente ejercicio
+    # El keyword global se necesita para que el cambio se realice
+    # De otro formo, se crea una variable local que hace sombra a la variable globaL
+    global global_dataset
+    global global_labels
+    global global_lin_coeffs
+    global_dataset = dataset
+    global_labels = labels
+    global_lin_coeffs = line_coeffs
+
     # Mostramos el etiquetado de los datos junto a la recta que se ha usado para etiquetar
     print("Mostramos los datos generados y el etiquetado realizado a partir de una linea aleatoria")
 
@@ -1291,6 +1308,10 @@ def ejercicio1_apartado2():
     # Modificamos el 10% de las etiquetas positivas y el 10% de las etiquetas negativas, escogiendo
     # los elementos a cambiar de forma aleatoria (sin seguir ningun orden sobre las etiquetas a modificar)
     changed_labels = change_labels(labels, 0.1)
+
+    # Guardamos las variables modificadas para el siguiente ejercicio
+    global global_noisy_labels
+    global_noisy_labels = changed_labels
 
     # Mostramos de nuevo la grafica, con etiquetas sonoras y la funcion que fue usada para el
     # etiquetado deterministico
@@ -1432,27 +1453,14 @@ def ejercicio2_apartado1():
     print("--> Lanzando apartado 1")
     print("--> Subapartado 1")
 
-    # TODO -- tomar los mismos datos que en el ejercicio 1 Apartado 2a
-    # Parametros de la tarea pedida
-    number_of_points = 100      # Numero de datos
-    dimensions = 2              # Dimensiones de cada dato
-    lower = -50                 # Extremo inferior del intervalo en cada coordenada
-    upper = 50                  # Extremo superior del intervalo en cada coordenada
-    max_iterations = 1e5        # Numero maximo de iteraciones (no se especifica en el guion)
+    # Tomamos los datos generados en el primer ejercicio, apartado 2 subapartado a
+    dataset = global_dataset
+    labels = global_labels
+    lin_coeffs = global_lin_coeffs
 
-    # Generamos los dos conjuntos de datos
-    dataset = simula_unif(
-        number_of_points,
-        dimensions,
-        rango=[lower, upper]
-    )
-
-    # Añadimos una columna de unos para que esto represente el termino independiente en la combinacion
-    # lineal
+    # Añadimos la columna de unos al dataset, para representar el termino independiente de la
+    # combinacion lineal
     dataset = add_colum_of_ones(dataset)
-
-    # Generamos las etiquetas para estos datos
-    labels, lin_coeffs = generate_labels_with_random_straight_line(dataset, lower, upper, ignore_first_column = True)
 
     # Mostramos el dataset con el que trabajamos y el etiquetado generado
     print("Dataset y etiquetado con el que trabajamos en este apartado:")
@@ -1466,6 +1474,11 @@ def ejercicio2_apartado1():
         ignore_first_column = True
     )
 
+    # Parametros del algoritmo
+    max_iterations = 5000   # No se especifica, pero lo coloco como medida de seguridad
+                            # Cuando los datos son linealmente separables, es extremadamente
+                            # improbable alcanzar este numero de iteraciones sobre EPOCHS
+
     # Lanzamos las diez repeticiones con vector inicial cero y mostramos los resultados
     print("Lanzamos 10 repeticiones del experimento, para vector inicial cero")
     final_errors, consumed_iterations = PLA_experiment(
@@ -1477,6 +1490,7 @@ def ejercicio2_apartado1():
     )
 
     # Mostramos los resultados
+    # TODO -- mostrar las desviaciones tipicas?
     print("Resultado de las 10 iteraciones -- Vector Inicial Cero:")
     print(f"\t-> Errores finales(tanto por uno): {final_errors}")
     print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
@@ -1555,11 +1569,10 @@ def ejercicio2_apartado1():
     )
 
     print("--> Subapartado 2")
-    print("Repetimos el experimento usando etiquetas con ruido y vectores iniciales zero y aleatorio")
+    print("Repetimos el experimento usando etiquetas con ruido y vectores iniciales zero y aleatorio del ejercicio 1.2.b)")
     # Repetimos el experimento con los datos del ejercicio 1 Apartado 2 Subapartado b
-    # Para ello, modifcamos aleatoriamente el 10% de las etiquetas positivas y el 10% de las
-    # etiquetas negativas
-    noisy_labels = change_labels(labels, 0.1)
+    # Tomamos los datos guardados en una variable global
+    noisy_labels = global_noisy_labels
 
     # Lanzamos las diez repeticiones con vector inicial cero y mostramos los resultados
     final_errors, consumed_iterations = PLA_experiment(
@@ -1972,7 +1985,7 @@ if __name__ == "__main__":
     ejercicio1()
 
     # Lanzamos el segundo ejercicio
-    #ejercicio2()
+    ejercicio2()
 
     # Lanzamos el ejercicio extra
     #ejercicio_bonus()
