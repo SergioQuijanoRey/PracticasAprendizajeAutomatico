@@ -1396,8 +1396,7 @@ def ejercicio2():
     print("==> Lanzando ejercicio 2")
 
     # Lanzamos el primer apartado
-    # TODO -- descomentar
-    #ejercicio2_apartado1()
+    ejercicio2_apartado1()
 
     # Lanzamos el segundo apartado
     ejercicio2_apartado2()
@@ -1530,7 +1529,7 @@ def ejercicio2_apartado1():
 
     # Mostramos la grafica de progreso del error
     print("Mostrando grafica de la evolucion del error")
-    plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
+    plot_error_evolution(error_at_iteration, "Evolución del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
 
     # Mostramos como clasifica nuestra solucion
     print("Mostrando el clasificador obtenido")
@@ -1555,7 +1554,7 @@ def ejercicio2_apartado1():
 
     # Mostramos la grafica de progreso del error
     print("Mostrando grafica de la evolucion del error")
-    plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
+    plot_error_evolution(error_at_iteration, "Evolución del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
 
     # Mostramos como clasifica nuestra solucion
     print("Mostrando el clasificador obtenido")
@@ -1621,7 +1620,7 @@ def ejercicio2_apartado1():
 
     # Mostramos la grafica de progreso del error
     print("Mostrando grafica de la evolucion del error")
-    plot_error_evolution(error_at_iteration, "Iteracion del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
+    plot_error_evolution(error_at_iteration, "Evolución del error por iteracion de PLA", "Iteraciones", "% mal clasificados")
 
     # Mostramos como clasifica nuestra solucion
     print("Mostrando el clasificador obtenido")
@@ -1989,8 +1988,7 @@ def ejercicio_bonus():
 if __name__ == "__main__":
 
     # Lanzamos el primer ejercicio
-    # TODO -- descomentar
-    #ejercicio1()
+    ejercicio1()
 
     # Lanzamos el segundo ejercicio
     ejercicio2()
