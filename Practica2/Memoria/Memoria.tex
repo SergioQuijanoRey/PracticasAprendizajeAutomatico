@@ -348,6 +348,7 @@ Al igual que hacíamos en el subapartado anterior, mostramos la gráfica de conv
 
 Se ve claramente el comportamiento errático de \emph{PLA} que conocíamos de teoría. Por tanto, no tiene sentido que mostremos otro gráfico viendo el progreso usando vector inicial aleatorio. Este gráfico es útil para ver que, aunque con el experimento digamos que usando vector inicial cero tenemos más estabilidad que usando vector inicial aleatorio, la estabilidad del algoritmo en general es muy mala. Además, motiva el uso de la mejora \emph{PLA-Pocket}. Usando esta mejora del algoritmo, obtendríamos una gráfica de convergencia monótonamente decreciente.
 
+Además, queda claro que 5000 iteraciones son más que suficientes, pues nunca vamos a lograr $E_{in} = 0$, y además, al no decrecer el error monótonamente tampoco parece beneficioso consumir más iteraciones.
 
 \pagebreak
 \subsection{Apartado b) - Regresión logística}
