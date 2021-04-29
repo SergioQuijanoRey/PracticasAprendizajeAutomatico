@@ -143,7 +143,7 @@ En este apartado, debemos considerar las siguientes funciones que definen una fr
 \begin{itemize}
     \item $f_0(x, y):= (x - 10)^2 + (y - 20)^2 - 400$
     \item $f_1(x, y):= \frac{1}{2} (x + 10)^2 + (y - 20)^2 - 400$
-    \item $f_2(x, y):= \frac{1}{2} (x - 10)^2 - (y + 20)^2 - 400$
+    \\item $f_2(x, y):= \frac{1}{2} (x - 10)^2 - (y + 20)^2 - 400$
     \item $f_3(x, y):= y - 20x^2 -5x +3$
 \end{itemize}
 
@@ -165,7 +165,17 @@ Una vez hechos estos comentarios, mostramos las gráficas obtenidas como se nos 
 
 % TODO -- Mirar la discusión que hago en el experimento, porque unas cuantas cosas que digo ahi las puedo decir aqui tambien
 
-\pagebreak
+Para comenzar, todas las funciones que estamos mostrando tienen un error porcentual mucho más alto que la recta que hemos usado para clasificar, estando los cuatro errores en un rango de $[31.0\%, 73.0\%]$. Por tanto, podemos ver que ciertas funciones tienen un error porcentual mucho más bajo que otras. En la interpretación alternativa realizamos una discusión sobre la \emph{Dimension Vapnik-Chervonenkis}, concluyendo que tienen mismo valor de $d_{VC}$, por lo que estas diferencias de error no pueden ser explicadas por una diferencia de complejidad de las funciones.
+
+Como se ha comentado con el profesor de prácticas, a partir de este ejercicio se busca concluir que funciones más complejas no implican que realicemos un mejor ajuste de los datos. Y aunque esto se puede concluir por otros métodos más acertados, llegar a esas concluisiones a partir de este escenario parece algo falaz.
+
+En primer lugar, no hemos realizado ningún tipo de proceso de aprendizaje. Los datos de la muestra han sido etiquetados por una recta que se ha generado aleatoriamente, mientras que las cuatro funciones de etiquetado $f_0, \ldots, f_3$, se han dado prefijadas. De hecho, a la hora de analizar la adecuación de las cuatro nuevas funciones, podemos considerar que la recta es prefijada y $f_0, \ldots f_3$ aleatorias, pues estas no tienen información alguna de cómo etiquetamos la muestra de datos.
+
+Una correcta discusión se podría hacer ajustando ciertos parámetros de las cuatro funciones al etiquetado generado a partir de la recta aleatoria y la introducción de ruido. O por simplicidad, se podrían haber la recta de clasificación y las cuatro funciones $f_0, \ldots, f_3$ ya ajustadas a este etiquetado, ahorrando el proceso de ajuste pero permitiendo una correcta discusión sobre las funciones de clasificación.
+
+Por tanto, consideramos el experimento muy pobre a la hora de concluir que no necesariamente una función más compleja se ajustará mejor a una muestra etiquetada dada.
+
+Un estudio de propiedades más abstractas sobre las funciones puede realizarse a la hora de discutir en mayor profundidad que se nos plantea. Esto lo hacemos en el siguiente apartado. Se podría hacer también en este apartado, pero a la hora de razonar sin fijarnos tanto en el mal etiquetado de $f_0, \ldots, f_3$, parece más adecuado realizar dicha discusión en el siguiente apartado. De nuevo, todo lo dicho en el siguiente apartado (discusión sobre $d_{VC}$, longitud de las fronteras del clasificador, características lineales o no lineales, \ldots) es aplicable (y por tanto, debe ser considerado) en la discusión de este experimento.
 
 \subsubsection{Subapartado c) - Interpretación alternativa} \label{section:apartado_extra}
 
@@ -188,18 +198,22 @@ Mostramos las gráficas obtenidas:
     \caption{Etiquetado ruidoso con las cuatro funciones dadas}
 \end{figure}
 
+Comenzamos valorando la complejidad aparente de las funciones. Toda esta discusión es desde un punto de vista intuitivo. Pero no estamos cuantificando estas nociones, pudiendo llegar a ser falaz. Por tanto, después de este análisis superficial, realizamos un análisis más profundo y cuantitativo.
+
 Es claro que la recta realiza una clasificación mucho más sencilla que estas nuevas funciones de clasificación, pues divide el espacio en dos regiones sencillas: la región por encima de la recta y la región por debajo de la recta. $f_0$ ya es más compleja pues estamos considerando la región fuera y dentro de un círculo, que no está centrado en el origen. $f_1$ es algo más compleja, pues ahora no consideramos un círculo, sino una elipse (añadimos un nuevo parámetro al modelo, el achatamiento del eje $x$ dado por el factor $\frac{1}{a^2}$). En $f_2$ estamos considerando regiones hiperbólicas, que viene determinada por el mismo número de parámetros que $f_1$, aunque la forma de las regiones cambie al cambiar la cónica cambiando el signo. Y en este caso, hay un predominio de región de etiquetado positivo frente a la región de etiquetado negativo. Y finalmente en $f_3$ consideramos una parábola, cuya región de etiquetado negativo tiene un área muy pequeña comparada a la región de etiquetado positivo.
 
-Bajo estas condiciones es algo complicado comentar si estas funciones más complejas son mejores clasificadores que la función lineal, pues esto dependerá de una serie de factores:
+Bajo estas condiciones es algo complicado comentar si estas funciones más complejas son mejores clasificadores que la función lineal, pues esto dependerá de una serie de factores.
 
-Para empezar estamos trabajando con 100 puntos o datos. Debemos emplear algún método para concer si la complejidad de nuestras funciones se adecúa a la cantidad de datos con los que estamos trabajando. Esta herramienta será la \textbf{dimensión de Vapnik-Chervonenkis}. Sabemos que en el caso de la recta, $d_{VC} = d + 1 = 3$, y por tanto, la regla práctica para generalizar bien $N \geq 10 d_{VC}$ se cumple. Para el caso del círculo y de la elipse, tenemos también que $d_{VC} = 3$. Esto no es difícil de probar, al tener una dimensión tan baja, con ejemplos \footnotemark. Por tanto, a nivel de generalización, con los 100 datos que tenemos es suficiente pues $100 \geq 3 * 10$. Para el caso de la hipérbola y de la parábola hemos comprobado que $d_{VC} = 3$ yendo ejemplo por ejemplo (puede estar mal hecho el cálculo). Por lo cual, todas las funciones tienen una cantidad suficiente de datos acorde a $d_{VC}$ como para que no haya problemas para generalizar (siempre siguiendo la regla práctica $N \geq d_{VC} * 10$).
+Pasamos a valorar la complejida de las funciones de una forma objetiva, cuantitativa, y teniendo en cuenta la muestra de datos con la que estamos trabajando.
+
+Para empezar, estamos trabajando con 100 puntos o datos. Debemos emplear algún método para concer si la complejidad de nuestras funciones se adecúa a la cantidad de datos con los que estamos trabajando. Esta herramienta será la \textbf{dimensión de Vapnik-Chervonenkis}. Sabemos que en el caso de la recta, $d_{VC} = d + 1 = 3$, y por tanto, la regla práctica para generalizar bien $N \geq 10 d_{VC}$ se cumple. Para el caso del círculo y de la elipse, tenemos también que $d_{VC} = 3$. Esto no es difícil de probar, al tener una dimensión tan baja, con ejemplos \footnotemark. Por tanto, a nivel de generalización, con los 100 datos que tenemos es suficiente pues $100 \geq 3 * 10$. Para el caso de la hipérbola y de la parábola hemos comprobado que $d_{VC} = 3$ yendo ejemplo por ejemplo (puede estar mal hecho el cálculo). Por lo cual, todas las funciones tienen una cantidad suficiente de datos acorde a $d_{VC}$ como para que no haya problemas para generalizar (siempre siguiendo la regla práctica $N \geq d_{VC} * 10$).
 \footnotetext{En \cite{PowerPoi66:online} se muestra de forma visual la prueba de esto con los conjuntos dados de datos. En \cite{machinel96:online} se realiza una prueba formal de este hecho.}
 
 Sería más adecuado realizar experimentos con un dataset de entrenamiento y otro de test para comprobar empíricamente que, efectivamente, con 100 datos no tenemos problemas de generalización.
 
 Notar que la función lineal sigue siendo más sencilla aunque $d_{VC}$ parezca indicar lo contrario. Esto se debe a que en el análisis \emph{VC}, nos situamos en el peor de los casos, es un análisis muy pesimista.
 
-Otro punto a tener en cuenta es el problema que estamos considerando. No tiene sentido plantearse el clasificado en abstracto y comparar lo bueno que son los clasificadores desde este punto de vista. Si las características del problema tienen un carácter lineal (al doble de ingresos, el doble de probabilidad de que nos acepten la solicitud de un crédito, por ejemplo), las funciones de clasificado no lineales no tienen demasiado sentido. Si por otro lado las características de los datos no son lineales, entonces puede tener más sentido usar clasificadores no lineales a pesar de que representen un modelo más complejo, pues serían más correctos desde la perspectiva del problema a resolver.
+Otro punto a tener en cuenta es el problema que estamos considerando. Sigue sin tener demasiado sentido plantearse el clasificado en abstracto y comparar lo bueno que son los clasificadores desde este punto de vista. Si las características del problema tienen un carácter lineal (al doble de ingresos, el doble de probabilidad de que nos acepten la solicitud de un crédito, por ejemplo), las funciones de clasificado no lineales no tienen demasiado sentido. Si por otro lado las características de los datos no son lineales, entonces puede tener más sentido usar clasificadores no lineales a pesar de que representen un modelo más complejo, pues serían más correctos desde la perspectiva del problema a resolver.
 
 Respecto al proceso de modificación de etiquetas, las condiciones en la que hemos realizado este proceso también complica algo las cosas. Hemos modificado, aleatoriamente, un 10\% de las etiquetas positivas y otro 10\% de las etiquetas negativas. En este proceso da bastante igual la forma que tome $f$. En el sentido en el que, podemos pensar que la recta es muy robusta frente al ruido, o más robusta que una elipse. Pero a la hora de ejecutar el cambio aleatorio, esto no se tiene en cuenta.
 
@@ -215,9 +229,9 @@ Otra forma de medir esta \emph{robustez} sería calcular la longitud de las fron
 
 Resumiendo, consideramos insuficiente la información dada para comparar las funciones de clasificación. Por tanto, realizamos nuevas consideraciones para tratar de realizar un mejor análisis, y proponemos una forma sintética de introducir ruido que pensamos que puede ser más adecuada a la hora de analizar la robustez de los clasificadores frente al ruido.
 
+\pagebreak
 
-% TODO -- estoy etiquetando con funciones mas complejas pero sigo teniendo el umbral del 10% de error. Comentar que esto sigue estando mal porque la introducción del ruido es ad-hoc. Sería mas interesante comprobar el hecho de introducir inicialmente el ruido
-
+\section{Ejercicio 2 - Modelos lineales}
 
 \pagebreak
 
