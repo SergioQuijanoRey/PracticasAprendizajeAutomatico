@@ -42,6 +42,9 @@
 % Para mostrar graficas de dos imagenes, cada una con su caption, y con un caption comun
 \usepackage{subcaption}
 
+% Simbolo de los numeros reales
+\usepackage{amssymb}
+
 % Metadatos del documento
 %===================================================================================================
 \title{
@@ -479,14 +482,135 @@ Por otro lado, la desviación típica del error fuera de la muestra muestra una 
 
 Es notable la gran cantidad de épocas que necesita \emph{SGD} para converger. Sin embargo, los buenos resultados justifican estos tiempos de entrenamiento.
 
+\pagebreak
 
+\section{Ejercicio Extra - Clasificación de Dígitos}
 
+Consideramos el conjunto de datos manuscritos y seleccionamos las muestras asociadas con los dígitos 4 y 8. Tomamos la muestra de entrenamiento y la muestra de test de los dos tipos de ficheros proporcionados. Para ello, hacemos uso de la función dada por los profesores de prácticas: \lstinline{readData}.
 
+Esta muestra de datos nos da las carácterísticas \emph{intensidad promedio} y \emph{simetría}.
 
+\subsection{Apartado 1}
 
+Es bastante sencillo plantear un problema de clasificación binaria. Queremos encontrar una función $g: \chi \rightarrow \{1, -1\}$ de modo que si toma un dato asociado a un 4, devuelva 1. Y si toma un dato asociado al 8, devuelva -1. Lógicamente los datos vienen dados en la forma:
+
+$$x \in \chi \Rightarrow x = (simetria_x, intensidad_x)$$
+
+Con esto, podemos formalizar nuestro espacio como $\chi = \mathbb{R}^2$.
+
+Como vamos a trabajar con modelos lineales, lo que haremos será tomar como $g$ una recta de clasificación. Es decir
+
+$$g_w(x) := sign(w^T x)$$
+
+donde los pesos $w$ son los parámetros que queremos aprender.
+
+Para que el modelo lineal de clasificación funcione lo mejor posible, debemos añadir una columna de unos a la matriz de datos. Esto es para representar el término independiente de la combinación lineal
+
+$$w^T x = \sum_{i = 0}^{3} w_i x_i$$
+
+Como ya hemos comentado en ejercicios anteriores, esto lo podemos lograr usando la función \lstinline{add_colum_of_ones}.
+
+Esto último nos hace considerar $\chi = \{1\} \times \mathbb{R}^2$.
 
 \pagebreak
 
+\subsection{Apartado 2}
+
+En este apartado usamos un modelo de regresión lineal y aplicamos \emph{PLA-Pocket} como mejora. Esto es, ajustamos los datos con un modelo de regresión lineal clásico, obteniendo una primera solución. Después, lanzamos \emph{PLA-POCKET} con solución inicial la primera solución, buscando mejorar dicha solución.
+
+Para la parte de regresión lineal, usaremos el algoritmo de la pseudo-inversa. Tenemos una cantidad no muy grande de datos, así que nos parece adecuado. En un principio se podría pensar que, al tener una primera solución por una fórmula cerrada. Sin embargo, esta solución cerrada por la pseudo-inversa minimiza el error cuadrático medio, al resolver un problema de regresión. Nuestra intención es minimizar el porcentaje de puntos mal clasificados, y ahí es donde entra en juego aplicar \emph{PLA-POCKET} con la anterior solución como punto de partida.
+
+\subsection{Datos con los que trabajamos}
+
+A continuación mostramos los conjuntos de entrenamiento y de test:
+
+\begin{figure}[H]
+    \begin{subfigure}{0.4\textwidth}
+        \includegraphics[scale=0.3]{bonus_learning}
+        \caption{Conjunto de entrenamiento}
+    \end{subfigure} \hspace{0.2\textwidth}
+    \begin{subfigure}{0.4\textwidth}
+        \includegraphics[scale=0.3]{bonus_testing}
+        \caption{Conjunto de test}
+    \end{subfigure}
+    \caption{Conjuntos de datos cargados}
+\end{figure}
+
+\subsubsection{Entrenamiento usando regresión lineal}
+
+Lanzamos en primera instancia el algoritmo de la pseudo-inversa. Con la cantidad tan pequeña de datos que estamos usando, se obtiene una solución cerrada rápidamente. El \emph{performance} de esta solución se muestra como:
+
+\begin{lstlisting}[caption={Salida del entrenamiento de la regresión lineal}, captionpos=b]
+--> Lanzando el algoritmo de la pseudoinversa
+- Solucion inicial: [-0.50676351  8.25119739  0.44464113]
+- Error conseguido en la muestra: 0.2278
+- Error conseguido fuera de la muestra: 0.2513
+\end{lstlisting}
+
+Los dos errores que mostramos son porcentajes en tantos por uno. Por tanto, tenemos un $E_{in} = 22.78\%$ y un $E_{test} = 25.13\%$. El algoritmo \emph{PLA-POCKET} todavía tiene margen de mejora.
+
+\subsubsection{Entrenamiento usando PLA-POCKET}
+
+A partir de la anterior solución, lanzamos PLA-POCKET buscando mejorar dicha solución. Como parámetro a este algoritmo, establecemos un número máximo de iteraciones (sobre \emph{Epochs}) de 1000. Restringimos el número máximo de épocas, porque este algoritmo tiene una penalización de tiempo de ejecución respecto \emph{PLA} clásico. En cadda iteración sobre un dato (que no sobre una época), tenemos que evaluar el error porcentual para saber si estamos obtienendo un mejor candidato. Por tanto, estamos haciendo llamadas constantes a esta función de error, que es lenta.
+
+La salida de este entrenamiento es:
+
+\begin{lstlisting}[caption={Salida del entrenamiento de PLA-POCKET}, captionpos=b]
+- Solucion: [ -8.50676351 163.00130454   8.99007863]
+- Iteraciones consumidas: 1000
+- Error conseguido en la muestra: 0.2102
+- Error conseguido fuera de la muestra: 0.2513
+\end{lstlisting}
+
+No hemos mejorado apenas el error porcentual. Dentro de la muestra, $22.78\% \rightarrow 21.02\%$, mientras que fuera de la muestra, $25.13\% \rightarrow 25.13\%$ la mejora no es visible con dos cifras decimales.
+
+Mostramos la gráfica de convergencia:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{pla_pocket_convergencia}
+    \caption{Gráfica de convergencia para PLA-POCKET}
+\end{figure}
+
+Estamos mostrando el error por iteraciones sobre datos. Vemos que a partir de las 50000 iteraciones no conseguimos mejorar el error. Sabiendo que nuestra muestra de datos de entrenamiento contiene 1194 datos, parece entonces razonable acotar el número de épocas a 50 épocas. Más adelante lanzaremos el algoritmo de aprendizaje con solo 50 épocas.
+
+Vemos que hemos mejorado la solución dada por el algoritmo de la pseudoinversa, aunque es una mejora tan ligera que cabe preguntarse si merece la pena gastar ese tiempo de cómputo.
+
+Las gráficas de etiquetado sobre las dos muestras de datos son:
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.3\textwidth}
+        \includegraphics[scale=0.35]{clasificacion_pocket_learning}
+        \caption{Clasificacion en la muestra de aprendizaje}
+    \end{subfigure} \hspace{0.2\textwidth}
+    \begin{subfigure}{0.3\textwidth}
+        \includegraphics[scale=0.35]{clasificacion_pocket_test}
+        \caption{Clasificación en la muestra de test}
+    \end{subfigure}
+    \caption{Clasificación tras el entrenamiento de POCKET}
+\end{figure}
+
+Lanzando el algoritmo con un máximo de 50 iteraciones sobre \emph{EPOCH}, obtenemos unos resultados ligeramente peores, pero en un tiempo mucho más razonable (aunque sigue tardando entre medio minuto y un minuto), y una gráfica de convergencia:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{pla_pocket_convergencia_reducida}
+    \caption{Gráfica de convergencia para PLA-POCKET con menos iteraciones}
+\end{figure}
+
+Los resultados obtenidos son:
+
+\begin{lstlisting}[caption={Salida del entrenamiento de PLA-POCKET}, captionpos=b]
+- Solucion: [ -6.50676351 121.7775949    6.66351613]
+- Iteraciones consumidas: 50
+- Error conseguido en la muestra: 0.2118
+- Error conseguido fuera de la muestra: 0.2513
+\end{lstlisting}
+
+Por tanto, en una aplicación real, deberíamos entrar a valorar si merece la pena perder tiempo de cómputo mejorando ligeramente la solución, o si nos conformamos con la solución dada por la pseudoinversa. Si estamos explorando distintas soluciones y probando ideas, probablemente nos conformemos con el resultado de la pseudoinversa. Pero si ya hemos decidido que este es un buen modelo, y estamos entrenando para aplicar la función $g_w$ aprendida a datos reales, entonces es claro que merece la pena el tiempo invertido en mejorar la solución (sin llegar a provocar \emph{overfitting}).
+
+\pagebreak
 
 % Bibliografia
 \bibliography{References}
