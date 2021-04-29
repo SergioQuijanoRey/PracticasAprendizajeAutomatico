@@ -908,10 +908,7 @@ def logistic_error(dataset, labels, solution):
 
     # Iteramos los puntos con sus etiquetas para calcular la parte del sumatorio
     for point, label in zip(dataset, labels):
-        # Señal lineal con la que operamos
-        signal = np.dot(solution.T, point)
-
-        err += -label * point * sigmoid(-label * signal)
+        err += (1 + np.exp(-label * np.dot(solution.T, point)))
 
     # Devolvemos la media de la anterior suma
     return err / len(dataset)
@@ -1354,8 +1351,6 @@ def ejercicio1_apartado2():
             labeling_function=labeling_function
         )
 
-        # TODO -- ademas mostrar el error porcentual cometido
-
     print("Subapartado c) -- Experimento alternativo")
     # Generamos las funciones de etiquetado
     f1 = lambda x,y: (x - 10.0)*(x-10.0) + (y-20)*(y-20) - 400
@@ -1401,7 +1396,8 @@ def ejercicio2():
     print("==> Lanzando ejercicio 2")
 
     # Lanzamos el primer apartado
-    ejercicio2_apartado1()
+    # TODO -- descomentar
+    #ejercicio2_apartado1()
 
     # Lanzamos el segundo apartado
     ejercicio2_apartado2()
@@ -1993,7 +1989,8 @@ def ejercicio_bonus():
 if __name__ == "__main__":
 
     # Lanzamos el primer ejercicio
-    ejercicio1()
+    # TODO -- descomentar
+    #ejercicio1()
 
     # Lanzamos el segundo ejercicio
     ejercicio2()
