@@ -371,6 +371,8 @@ $$
 
 donde $\sigma(x) := \frac{1}{1 + e^{-x}}$ y $signal$ es la señal lineal dada por $signal := w^T x$. Es claro que lo que aprendemos de este modelo son los valores de los pesos: $w$.
 
+Antes de realizar el experimento 100 veces, vamos a ejecutar una repetición del experimento, mostrando ciertas gráficas y realizando algunos análisis antes de realizar. Tras esto, lanzamos 100 veces el experimento, obteniendo más información para realizar los análisis.
+
 \subsubsection{Regresión logística con Gradiente Descendente Estocástico}
 
 La primera consideración para implementar regresión logística junto a gradiente descendente estocástico es la necesidad de añadir una columna de unos a la matriz de datos. Esta columna en la primera práctica ya venía dada. Pero en este caso, necesitamos añadirla manualmente. Esta columna representa el término independiente de la combinación lineal que subyace al modelo lineal. Podríamos hacerlo sin esta columna, pero en ese caso no podemos fijar un \emph{offset} a los datos. Para añadir la columna de unos disponemos de la función \lstinline{add_colum_of_ones}.
