@@ -1490,11 +1490,13 @@ def ejercicio2_apartado1():
     )
 
     # Mostramos los resultados
-    # TODO -- mostrar las desviaciones tipicas?
     print("Resultado de las 10 iteraciones -- Vector Inicial Cero:")
     print(f"\t-> Errores finales(tanto por uno): {final_errors}")
+    print(f"\t-> Valor medio de los errores: {sum(final_errors) / len(final_errors) * 100}%")
+    print(f"\t-> Desviacion tipica de los errores: {np.std(final_errors)}")
     print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
     print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
+    print(f"\t-> Desviacion tipica del numero de iteraciones: {np.std(consumed_iterations)}")
     wait_for_user_input()
 
     # Experimento para vector inicial aleatorio
@@ -1508,10 +1510,13 @@ def ejercicio2_apartado1():
     )
 
     # Mostramos los resultados
-    print("Resultado de las 10 iteraciones -- Vector inicial aleatorio:")
+    print("Resultado de las 10 iteraciones -- Vector Inicial aleatorio:")
     print(f"\t-> Errores finales(tanto por uno): {final_errors}")
+    print(f"\t-> Valor medio de los errores: {sum(final_errors) / len(final_errors) * 100}%")
+    print(f"\t-> Desviacion tipica de los errores: {np.std(final_errors)}")
     print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
     print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
+    print(f"\t-> Desviacion tipica del numero de iteraciones: {np.std(consumed_iterations)}")
     wait_for_user_input()
 
     # Ahora vamos a lanzar dos ejecuciones individuales, con vector inicial cero y vector inicial
@@ -1582,10 +1587,13 @@ def ejercicio2_apartado1():
         repetitions=10,
         init_type="zero"
     )
-    print("Resultado de las 10 iteraciones -- Vector inicial cero:")
+    print("Resultado de las 10 iteraciones -- Vector Inicial Cero:")
     print(f"\t-> Errores finales(tanto por uno): {final_errors}")
+    print(f"\t-> Valor medio de los errores: {sum(final_errors) / len(final_errors) * 100}%")
+    print(f"\t-> Desviacion tipica de los errores: {np.std(final_errors)}")
     print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
     print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
+    print(f"\t-> Desviacion tipica del numero de iteraciones: {np.std(consumed_iterations)}")
     wait_for_user_input()
 
     # Lanzamos las diez repeticiones con vector inicial aleatorio y mostramos los resultados
@@ -1598,8 +1606,11 @@ def ejercicio2_apartado1():
     )
     print("Resultado de las 10 iteraciones -- Vector inicial aleatorio:")
     print(f"\t-> Errores finales(tanto por uno): {final_errors}")
+    print(f"\t-> Valor medio de los errores: {sum(final_errors) / len(final_errors) * 100}%")
+    print(f"\t-> Desviacion tipica de los errores: {np.std(final_errors)}")
     print(f"\t-> Iteraciones consumidas: {consumed_iterations}")
     print(f"\t-> Valor medio de iteraciones: {sum(consumed_iterations) / len(consumed_iterations)}")
+    print(f"\t-> Desviacion tipica del numero de iteraciones: {np.std(consumed_iterations)}")
     wait_for_user_input()
 
     # Esta vez lanzamos una unica ejecucion de PLA para mostrar las graficas
