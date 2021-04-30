@@ -160,7 +160,7 @@ El gráfico de clasificación tras esta modificación aleatoria es:
     \caption{Datos etiquetados con ruido, y recta original de clasificación}
 \end{figure}
 
-Se ve con claridad cómo esta operación introduce ruido sobre nuestras etiquetas. Aproximadamente, tendremos un error entorno al 10\% por la forma en la que hemos modificado las etiquetas (dependendiendo del ratio positivos / negativos, el error porcentual puede descender hasta el 9\%).
+Se ve con claridad cómo esta operación introduce ruido sobre nuestras etiquetas. Aproximadamente, tendremos un error entorno al 10\% por la forma en la que hemos modificado las etiquetas (dependiendo del ratio positivos / negativos, el error porcentual puede descender hasta el 9\%).
 
 \subsubsection{Subapartado c)} \label{section:apartado_obligatorio}
 
@@ -175,7 +175,7 @@ En este apartado, debemos considerar las siguientes funciones que definen una fr
 
 Estas funciones no van a modificar el etiquetado que ya teníamos (el generado a partir de una recta y la introducción sintética de ruido). Simplemente mostramos las regiones de clasificación de estas nuevas funciones y los puntos con el clasificado original, buscando así realizar un análisis sobre el uso de estos clasificadores más complejos.
 
-Podríamos haber intentado mostras las líneas de frontera de etiquetado, como hemos hecho con la recta. Pero para ello, tenemos que calcular un despeje de $f(x, y)$, o bien de $x$ o bien de $y$, pues $f(x, y)$ viene dada de forma implícita. No todas las funciones tienen un despeje global, por lo que habría que emplear el teorema de la función implícita para realizar despejes locales, y después concatenar las graficas obtenidas con los despejes locales. Hemos considerado que esto entorpecía demasiado el código. Así que la solución encontrada ha sido usar la función \lstinline{contourf} de la librería \lstinline{matplotlib.pyplot}, con la que pintaremos las regiones en las que clasificamos positivamente y las regiones en las que clasificamos negativamente.
+Podríamos haber intentado mostrar las líneas de frontera de etiquetado, como hemos hecho con la recta. Pero para ello, tenemos que calcular un despeje de $f(x, y)$, o bien de $x$ o bien de $y$, pues $f(x, y)$ viene dada de forma implícita. No todas las funciones tienen un despeje global, por lo que habría que emplear el teorema de la función implícita para realizar despejes locales, y después concatenar las gráficas obtenidas con los despejes locales. Hemos considerado que esto entorpecía demasiado el código. Así que la solución encontrada ha sido usar la función \lstinline{contourf} de la librería \lstinline{matplotlib.pyplot}, con la que pintaremos las regiones en las que clasificamos positivamente y las regiones en las que clasificamos negativamente.
 
 Una vez hechos estos comentarios, mostramos las gráficas obtenidas como se nos pedía:
 
@@ -189,7 +189,7 @@ Una vez hechos estos comentarios, mostramos las gráficas obtenidas como se nos 
     \caption{Etiquetado original sobre las nuevas funciones de etiquetado}
 \end{figure}
 
-Para comenzar, todas las funciones que estamos mostrando tienen un error porcentual mucho más alto que la recta que hemos usado para clasificar, estando los cuatro errores en un rango de $[31.0\%, 73.0\%]$. Por tanto, podemos ver que ciertas funciones tienen un error porcentual mucho más bajo que otras. En la interpretación alternativa realizamos una discusión sobre la \emph{Dimension Vapnik-Chervonenkis}, concluyendo que tienen mismo valor de $d_{VC}$, por lo que estas diferencias de error no pueden ser explicadas por una diferencia de complejidad de las funciones.
+Para comenzar, todas las funciones que estamos mostrando tienen un error porcentual mucho más alto que la recta que hemos usado para clasificar, estando los cuatro errores en un rango de $[31.0\%, 73.0\%]$. Por tanto, podemos ver que ciertas funciones tienen un error porcentual mucho más bajo que otras. En la interpretación alternativa realizamos una discusión sobre la \emph{Dimensión Vapnik-Chervonenkis}, concluyendo que tienen mismo valor de $d_{VC}$, por lo que estas diferencias de error no pueden ser explicadas por una diferencia de complejidad de las funciones.
 
 Como se ha comentado con el profesor de prácticas, a partir de este ejercicio se busca concluir que funciones más complejas no implican que realicemos un mejor ajuste de los datos. Y aunque esto se puede concluir por otros métodos más acertados, llegar a esas conclusiones a partir de este escenario parece algo falaz.
 
@@ -229,7 +229,7 @@ Bajo estas condiciones es algo complicado comentar si estas funciones más compl
 
 Pasamos a valorar la complejidad de las funciones de una forma objetiva, cuantitativa, y teniendo en cuenta la muestra de datos con la que estamos trabajando.
 
-Para empezar, estamos trabajando con 100 puntos o datos. Debemos emplear algún método para conocer si la complejidad de nuestras funciones se adecúa a la cantidad de datos con los que estamos trabajando. Esta herramienta será la \textbf{dimensión de Vapnik-Chervonenkis}. Sabemos que en el caso de la recta, $d_{VC} = d + 1 = 3$, y por tanto, la regla práctica para generalizar bien $N \geq 10 d_{VC}$ se cumple. Para el caso del círculo y de la elipse, tenemos también que $d_{VC} = 3$. Esto no es difícil de probar, al tener una dimensión tan baja, con ejemplos \footnotemark. Por tanto, a nivel de generalización, con los 100 datos que tenemos es suficiente pues $100 \geq 3 * 10$. Para el caso de la hipérbola y de la parábola hemos comprobado que $d_{VC} = 3$ yendo ejemplo por ejemplo (puede estar mal hecho el cálculo). Por lo cual, todas las funciones tienen una cantidad suficiente de datos acorde a $d_{VC}$ como para que no haya problemas para generalizar (siempre siguiendo la regla práctica $N \geq d_{VC} * 10$).
+Para empezar, estamos trabajando con 100 puntos o datos. Debemos emplear algún método para conocer si la complejidad de nuestras funciones se adecua a la cantidad de datos con los que estamos trabajando. Esta herramienta será la \textbf{dimensión de Vapnik-Chervonenkis}. Sabemos que en el caso de la recta, $d_{VC} = d + 1 = 3$, y por tanto, la regla práctica para generalizar bien $N \geq 10 d_{VC}$ se cumple. Para el caso del círculo y de la elipse, tenemos también que $d_{VC} = 3$. Esto no es difícil de probar, al tener una dimensión tan baja, con ejemplos \footnotemark. Por tanto, a nivel de generalización, con los 100 datos que tenemos es suficiente pues $100 \geq 3 * 10$. Para el caso de la hipérbola y de la parábola hemos comprobado que $d_{VC} = 3$ yendo ejemplo por ejemplo (puede estar mal hecho el cálculo). Por lo cual, todas las funciones tienen una cantidad suficiente de datos acorde a $d_{VC}$ como para que no haya problemas para generalizar (siempre siguiendo la regla práctica $N \geq d_{VC} * 10$).
 \footnotetext{En \cite{PowerPoi66:online} se muestra de forma visual la prueba de esto con los conjuntos dados de datos. En \cite{machinel96:online} se realiza una prueba formal de este hecho.}
 
 Sería más adecuado realizar experimentos con un dataset de entrenamiento y otro de test para comprobar empíricamente que, efectivamente, con 100 datos no tenemos problemas de generalización.
@@ -240,7 +240,7 @@ Otro punto a tener en cuenta es el problema que estamos considerando. Sigue sin 
 
 Respecto al proceso de modificación de etiquetas, las condiciones en la que hemos realizado este proceso también complica algo las cosas. Hemos modificado, aleatoriamente, un 10\% de las etiquetas positivas y otro 10\% de las etiquetas negativas. En este proceso da bastante igual la forma que tome $f$. En el sentido en el que, podemos pensar que la recta es muy robusta frente al ruido, o más robusta que una elipse. Pero a la hora de ejecutar el cambio aleatorio, esto no se tiene en cuenta.
 
-Esto se refleja en que obtenemos constantemente un error del 9\%. Que no sea un 10\% puede ser por la cantidad de etiquetas negativas y positivas. Al no ser numeros que al multiplicarlos por $0.1$ den un entero, se puede redondear por la baja, obteniendo así este error porcentual algo más bajo que el 10\%.
+Esto se refleja en que obtenemos constantemente un error del 9\%. Que no sea un 10\% puede ser por la cantidad de etiquetas negativas y positivas. Al no ser números que al multiplicarlos por $0.1$ den un entero, se puede redondear por la baja, obteniendo así este error porcentual algo más bajo que el 10\%.
 
 Sin embargo, si que hemos detectado una característica en la que la forma de $f$ influye en el proceso. Esto se ve claro con $f_3$. Al tener una región mucho más pequeña que la contraria (en este caso, región de etiquetado negativo mucho más pequeña que la región de etiquetado positivo), es muy probable que no hayamos clasificado ningún punto como negativo, y por tanto realizamos modificaciones del tipo $negativo \rightarrow positivo$, solo modificaciones del tipo $positivo \rightarrow negativo$. Aún así, esto no es demasiado relevante
 
@@ -264,7 +264,7 @@ Ejecutamos el algoritmo \emph{PLA} sobre los datos generados en \ref{section:eje
 
 \subsubsection{Subapartado 1}
 
-Para usar los mismos datos que en \ref{section:ejercicio1.2.a}, usamos variables globlales para guardar en ese primer ejercicio los datos generados. Otra observación pertinente es que a la función \lstinline{perceptron_learning_algorithm} le tenemos que pasar un número máximo de iteraciones. Queremos alcanzar la solución antes de agotar las iteraciones, porque sabemos que la muestra es linealmente separable. Por tanto hacemos una asignación lo suficientemente grande: \lstinline{max_iterations = 5000}.
+Para usar los mismos datos que en \ref{section:ejercicio1.2.a}, usamos variables globales para guardar en ese primer ejercicio los datos generados. Otra observación pertinente es que a la función \lstinline{perceptron_learning_algorithm} le tenemos que pasar un número máximo de iteraciones. Queremos alcanzar la solución antes de agotar las iteraciones, porque sabemos que la muestra es linealmente separable. Por tanto hacemos una asignación lo suficientemente grande: \lstinline{max_iterations = 5000}.
 
 Mostramos de nuevo la gráfica de los datos etiquetados para asegurarnos que estamos en el mismo ambiente que en \ref{section:ejercicio1.2.a}:
 
@@ -298,7 +298,7 @@ Lanzamos 10 veces el algoritmo para el vector inicial cero, y otras 10 para vect
 
 Ambos algoritmos, como era de esperar, convergen a una solución de error $E_{in} = 0.0\%$. Por lo tanto, no merece hacer comparaciones sobre los errores alcanzados. Sin embargo, las iteraciones necesarias para converger sí que son distintas. Para el vector inicial cero, tenemos un menor número medio necesario de iteraciones necesarias (realmente al no tener aleatoriedad no hace falta considerar valores medios) que con vector inicial aleatorio, y la diferencia es significativa.
 
-Además, el vector inicial aleatorio tiene una variabilidad, indicada por la desviación típica, que con vector inicial aleatorio no tenemos. Y con ello, podemos pensar que partiendo de un vector inicial cero, tenemos resultados más estables, con ausencia de variabilidad por factores aleatorios.
+Además, el vector inicial aleatorio tiene una variabilidad, indicada por la desviación típica, que con vector inicial cero no tenemos. Y con ello, podemos pensar que partiendo de un vector inicial cero, tenemos resultados más estables, con ausencia de variabilidad por factores aleatorios.
 
 También mostramos los gráficos de convergencia para una ejecución de \emph{PLA} con vector inicial cero, y otro para vector inicial aleatorio:
 
@@ -364,6 +364,8 @@ Se ve claramente el comportamiento errático de \emph{PLA} que conocíamos de te
 
 Además, queda claro que 5000 iteraciones son más que suficientes, pues nunca vamos a lograr $E_{in} = 0$, y además, al no decrecer el error monótonamente tampoco parece beneficioso consumir más iteraciones.
 
+Concluyendo, hemos comprobado empíricamente el mejor comportamiento de PLA cuando usamos vector inicial cero. Además, hemos visto el comportamiento algo errático de \emph{PLA} cuando los datos no son linealmente separables.
+
 \pagebreak
 \subsection{Apartado b) - Regresión logística}
 
@@ -403,7 +405,7 @@ El algoritmo de gradiente descendente estocástico ya fue explicado en la anteri
 
 Al tener una condición distinta de parada, dejamos el número máximo de iteraciones a \lstinline{None}, para iterar hasta que tengamos la distancia entre dos soluciones consecutivas por debajo de la cota dada.
 
-Otro aspecto crítico es establecer el \emph{batch size}. El guión nos indica que debemos usar un \lstinline{batch size = 1}, pero realizamos una corta exploración sobre distintos valores. Con un valor de 1, necesitamos muchas iteraciones pero llegamos a un muy buen error, aproximadamente en $[0.005 - 0.01]$ según la semilla aleatoria. Para \lstinline{batch_size = 4}, requerimos entre 1500 - 5000 iteraciones, pero el error pasa a estar en $[0.01 - 0.05]$. A partir de \lstinline{batch_size = 8}, tenemos muy pocas iteraciones (por debajo de 1000), pero con un error por encima de $0.2$. Por tanto, hemos comprobado de forma empírica y rápida que el valor adecuado para \lstinline{batch_size} es 1. No tenemos mucha intuición por lo que esto es así. Una hipótesis es que, al estar en un problema de clasificación, lo adecuado es visitar punto a punto e ir ajustando localmente con la información de ese punto. Este es un esquema parecido a \emph{PLA}, donde visitamos punto a punto y ajustamos si hemos fallado en ese punto. Además, al estar considerando solo la condición de distancia entre soluciones consecutivas, con $batch\_size > 1$ puede ser que acabemos compensando la dirección del error entre los múltiples puntos (por ejemplo, errores con la misma dirección pero distinto sentido), provocando una parada prematura. Intuimos por tanto que estableciendo otras condiciones de parada (como que el error esté por debajo de cierta cota) puede funcionar mejor si queremos establecer un $batch\_size  >1$. Esta última idea se refuerza más adelante, cuando vemos que la muestra de datos es linealmente separable, por lo que deberíamos ser capaces de alcanzar error 0.0\% en la muestra, iterando el suficiente número de veces.
+Otro aspecto crítico es establecer el \emph{batch size}. El guión nos indica que debemos usar un \lstinline{batch size = 1}, pero realizamos una corta exploración sobre distintos valores. Con un valor de 1, necesitamos muchas iteraciones pero llegamos a un muy buen error, aproximadamente en $[0.005 - 0.01]$ según la semilla aleatoria. Para \lstinline{batch_size = 4}, requerimos entre 1500 - 5000 iteraciones, pero el error pasa a estar en $[0.01 - 0.05]$. A partir de \lstinline{batch_size = 8}, tenemos muy pocas iteraciones (por debajo de 1000), pero con un error por encima de $0.2$. Por tanto, hemos comprobado de forma empírica y rápida que el valor adecuado para \lstinline{batch_size} es 1. No tenemos mucha intuición por lo que esto es así. Una hipótesis es que, al estar en un problema de clasificación, lo adecuado es visitar punto a punto e ir ajustando localmente con la información de ese punto. Este es un esquema parecido a \emph{PLA}, donde visitamos punto a punto y ajustamos si hemos fallado en ese punto. Además, al estar considerando solo la condición de distancia entre soluciones consecutivas, con $batch\_size > 1$ puede ser que acabemos compensando la dirección del error entre los múltiples puntos (por ejemplo, errores con la misma dirección pero distinto sentido), provocando una parada prematura. Intuimos por tanto que estableciendo otras condiciones de parada (como que el error esté por debajo de cierta cota) puede funcionar mejor si queremos establecer un $batch\_size > 1$. Esta última idea se refuerza más adelante, cuando vemos que la muestra de datos es linealmente separable, por lo que deberíamos ser capaces de alcanzar error 0.0\% en la muestra, iterando el suficiente número de veces.
 
 \subsubsection{Conjunto de datos con el que trabajamos} \label{section:conjunto_datos_lgr}
 
@@ -447,7 +449,7 @@ Los resultados obtenidos eran los que esperábamos. El error \emph{cross-entropy
 
 Vemos que el comportamiento del gradiente descendiente es adecuado. Pareciera que en la figura \ref{figure:sin_ampliar} tenemos convergencia monótona. Por eso mostramos un \emph{"zoom"} de la gráfica para ver que no es así, como es lo normal cuando usamos minibatches para el gradiente descendente.
 
-Podemos tambier mostrar la recta de frontera junto a los datos con su etiquetado original:
+Podemos también mostrar la recta de frontera junto a los datos con su etiquetado original:
 
 \begin{figure}[H]
     \centering
@@ -455,7 +457,7 @@ Podemos tambier mostrar la recta de frontera junto a los datos con su etiquetado
     \caption{Frontera solución junto al etiquetado original}
 \end{figure}
 
-Algunos puntos están más cercanos a la frontera que con la recta de etiquetado original. Con esto, podemos preveer que los puntos mal clasificados por el modelo estarán en esa zona fronteriza.
+Algunos puntos están más cercanos a la frontera que con la recta de etiquetado original. Con esto, podemos prever que los puntos mal clasificados por el modelo estarán en esa zona fronteriza.
 
 \subsubsection{Un ejemplo concreto de $E_{test}$}
 
@@ -522,8 +524,6 @@ $$w^T x = \sum_{i = 0}^{3} w_i x_i$$
 Como ya hemos comentado en ejercicios anteriores, esto lo podemos lograr usando la función \lstinline{add_colum_of_ones}.
 
 Esto último nos hace considerar $\chi = \{1\} \times \mathbb{R}^2$.
-
-\pagebreak
 
 \subsection{Apartado 2}
 
@@ -593,7 +593,7 @@ Las gráficas de etiquetado sobre las dos muestras de datos son:
     \centering
     \begin{subfigure}{0.3\textwidth}
         \includegraphics[scale=0.30]{clasificacion_pocket_learning}
-        \caption{Clasificacion en la muestra de aprendizaje}
+        \caption{Clasificación en la muestra de aprendizaje}
     \end{subfigure} \hspace{0.2\textwidth}
     \begin{subfigure}{0.3\textwidth}
         \includegraphics[scale=0.30]{clasificacion_pocket_test}
@@ -635,7 +635,7 @@ operando:
 
 $$E_{out}(h) \leq 0.2102 + 0.4309 = 0.6411 \Rightarrow E_{out}(h) \leq 0.6411$$
 
-Recordemos que estamos trabajando con errores porcentuales en tantos por uno, por que que nustra cota es más interpretable si la expresamos en tantos por ciento: $E_{out} \leq 64.11\%$.
+Recordemos que estamos trabajando con errores porcentuales en tantos por uno, por que que nuestra cota es más interpretable si la expresamos en tantos por ciento: $E_{out} \leq 64.11\%$.
 
 Ahora, para $E_{test}$ vamos a utilizar la siguiente fórmula para la cota:
 
