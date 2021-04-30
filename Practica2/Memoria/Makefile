@@ -10,4 +10,4 @@ all:
 	pdflatex "${FILE_NAME}.tex" -interaction=nonstopmode
 clean:
 	@echo "Borrando archivos auxiliares"
-	@rm -rf *.aux *.log *.toc *.bbl *.blg
+	@rm -rf *.aux *.log *.toc *.bbl *.blg *.log
