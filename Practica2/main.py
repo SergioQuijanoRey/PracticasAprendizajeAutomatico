@@ -1038,7 +1038,7 @@ def perceptron_learning_algorithm_pocket(dataset, labels, max_iterations, init_s
         current_iteration = current_iteration + 1
 
         if current_iteration % 10 == 0:
-            print(f"TODO -- iteracion {current_iteration}")
+            print(f"--> Iteracion {current_iteration}")
 
     # Devolvemos los resultados sin datos adicionales
     return best_solution, current_iteration, error_at_iteration
@@ -1794,7 +1794,6 @@ def ejercicio2_apartado2():
         ignore_first_column = True
     )
 
-    # TODO -- mirar si al final si que he incluido lo anterior en la memoria
     # Una vez hecho esto, que incluiremos en la memoria, repetimos el experimento 100 veces
     print("--> Lanzamos 100 veces el experimento anterior")
     minibatch_iterations, epoch_iterations, percentage_error_at_test_sample = logistic_regresion_experiment(100)
@@ -2025,12 +2024,10 @@ def ejercicio_bonus():
 if __name__ == "__main__":
 
     # Lanzamos el primer ejercicio
-    # TODO -- descomentar esto
-    #ejercicio1()
+    ejercicio1()
 
     # Lanzamos el segundo ejercicio
-    # TODO -- descomentar esto
-    #ejercicio2()
+    ejercicio2()
 
     # Lanzamos el ejercicio extra
     ejercicio_bonus()
