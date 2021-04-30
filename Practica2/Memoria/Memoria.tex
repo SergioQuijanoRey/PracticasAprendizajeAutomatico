@@ -610,6 +610,39 @@ Los resultados obtenidos son:
 
 Por tanto, en una aplicación real, deberíamos entrar a valorar si merece la pena perder tiempo de cómputo mejorando ligeramente la solución, o si nos conformamos con la solución dada por la pseudoinversa. Si estamos explorando distintas soluciones y probando ideas, probablemente nos conformemos con el resultado de la pseudoinversa. Pero si ya hemos decidido que este es un buen modelo, y estamos entrenando para aplicar la función $g_w$ aprendida a datos reales, entonces es claro que merece la pena el tiempo invertido en mejorar la solución (sin llegar a provocar \emph{overfitting}).
 
+\subsubsection{Cotas sobre $E_{out}$}
+
+Para esto vamos a dar dos cotas, una basada en $E_{in}$ y otra basada en $E_{test}$. En ambas vamos a considerar una tolerancia de $\delta = 0.05$. La cota de generalización \emph{VC} usando $E_{in}$ viene dada por:
+
+$$E_{out}(h) \leq E_{in}(h) + \sqrt{\frac{8}{N} log\frac{4((2N)^{d_{VC} + 1})}{\delta}}$$
+
+Para el perceptron bidimensional sabemos que $d_{VC} = 3$. Estamos trabajando con $N = 1194$. Además, hemos mostrado la salida por pantalla que nos indicaba que $E_{in} = 0.2102$. Así que podemos sustituir estos valores en la fórmula:
+
+$$E_{out}(h) \leq 0.2102 + \sqrt{\frac{8}{1194} log\frac{4((2 * 1194)^{3})}{0.05}}$$
+
+operando:
+
+$$E_{out}(h) \leq 0.2102 + 0.4309 = 0.6411 \Rightarrow E_{out}(h) \leq 0.6411$$
+
+Recordemos que estamos trabajando con errores porcentuales en tantos por uno, por que que nustra cota es más interpretable si la expresamos en tantos por ciento: $E_{out} \leq 64.11\%$.
+
+Ahora, para $E_{test}$ vamos a utilizar la siguiente fórmula para la cota:
+
+$$E_{out}(h) \leq E_{in}(h) + \sqrt{\frac{1}{2N} log\frac{2|H|}{\delta}}$$
+
+considerando $E_{in} \equiv E_{test}$. Ahora tenemos una muestra de test con $N = 366$. Además, como ya la función $g$ fue escogida por el proceso de entrenamiento sobre la muestra de aprendizaje, podemos considerar $|H| = 1$. Se ha mostrado por pantalla que $E_{test} = 0.2513$. Con esto podemos operar:
+
+$$E_{out}(h) \leq 0.2513 + \sqrt{\frac{1}{2 * 366} log\frac{2}{0.05}}$$
+
+Y con ello tenemos:
+
+$$E_{out}(h) \leq 0.2513 + 0.0709 \Rightarrow E_{out}(h) \leq 0.3222$$
+
+Y de nuevo, al expresar esta cota en tantos por ciento en vez de tantos por uno, tenemos que $E_{out} \leq 32.22\%$.
+
+Claramente la mejor cota la obtenemos empleando $E_{test}$, como era de esperar (pues la intención de usar esta muestra de datos es que nos de una información más fiel sobre $E_{out}$). Esta cota es casi la mitad que la que obtenemos con $E_{in}$.
+
+
 \pagebreak
 
 % Bibliografia
