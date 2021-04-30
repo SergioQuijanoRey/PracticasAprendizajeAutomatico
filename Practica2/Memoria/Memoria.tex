@@ -75,6 +75,14 @@
 
 % Indice de contenidos
 \tableofcontents
+
+% Lista de figuras
+\listoffigures
+
+% Bibliografia
+\bibliography{References}
+\bibliographystyle{ieeetr}
+
 \pagebreak
 
 \section{Ejercicio 1 - Sobre la complejidad de $H$ el ruido}
@@ -124,7 +132,10 @@ El enunciado de este apartado especifica que se vuelva a generar la muestra de d
 
 La gráfica de los datos etiquetados, junto a la recta que se usa para etiquetar, es la siguiente:
 
-\includegraphics[width=0.9 \textwidth]{puntos_clasificados_recta01}
+\begin{figure}[H]
+    \includegraphics[width=0.9 \textwidth]{puntos_clasificados_recta01}
+    \caption{Datos etiqeutados junto a la recta de clasificación}
+\end{figure}
 
 La gráfica deja claro que los puntos han sido correctamente clasificados a partir de la recta generada aleatoriamente.
 
@@ -138,7 +149,10 @@ Notar que podemos tener clases sin puntos. Es decir, que no etiquetamos ningún 
 
 El gráfico de clasificación tras esta modificación aleatoria es:
 
-\includegraphics[width = 0.8 \textwidth]{puntos_clasificados_recta_aleatorizados01}
+\begin{figure}[H]
+    \includegraphics[width = 0.8 \textwidth]{puntos_clasificados_recta_aleatorizados01}
+    \caption{Datos etiquetados con ruido, y recta original de clasificación}
+\end{figure}
 
 Se ve con claridad cómo esta operación introduce ruido sobre nuestras etiquetas. Aproximadamente, tendremos un error entorno al 10\% por la forma en la que hemos modificado las etiquetas (dependendiendo del ratio positivos / negativos, el error porcentual puede ser de hasta el 9\%).
 
@@ -168,8 +182,6 @@ Una vez hechos estos comentarios, mostramos las gráficas obtenidas como se nos 
 
     \caption{Etiquetado original sobre las nuevas funciones de etiquetado}
 \end{figure}
-
-% TODO -- Mirar la discusión que hago en el experimento, porque unas cuantas cosas que digo ahi las puedo decir aqui tambien
 
 Para comenzar, todas las funciones que estamos mostrando tienen un error porcentual mucho más alto que la recta que hemos usado para clasificar, estando los cuatro errores en un rango de $[31.0\%, 73.0\%]$. Por tanto, podemos ver que ciertas funciones tienen un error porcentual mucho más bajo que otras. En la interpretación alternativa realizamos una discusión sobre la \emph{Dimension Vapnik-Chervonenkis}, concluyendo que tienen mismo valor de $d_{VC}$, por lo que estas diferencias de error no pueden ser explicadas por una diferencia de complejidad de las funciones.
 
@@ -581,11 +593,11 @@ Las gráficas de etiquetado sobre las dos muestras de datos son:
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.3\textwidth}
-        \includegraphics[scale=0.35]{clasificacion_pocket_learning}
+        \includegraphics[scale=0.30]{clasificacion_pocket_learning}
         \caption{Clasificacion en la muestra de aprendizaje}
     \end{subfigure} \hspace{0.2\textwidth}
     \begin{subfigure}{0.3\textwidth}
-        \includegraphics[scale=0.35]{clasificacion_pocket_test}
+        \includegraphics[scale=0.30]{clasificacion_pocket_test}
         \caption{Clasificación en la muestra de test}
     \end{subfigure}
     \caption{Clasificación tras el entrenamiento de POCKET}
@@ -642,11 +654,6 @@ Y de nuevo, al expresar esta cota en tantos por ciento en vez de tantos por uno,
 
 Claramente la mejor cota la obtenemos empleando $E_{test}$, como era de esperar (pues la intención de usar esta muestra de datos es que nos de una información más fiel sobre $E_{out}$). Esta cota es casi la mitad que la que obtenemos con $E_{in}$.
 
-
 \pagebreak
-
-% Bibliografia
-\bibliography{References}
-\bibliographystyle{ieeetr}
 
 \end{document}
