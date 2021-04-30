@@ -49,6 +49,7 @@
 \usepackage{courier}
 \lstset{basicstyle=\footnotesize\ttfamily}
 
+
 % Metadatos del documento
 %===================================================================================================
 \title{
@@ -93,7 +94,7 @@
 
 \subsection{Observaciones iniciales}
 
-Para este primer ejercicio, hacemos uso de tres funciones que se nos dan en el fichero \lstinline{template_trabajo2.py}. Las dos primeras funciones devuelven una lista de $N$ vectores de una dimensión dada.
+Para este primer ejercicio, hacemos uso de tres funciones que se nos dan en el fichero \lstinline{template_trabajo2.py}:
 
 \begin{itemize}
     \item \lstinline{simula_unif}: genera una lista de $N$ vectores aleatorios de una dimensión dada. La distribución aleatoria que siguen es una distribución uniforme en un intervalo dado
@@ -124,21 +125,21 @@ Lanzando el código obtenemos las dos siguientes nubes de puntos:
 
 \subsection{Apartado 2}
 
-Vamos a valorar la influencia del ruido en la selección dela complejidad de la clase de funciones. Para ello generamos una muestra de puntos bidimensionales. En concreto, generamos 100 puntos en el intervalo $[-50, 50]$.
+Vamos a valorar la influencia del ruido en la selección de la complejidad de la clase de funciones. Para ello generamos una muestra de puntos bidimensionales. En concreto, generamos 100 puntos en el intervalo $[-50, 50]$ con una distribución aleatoria uniforme.
 
 Una vez que generamos esta muestra de datos, los etiquetamos usando una recta generada aleatoriamente, usando la función dada por los profesores \lstinline{simula_recta}. Con la recta $f(x) = ax + b$, etiquetamos los datos con la función de etiquetado $(x, y) \rightarrow sign(y - ax - b)$. Esta función toma un punto $x, y$, calcula su distancia a la recta $f$ (que se corresponde con $y - f(x)$) y como etiqueta asigna el signo de esta distancia. Es decir, estamos mirando si un punto se queda por encima de la recta (etiqueta $+1$) o por debajo (etiqueta $-1$).
 
-\textbf{Observación importante}: en el subapartado c), hemos considerado una interpretación alternativa del ejercicio, pues parece tener más interés académico a la hora de analizar las propiedades de las funciones que se nos dan para clasificar. Por tanto, desarrollamos una sección \ref{section:apartado_obligatorio}, donde realizamos la tarea especificada, y una sección \ref{section:apartado_extra} donde realizamos el experimento alternativo. Ambos procesos nos parecen pobres a la hora de extraer información sobre dichas funciones (como se comentará en el análisis de cada uno de los subapartados), pero la interpretación alternativa parece dar algo más de juego para realizar los análisis.
+\textbf{Observación importante}: en el subapartado c), hemos considerado una interpretación alternativa del ejercicio, pues parece tener más interés académico a la hora de analizar las propiedades de las funciones que se nos dan para clasificar. Por tanto, desarrollamos una sección \ref{section:apartado_obligatorio}, donde realizamos la tarea especificada, y una sección \ref{section:apartado_extra} donde realizamos el experimento alternativo. Ambos procesos nos parecen pobres a la hora de extraer información sobre dichas funciones (como se comentará en el análisis de cada uno de los subapartados), pero la interpretación alternativa parece dar algo más de juego a la hora de realizar los análisis.
 
 \subsubsection{Subapartado a)} \label{section:ejercicio1.2.a}
 
-El enunciado de este apartado especifica que se vuelva a generar la muestra de datos, como se especifica anteriormente, o al menos así lo hemos interpretado. Por tanto, se puede ver que la nube de datos no es la misma que la nube de datos uniforme del Apartado 1.
+El enunciado de este apartado especifica que se vuelva a generar la muestra de datos, como se muestra anteriormente, o al menos así lo hemos interpretado. Por tanto, se puede ver que la nube de datos no es la misma que la nube de datos uniforme del Apartado 1.
 
 La gráfica de los datos etiquetados, junto a la recta que se usa para etiquetar, es la siguiente:
 
 \begin{figure}[H]
     \includegraphics[width=0.9 \textwidth]{puntos_clasificados_recta01}
-    \caption{Datos etiqeutados junto a la recta de clasificación}
+    \caption{Datos etiquetados junto a la recta de clasificación}
 \end{figure}
 
 La gráfica deja claro que los puntos han sido correctamente clasificados a partir de la recta generada aleatoriamente.
@@ -147,18 +148,19 @@ La gráfica deja claro que los puntos han sido correctamente clasificados a part
 
 Modificamos el 10\% de las etiquetas positivas y un 10\% de las etiquetas negativas, y volvemos a mostrar la gráfica.
 
-Para realizar esto de forma eficiente, lo que hacemos es tomar dos vectores, uno con las posiciones de etiquetas positivas y otro con las posiciones de las etiquetas negativas. Calculamos el número de etiquetas de cada tipo a cambiar ($N_1, N_2$), a partir de un porcentaje arbitrario (para nuestro caso concreto, usamos $0.1$). Hacemos un \emph{shuffle} de los dos vectores de posiciones y cambiamos el etiquetado de las $N_1$ y $N_2$ primeras posiciones del vector remezclado. Con ello modificamos un porcentaje dado de las etiquetas de forma aleatoria. Todo esto se puede ver en la función \lstinline{change_labels}.
+Para realizar esto de forma eficiente, lo que hacemos es tomar dos vectores, uno con las posiciones de etiquetas positivas y otro con las posiciones de las etiquetas negativas. Calculamos el número de etiquetas de cada tipo a cambiar ($N_1, N_2$), a partir de un porcentaje arbitrario (para nuestro caso concreto, usamos $0.1$). Hacemos un \emph{shuffle} de los dos vectores de posiciones y cambiamos el etiquetado de las $N_1$ y $N_2$ primeras posiciones  de los vectores remezclados. Con ello modificamos un porcentaje dado de las etiquetas de forma aleatoria. Todo esto se puede ver en la función \lstinline{change_labels}.
 
 Notar que podemos tener clases sin puntos. Es decir, que no etiquetamos ningún dato con o bien $+1$ o bien $-1$. En el caso de la recta, es muy improbable que esto pase. Pero en el siguiente subapartado, con ciertas funciones es muy probable que pase.
 
 El gráfico de clasificación tras esta modificación aleatoria es:
 
 \begin{figure}[H]
+    \centering
     \includegraphics[width = 0.8 \textwidth]{puntos_clasificados_recta_aleatorizados01}
     \caption{Datos etiquetados con ruido, y recta original de clasificación}
 \end{figure}
 
-Se ve con claridad cómo esta operación introduce ruido sobre nuestras etiquetas. Aproximadamente, tendremos un error entorno al 10\% por la forma en la que hemos modificado las etiquetas (dependendiendo del ratio positivos / negativos, el error porcentual puede ser de hasta el 9\%).
+Se ve con claridad cómo esta operación introduce ruido sobre nuestras etiquetas. Aproximadamente, tendremos un error entorno al 10\% por la forma en la que hemos modificado las etiquetas (dependendiendo del ratio positivos / negativos, el error porcentual puede descender hasta el 9\%).
 
 \subsubsection{Subapartado c)} \label{section:apartado_obligatorio}
 
@@ -171,7 +173,7 @@ En este apartado, debemos considerar las siguientes funciones que definen una fr
     \item $f_3(x, y):= y - 20x^2 -5x +3$
 \end{itemize}
 
-Estas funciones no van a modificar el etiquetado que ya teníamos (el generado a partir de una recta y la introducción sintética de ruido). Simplemente mostramos las regiones de clasificación de estas nuevas funciones y los puntos con el clasificado original, buscando asi realizar un análisis sobre el uso de estos clasificadores más complejos.
+Estas funciones no van a modificar el etiquetado que ya teníamos (el generado a partir de una recta y la introducción sintética de ruido). Simplemente mostramos las regiones de clasificación de estas nuevas funciones y los puntos con el clasificado original, buscando así realizar un análisis sobre el uso de estos clasificadores más complejos.
 
 Podríamos haber intentado mostras las líneas de frontera de etiquetado, como hemos hecho con la recta. Pero para ello, tenemos que calcular un despeje de $f(x, y)$, o bien de $x$ o bien de $y$, pues $f(x, y)$ viene dada de forma implícita. No todas las funciones tienen un despeje global, por lo que habría que emplear el teorema de la función implícita para realizar despejes locales, y después concatenar las graficas obtenidas con los despejes locales. Hemos considerado que esto entorpecía demasiado el código. Así que la solución encontrada ha sido usar la función \lstinline{contourf} de la librería \lstinline{matplotlib.pyplot}, con la que pintaremos las regiones en las que clasificamos positivamente y las regiones en las que clasificamos negativamente.
 
@@ -189,11 +191,11 @@ Una vez hechos estos comentarios, mostramos las gráficas obtenidas como se nos 
 
 Para comenzar, todas las funciones que estamos mostrando tienen un error porcentual mucho más alto que la recta que hemos usado para clasificar, estando los cuatro errores en un rango de $[31.0\%, 73.0\%]$. Por tanto, podemos ver que ciertas funciones tienen un error porcentual mucho más bajo que otras. En la interpretación alternativa realizamos una discusión sobre la \emph{Dimension Vapnik-Chervonenkis}, concluyendo que tienen mismo valor de $d_{VC}$, por lo que estas diferencias de error no pueden ser explicadas por una diferencia de complejidad de las funciones.
 
-Como se ha comentado con el profesor de prácticas, a partir de este ejercicio se busca concluir que funciones más complejas no implican que realicemos un mejor ajuste de los datos. Y aunque esto se puede concluir por otros métodos más acertados, llegar a esas concluisiones a partir de este escenario parece algo falaz.
+Como se ha comentado con el profesor de prácticas, a partir de este ejercicio se busca concluir que funciones más complejas no implican que realicemos un mejor ajuste de los datos. Y aunque esto se puede concluir por otros métodos más acertados, llegar a esas conclusiones a partir de este escenario parece algo falaz.
 
 En primer lugar, no hemos realizado ningún tipo de proceso de aprendizaje. Los datos de la muestra han sido etiquetados por una recta que se ha generado aleatoriamente, mientras que las cuatro funciones de etiquetado $f_0, \ldots, f_3$, se han dado prefijadas. De hecho, a la hora de analizar la adecuación de las cuatro nuevas funciones, podemos considerar que la recta es prefijada y $f_0, \ldots f_3$ aleatorias, pues estas no tienen información alguna de cómo etiquetamos la muestra de datos.
 
-Una correcta discusión se podría hacer ajustando ciertos parámetros de las cuatro funciones al etiquetado generado a partir de la recta aleatoria y la introducción de ruido. O por simplicidad, se podrían haber la recta de clasificación y las cuatro funciones $f_0, \ldots, f_3$ ya ajustadas a este etiquetado, ahorrando el proceso de ajuste pero permitiendo una correcta discusión sobre las funciones de clasificación.
+Una correcta discusión se podría hacer ajustando ciertos parámetros de las cuatro funciones al etiquetado generado a partir de la recta aleatoria y la introducción de ruido. O por simplicidad, se podrían haber dado la recta de clasificación y las cuatro funciones $f_0, \ldots, f_3$ ya ajustadas a este etiquetado, ahorrando el proceso de ajuste pero permitiendo una correcta discusión sobre las funciones de clasificación.
 
 Por tanto, consideramos el experimento muy pobre a la hora de concluir que no necesariamente una función más compleja se ajustará mejor a una muestra etiquetada dada.
 
@@ -222,13 +224,13 @@ Mostramos las gráficas obtenidas:
 
 Comenzamos valorando la complejidad aparente de las funciones. Toda esta discusión es desde un punto de vista intuitivo. Pero no estamos cuantificando estas nociones, pudiendo llegar a ser falaz. Por tanto, después de este análisis superficial, realizamos un análisis más profundo y cuantitativo.
 
-Es claro que la recta realiza una clasificación mucho más sencilla que estas nuevas funciones de clasificación, pues divide el espacio en dos regiones sencillas: la región por encima de la recta y la región por debajo de la recta. $f_0$ ya es más compleja pues estamos considerando la región fuera y dentro de un círculo, que no está centrado en el origen. $f_1$ es algo más compleja, pues ahora no consideramos un círculo, sino una elipse (añadimos un nuevo parámetro al modelo, el achatamiento del eje $x$ dado por el factor $\frac{1}{a^2}$). En $f_2$ estamos considerando regiones hiperbólicas, que viene determinada por el mismo número de parámetros que $f_1$, aunque la forma de las regiones cambie al cambiar la cónica cambiando el signo. Y en este caso, hay un predominio de región de etiquetado positivo frente a la región de etiquetado negativo. Y finalmente en $f_3$ consideramos una parábola, cuya región de etiquetado negativo tiene un área muy pequeña comparada a la región de etiquetado positivo.
+Es claro que la recta realiza una clasificación mucho más sencilla que estas nuevas funciones de clasificación, pues divide el espacio en dos regiones sencillas: la región por encima de la recta y la región por debajo de la recta. $f_0$ ya es más compleja pues estamos considerando la región fuera y dentro de un círculo, que no está centrado en el origen. $f_1$ es algo más compleja, pues ahora no consideramos un círculo, sino una elipse (añadimos un nuevo parámetro al modelo, el achatamiento del eje $x$ dado por el factor $\frac{1}{a^2}$). En $f_2$ estamos considerando regiones hiperbólicas, que viene determinada por el mismo número de parámetros que $f_1$, aunque la forma de las regiones cambie al cambiar la cónica modificando el signo. En este caso, hay un predominio de región de etiquetado positivo frente a la región de etiquetado negativo. Y finalmente en $f_3$ consideramos una parábola, cuya región de etiquetado negativo tiene un área muy pequeña comparada a la región de etiquetado positivo.
 
 Bajo estas condiciones es algo complicado comentar si estas funciones más complejas son mejores clasificadores que la función lineal, pues esto dependerá de una serie de factores.
 
-Pasamos a valorar la complejida de las funciones de una forma objetiva, cuantitativa, y teniendo en cuenta la muestra de datos con la que estamos trabajando.
+Pasamos a valorar la complejidad de las funciones de una forma objetiva, cuantitativa, y teniendo en cuenta la muestra de datos con la que estamos trabajando.
 
-Para empezar, estamos trabajando con 100 puntos o datos. Debemos emplear algún método para concer si la complejidad de nuestras funciones se adecúa a la cantidad de datos con los que estamos trabajando. Esta herramienta será la \textbf{dimensión de Vapnik-Chervonenkis}. Sabemos que en el caso de la recta, $d_{VC} = d + 1 = 3$, y por tanto, la regla práctica para generalizar bien $N \geq 10 d_{VC}$ se cumple. Para el caso del círculo y de la elipse, tenemos también que $d_{VC} = 3$. Esto no es difícil de probar, al tener una dimensión tan baja, con ejemplos \footnotemark. Por tanto, a nivel de generalización, con los 100 datos que tenemos es suficiente pues $100 \geq 3 * 10$. Para el caso de la hipérbola y de la parábola hemos comprobado que $d_{VC} = 3$ yendo ejemplo por ejemplo (puede estar mal hecho el cálculo). Por lo cual, todas las funciones tienen una cantidad suficiente de datos acorde a $d_{VC}$ como para que no haya problemas para generalizar (siempre siguiendo la regla práctica $N \geq d_{VC} * 10$).
+Para empezar, estamos trabajando con 100 puntos o datos. Debemos emplear algún método para conocer si la complejidad de nuestras funciones se adecúa a la cantidad de datos con los que estamos trabajando. Esta herramienta será la \textbf{dimensión de Vapnik-Chervonenkis}. Sabemos que en el caso de la recta, $d_{VC} = d + 1 = 3$, y por tanto, la regla práctica para generalizar bien $N \geq 10 d_{VC}$ se cumple. Para el caso del círculo y de la elipse, tenemos también que $d_{VC} = 3$. Esto no es difícil de probar, al tener una dimensión tan baja, con ejemplos \footnotemark. Por tanto, a nivel de generalización, con los 100 datos que tenemos es suficiente pues $100 \geq 3 * 10$. Para el caso de la hipérbola y de la parábola hemos comprobado que $d_{VC} = 3$ yendo ejemplo por ejemplo (puede estar mal hecho el cálculo). Por lo cual, todas las funciones tienen una cantidad suficiente de datos acorde a $d_{VC}$ como para que no haya problemas para generalizar (siempre siguiendo la regla práctica $N \geq d_{VC} * 10$).
 \footnotetext{En \cite{PowerPoi66:online} se muestra de forma visual la prueba de esto con los conjuntos dados de datos. En \cite{machinel96:online} se realiza una prueba formal de este hecho.}
 
 Sería más adecuado realizar experimentos con un dataset de entrenamiento y otro de test para comprobar empíricamente que, efectivamente, con 100 datos no tenemos problemas de generalización.
@@ -241,7 +243,7 @@ Respecto al proceso de modificación de etiquetas, las condiciones en la que hem
 
 Esto se refleja en que obtenemos constantemente un error del 9\%. Que no sea un 10\% puede ser por la cantidad de etiquetas negativas y positivas. Al no ser numeros que al multiplicarlos por $0.1$ den un entero, se puede redondear por la baja, obteniendo así este error porcentual algo más bajo que el 10\%.
 
-Sin embargo, si que hemos detectado una característica en la que la forma de $f$ influye en el proceso. Esto se ve claro con $f_3$. Al tener una región mucho más pequeña que la contraria (en este caso, región de etiquetado negativo mucho más pequeña que la región de etiqetado positivo), es muy probable que no hayamos clasificado ningún punto como negativo, y por tanto realizamos modificaciones del tipo $negativo \rightarrow positivo$, solo modificaciones del tipo $positivo \rightarrow negativo$. Aún así, esto no es demasiado relevante
+Sin embargo, si que hemos detectado una característica en la que la forma de $f$ influye en el proceso. Esto se ve claro con $f_3$. Al tener una región mucho más pequeña que la contraria (en este caso, región de etiquetado negativo mucho más pequeña que la región de etiquetado positivo), es muy probable que no hayamos clasificado ningún punto como negativo, y por tanto realizamos modificaciones del tipo $negativo \rightarrow positivo$, solo modificaciones del tipo $positivo \rightarrow negativo$. Aún así, esto no es demasiado relevante
 
 Así queda justificado que el proceso de introducción de ruido no es muy informativo. Un proceso de introducción de ruido mucho más interesante podría haber sido seleccionar aleatoriamente un porcentaje de las etiquetas, tanto positivas como negativas, y en vez de cambiar arbitrariamente su etiqueta, modificar en un cierto rango acotado su posición, y ver si en esa nueva posición se etiquetaría con el otro valor.
 
@@ -266,7 +268,7 @@ Ejecutamos el algoritmo \emph{PLA} sobre los datos generados en \ref{section:eje
 
 Para usar los mismos datos que en \ref{section:ejercicio1.2.a}, usamos variables globlales para guardar en ese primer ejercicio los datos generados. Otra observación pertinente es que a la función \lstinline{perceptron_learning_algorithm} le tenemos que pasar un número máximo de iteraciones. Queremos alcanzar la solución antes de agotar las iteraciones, porque sabemos que la muestra es linealmente separable. Por tanto hacemos una asignación lo suficientemente grande: \lstinline{max_iterations = 5000}.
 
-Mostramos de nuevo la gráfica de los datos etiquetados para asegurarnos de que estamos en el mismo ambiente que en \ref{section:ejercicio1.2.a}:
+Mostramos de nuevo la gráfica de los datos etiquetados para asegurarnos que estamos en el mismo ambiente que en \ref{section:ejercicio1.2.a}:
 
 \begin{figure}[H]
     \centering
@@ -372,7 +374,7 @@ Además, queda claro que 5000 iteraciones son más que suficientes, pues nunca v
 \pagebreak
 \subsection{Apartado b) - Regresión logística}
 
-Empezamos esta sección explicando cómo vamos a generar nuestra muestra de datos. Tenemos una población hipotética $\chi = [0, 2] \times [0, 2]$ y la probabilida de tomar un $x \in \chi$ es uniforme. Por tanto, para generar tanto las muestras de entrenamiento como de test, lo que hacemos es invocar a una función que nos da un punto aletorio con probabilidad uniforme en ese intervalo bidimensional.
+Empezamos esta sección explicando cómo vamos a generar nuestra muestra de datos. Tenemos una población hipotética $\chi = [0, 2] \times [0, 2]$ y la probabilidad de tomar un $x \in \chi$ es uniforme. Por tanto, para generar tanto las muestras de entrenamiento como de test, lo que hacemos es invocar a una función que nos da un punto aleatorio con probabilidad uniforme en ese intervalo bidimensional.
 
 La función \lstinline{generate_dataset} toma un número dado de puntos aleatorios en $\chi$. Usaremos esta función tanto para las muestras de entrenamiento como para las de test.
 
@@ -390,13 +392,13 @@ $$
 
 donde $\sigma(x) := \frac{1}{1 + e^{-x}}$ y $signal$ es la señal lineal dada por $signal := w^T x$. Es claro que lo que aprendemos de este modelo son los valores de los pesos: $w$.
 
-Antes de realizar el experimento 100 veces, vamos a ejecutar una repetición del experimento, mostrando ciertas gráficas y realizando algunos análisis antes de realizar. Tras esto, lanzamos 100 veces el experimento, obteniendo más información para realizar los análisis.
+Antes de realizar el experimento 100 veces, vamos a ejecutar una repetición del experimento, mostrando ciertas gráficas y realizando algunos análisis antes. Tras esto, lanzamos 100 veces el experimento, obteniendo más información para realizar los análisis.
 
 \subsubsection{Regresión logística con Gradiente Descendente Estocástico}
 
 La primera consideración para implementar regresión logística junto a gradiente descendente estocástico es la necesidad de añadir una columna de unos a la matriz de datos. Esta columna en la primera práctica ya venía dada. Pero en este caso, necesitamos añadirla manualmente. Esta columna representa el término independiente de la combinación lineal que subyace al modelo lineal. Podríamos hacerlo sin esta columna, pero en ese caso no podemos fijar un \emph{offset} a los datos. Para añadir la columna de unos disponemos de la función \lstinline{add_colum_of_ones}.
 
-El algortimo de gradiente descendente estocástico ya fue explicado en la anterior práctica. Todas las consideraciones sobre la implementación de este algoritmo ya fueron expuestas en la anterior memoria (por ejemplo, la generación de \emph{minibatches} mezclados aleatoriamente de forma eficiente y cómoda). Así que para este problema, tenemos que realizar las siguientes modificaciones:
+El algoritmo de gradiente descendente estocástico ya fue explicado en la anterior práctica. Todas las consideraciones sobre la implementación de este algoritmo ya fueron expuestas en la anterior memoria (por ejemplo, la generación de \emph{minibatches} mezclados aleatoriamente de forma eficiente y cómoda). Así que para este problema, tenemos que realizar las siguientes modificaciones:
 
 \begin{itemize}
     \item El error que consideramos viene dado por $E_{in} = \frac{1}{N} \sum ln(1 + e^{-y_i w^T x_i})$. Este es el error que vamos a mostrar en las gráficas de convergencia.
@@ -420,7 +422,7 @@ Generamos el conjunto de datos, de la forma que ya hemos comentado:
     \caption{Muestra de datos etiquetada por la recta aleatoria}
 \end{figure}
 
-Claramente el proceso de etiquetado hace que la muestra de datos linealmente separable. Por tanto, es de esperar que regresión logística con gradiente descendente estocástico alcance un $E_{in} = 0.0\%$.
+Claramente el proceso de etiquetado hace que la muestra de datos sea linealmente separable. Por tanto, es de esperar que regresión logística con gradiente descendente estocástico alcance un $E_{in} = 0.0\%$.
 
 \subsubsection{Entrenamiento y resultados}
 
@@ -450,7 +452,7 @@ Los resultados obtenidos eran los que esperábamos. El error \emph{cross-entropy
     \caption{Gráficas de convergencia para LGR-SGD}
 \end{figure}
 
-Vemos que el comportamiento del gradiente descendiente es adecuado. Pareciera que en \ref{figure:sin_ampliar} tenemos convergencia monótona. Por eso mostramos un \emph{"zoom"} de la gráfica para ver que no es así, como es lo normal cuando usamos minibatches para el gradiente descendente.
+Vemos que el comportamiento del gradiente descendiente es adecuado. Pareciera que en la figura \ref{figure:sin_ampliar} tenemos convergencia monótona. Por eso mostramos un \emph{"zoom"} de la gráfica para ver que no es así, como es lo normal cuando usamos minibatches para el gradiente descendente.
 
 Podemos tambier mostrar la recta de frontera junto a los datos con su etiquetado original:
 
@@ -494,7 +496,7 @@ El resultado que mostramos por pantalla es:
 
 Estos resultados reafirman lo que hemos ido comentando. Notar que no estamos mostrando el error dentro de la muestra, pues al generar \emph{datasets} linealmente separables, potencialmente estamos alcanzando un $E_{in} = 0.0\%$. Este $E_{in} = 0.0\%$ debería hacernos pensar si estamos cometiendo \emph{overfitting} sobre la muestra de entrenamiento. Sin embargo la media de error fuera de la muestra es de $2.777\%$, por lo que estamos obteniendo una buena generalización.
 
-Por otro lado, la desviación típica del error fuera de la muestra muestra una gran estabilidad de la capacidad de generalización fuera de la muestra, pues es un valor para la desviación muy bajo.
+Por otro lado, la desviación típica del error fuera de la muestra indica una gran estabilidad de la capacidad de generalización fuera de la muestra, pues es un valor para la desviación muy bajo.
 
 Es notable la gran cantidad de épocas que necesita \emph{SGD} para converger. Sin embargo, los buenos resultados justifican estos tiempos de entrenamiento.
 
@@ -504,7 +506,7 @@ Es notable la gran cantidad de épocas que necesita \emph{SGD} para converger. S
 
 Consideramos el conjunto de datos manuscritos y seleccionamos las muestras asociadas con los dígitos 4 y 8. Tomamos la muestra de entrenamiento y la muestra de test de los dos tipos de ficheros proporcionados. Para ello, hacemos uso de la función dada por los profesores de prácticas: \lstinline{readData}.
 
-Esta muestra de datos nos da las carácterísticas \emph{intensidad promedio} y \emph{simetría}.
+Esta muestra de datos nos da las características \emph{intensidad promedio} y \emph{simetría}.
 
 \subsection{Apartado 1}
 
@@ -534,7 +536,7 @@ Esto último nos hace considerar $\chi = \{1\} \times \mathbb{R}^2$.
 
 En este apartado usamos un modelo de regresión lineal y aplicamos \emph{PLA-Pocket} como mejora. Esto es, ajustamos los datos con un modelo de regresión lineal clásico, obteniendo una primera solución. Después, lanzamos \emph{PLA-POCKET} con solución inicial la primera solución, buscando mejorar dicha solución.
 
-Para la parte de regresión lineal, usaremos el algoritmo de la pseudo-inversa. Tenemos una cantidad no muy grande de datos, así que nos parece adecuado. En un principio se podría pensar que, al tener una primera solución por una fórmula cerrada. Sin embargo, esta solución cerrada por la pseudo-inversa minimiza el error cuadrático medio, al resolver un problema de regresión. Nuestra intención es minimizar el porcentaje de puntos mal clasificados, y ahí es donde entra en juego aplicar \emph{PLA-POCKET} con la anterior solución como punto de partida.
+Para la parte de regresión lineal, usaremos el algoritmo de la pseudo-inversa. Tenemos una cantidad no muy grande de datos, así que nos parece adecuado. En un principio se podría pensar que, al tener una primera solución por una fórmula cerrada, esta solución no puede ser mejorada. Sin embargo, esta solución cerrada por la pseudo-inversa minimiza el error cuadrático medio, al resolver un problema de regresión. Nuestra intención es minimizar el porcentaje de puntos mal clasificados, y ahí es donde entra en juego aplicar \emph{PLA-POCKET} con la anterior solución como punto de partida.
 
 \subsection{Datos con los que trabajamos}
 
@@ -567,7 +569,7 @@ Los dos errores que mostramos son porcentajes en tantos por uno. Por tanto, tene
 
 \subsubsection{Entrenamiento usando PLA-POCKET}
 
-A partir de la anterior solución, lanzamos PLA-POCKET buscando mejorar dicha solución. Como parámetro a este algoritmo, establecemos un número máximo de iteraciones (sobre \emph{Epochs}) de 1000. Restringimos el número máximo de épocas, porque este algoritmo tiene una penalización de tiempo de ejecución respecto \emph{PLA} clásico. En cadda iteración sobre un dato (que no sobre una época), tenemos que evaluar el error porcentual para saber si estamos obtienendo un mejor candidato. Por tanto, estamos haciendo llamadas constantes a esta función de error, que es lenta.
+A partir de la anterior solución, lanzamos PLA-POCKET buscando mejorar dicha solución. Como parámetro a este algoritmo, establecemos un número máximo de iteraciones (sobre \emph{Epochs}) de 1000. Restringimos el número máximo de épocas, porque este algoritmo tiene una penalización de tiempo de ejecución respecto \emph{PLA} clásico. En cada iteración sobre un dato (que no sobre una época), tenemos que evaluar el error porcentual para saber si estamos obteniendo un mejor candidato. Por tanto, estamos haciendo llamadas constantes a esta función de error, que es lenta.
 
 La salida de este entrenamiento es:
 

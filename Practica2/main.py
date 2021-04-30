@@ -1461,6 +1461,7 @@ def PLA_experiment(dataset, labels, max_iterations = 1e5, repetitions = 10, init
         init_solution = np.random.rand(len(dataset[0]))
 
         # Calculamos todos los valores para la inicializacion aleatoria
+        # TODO -- aqui cuando paso cero no estoy haciendo vector inicial cero
         curr_sol, curr_cons_it = perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution, verbose = False)
         curr_err = percentage_error(dataset, labels, curr_sol)
 
