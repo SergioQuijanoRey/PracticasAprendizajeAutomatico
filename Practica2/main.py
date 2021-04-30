@@ -1457,11 +1457,18 @@ def PLA_experiment(dataset, labels, max_iterations = 1e5, repetitions = 10, init
     consumed_iterations = []
 
     for _ in range(10):
-        # Tomamos una solucion aleatoria
-        init_solution = np.random.rand(len(dataset[0]))
+
+        # Seleccionamos el tipo de vector inicial
+        init_solution = None
+        if init_type == "zero":
+            init_solution = np.zeros(len(dataset[0]))
+        elif init_type == "random":
+            init_solution = np.random.rand(len(dataset[0]))
+        else:
+            raise Exception("Tipo de solucion inicial no valida")
+
 
         # Calculamos todos los valores para la inicializacion aleatoria
-        # TODO -- aqui cuando paso cero no estoy haciendo vector inicial cero
         curr_sol, curr_cons_it = perceptron_learning_algorithm(dataset, labels, max_iterations, init_solution, verbose = False)
         curr_err = percentage_error(dataset, labels, curr_sol)
 
@@ -1625,7 +1632,7 @@ def ejercicio2_apartado1():
         noisy_labels,
         max_iterations = max_iterations,
         repetitions=10,
-        init_type="randon"
+        init_type="random"
     )
     print("Resultado de las 10 iteraciones -- Vector inicial aleatorio:")
     print(f"\t-> Errores finales(tanto por uno): {final_errors}")

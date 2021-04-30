@@ -211,7 +211,6 @@ De nuevo, usamos la función \lstinline{contourf} para mostrar las regiones de c
 
 Mostramos las gráficas obtenidas:
 
-% TODO -- esta bien mostrar estas graficas aqui?
 \begin{figure}[H]
     \includegraphics[width=0.60 \textwidth]{puntos_clasificados_experimento_f0.png}
     \includegraphics[width=0.60 \textwidth]{puntos_clasificados_experimento_f1.png}
@@ -257,7 +256,6 @@ Resumiendo, consideramos insuficiente la información dada para comparar las fun
 
 \section{Ejercicio 2 - Modelos lineales}
 
-% TODO -- incluir el pseudocodigo
 La función \lstinline{ajusta_PLA(datos, label, max_iter, vini)} está implementada bajo el nombre \lstinline{perceptron_learning_algorithm}. Esta función recibe los parámetros indicados por el guión, y uno adicional. Este parámetro adicional es el booleano \lstinline{verbose}, que cuando se pasa como \lstinline{True}, devuelve la solución, las iteraciones consumidas y el error porcentual en la muestra de cada iteración. Cuando es \lstinline{False}, solo devolvemos la solución y el número de iteraciones consumidas. Notar que las iteraciones consumidas se corresponden con la cantidad de \emph{Epochs} consumidos (pasadas completas sobre todo el conjunto de datos). El error por cada iteración también se refiere al error por cada \emph{Epoch}. El algoritmo es tan sencillo que no parece necesario incluir el pseudo-código. Además, la implementación es también muy directa, por lo que no parece necesario hacer aclaraciones sobre decisiones tomadas para implementar el algoritmo.
 
 \subsection{Apartado a) - Algoritmo Perceptron}
@@ -276,10 +274,19 @@ Mostramos de nuevo la gráfica de los datos etiquetados para asegurarnos que est
     \caption{Datos clasificados por la recta aleatoria}
 \end{figure}
 
-Lanzamos 10 veces el algoritmo para el vector inicial cero, y otras 10 para vector inicial aleatorio y mostramos los resultados del experimento por pantalla:
+Lanzamos 10 veces el algoritmo para el vector inicial cero, y otras 10 para vector inicial aleatorio. Es de esperar que con vector inicial cero, tengamos los mismos resultados, pues PLA no tiene ningún componente aleatorio si fijamos la solución inicial. Pero al considerar diez experimentos para vector inicial cero, lanzamos diez ejecuciones para que quede más clara la comparación. Mostramos los resultados del experimento por pantalla
 
 \begin{lstlisting}[caption={Resultados para vector inicial cero}, captionpos=b]
-Resultado de las 10 iteraciones -- Vector Inicial Cero:
+-> Errores finales(tanto por uno): [0.0, 0.0, 0.0, 0.0, 0.0,
+                                    0.0, 0.0, 0.0, 0.0, 0.0]
+-> Valor medio de los errores: 0.0%
+-> Desviacion tipica de los errores: 0.0
+-> Iteraciones consumidas: [26, 26, 26, 26, 26, 26, 26, 26, 26, 26]
+-> Valor medio de iteraciones: 26.0
+-> Desviacion tipica del numero de iteraciones: 0.0
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Resultados para vector inicial aleatorio} ,captionpos=b]
 -> Errores finales(tanto por uno): [0.0, 0.0, 0.0, 0.0, 0.0,
                                     0.0, 0.0, 0.0, 0.0, 0.0]
 -> Valor medio de los errores: 0.0%
@@ -289,18 +296,9 @@ Resultado de las 10 iteraciones -- Vector Inicial Cero:
 -> Desviacion tipica del numero de iteraciones: 14.8340
 \end{lstlisting}
 
-\begin{lstlisting}[caption={Resultados para vector inicial aleatorio} ,captionpos=b]
-Resultado de las 10 iteraciones -- Vector Inicial aleatorio:
--> Errores finales(tanto por uno): [0.0, 0.0, 0.0, 0.0, 0.0,
-                                    0.0, 0.0, 0.0, 0.0, 0.0]
--> Valor medio de los errores: 0.0%
--> Desviacion tipica de los errores: 0.0
--> Iteraciones consumidas: [120, 78, 26, 25, 47, 27, 42, 44, 44, 13]
--> Valor medio de iteraciones: 46.6
--> Desviacion tipica del numero de iteraciones: 29.6856
-\end{lstlisting}
+Ambos algoritmos, como era de esperar, convergen a una solución de error $E_{in} = 0.0\%$. Por lo tanto, no merece hacer comparaciones sobre los errores alcanzados. Sin embargo, las iteraciones necesarias para converger sí que son distintas. Para el vector inicial cero, tenemos un menor número medio necesario de iteraciones necesarias (realmente al no tener aleatoriedad no hace falta considerar valores medios) que con vector inicial aleatorio, y la diferencia es significativa.
 
-Ambos algoritmos, como era de esperar, convergen a una solución de error $E_{in} = 0.0\%$. Por lo tanto, no merece hacer comparaciones sobre los errores alcanzados. Sin embargo, las iteraciones necesarias para converger sí que son distintas. Para el vector inicial cero, tenemos un menor número medio necesario de iteraciones necesarias que con vector inicial aleatorio, aunque la diferencia no es demasiado grande. Además, la desviación típica del número necesario de iteraciones para converger es menor usando el vector inicial cero que en el vector inicial aleatorio. Era de esperar pues al inicializar de forma aleatoria estamos introduciendo mucha más variabilidad al algoritmo. Por tanto, el vector inicial cero resulta más adecuado en este ambiente: requiere en media menos iteraciones y es más estable respecto a dicho número necesario de iteraciones.
+Además, el vector inicial aleatorio tiene una variabilidad, indicada por la desviación típica, que con vector inicial aleatorio no tenemos. Y con ello, podemos pensar que partiendo de un vector inicial cero, tenemos resultados más estables, con ausencia de variabilidad por factores aleatorios.
 
 También mostramos los gráficos de convergencia para una ejecución de \emph{PLA} con vector inicial cero, y otro para vector inicial aleatorio:
 
@@ -316,9 +314,7 @@ También mostramos los gráficos de convergencia para una ejecución de \emph{PL
     \caption{Gráficas de convergencia para PLA}
 \end{figure}
 
-Con estos gráficos podemos pensar que el vector inicial cero es mucho más rápido en converger, y mucho más estable que el vector inicial aleatorio. Pero con los 10 experimentos hemos visto que no es demasiado más rápido, aunque si que es bastante más estable entre distintas ejecuciones (aquí el aleatorio ha tenido una ejecución muy mala, lo cual es probable al tener una desviación típica alta).
-
-
+Con estos gráficos y los resultados de los 10 experimentos concluimos que el vector inicial cero es mucho más rápido en converger, y mucho más estable que el vector inicial aleatorio. Además, en esta gráfica, vemos que hemos tomado una mala ejecución con vector inicial aleatorio. Esto es bastante probable por la alta variabilidad que ya hemos comentado.
 
 \subsubsection{Subapartado 2}
 
@@ -333,23 +329,20 @@ Repetimos el mismo experimento pero usando ahora los datos con ruido, generados 
 Y de nuevo, mostramos los resultados del experimento:
 
 \begin{lstlisting}[caption={Resultados para vector inicial cero y ruido en las etiquetas}, captionpos=b]
-Resultado de las 10 iteraciones -- Vector Inicial Cero:
--> Errores finales(tanto por uno): [0.19, 0.2, 0.17, 0.09, 0.2,
-                                    0.17, 0.18, 0.13, 0.09, 0.28]
--> Valor medio de los errores: 17.0%
--> Desviacion tipica de los errores: 0.0536
+-> Errores finales(tanto por uno): [0.09, 0.09, 0.09, 0.09, 0.09,
+                                    0.09, 0.09, 0.09, 0.09, 0.09]
+-> Valor medio de los errores: 8.999999%
+-> Desviacion tipica de los errores: 0.0
 -> Iteraciones consumidas: [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
 -> Valor medio de iteraciones: 5000.0
 -> Desviacion tipica del numero de iteraciones: 0.0
 \end{lstlisting}
 
-
 \begin{lstlisting}[caption={Resultados para vector inicial aleatorio y ruido en las etiquetas}, captionpos=b]
-Resultado de las 10 iteraciones -- Vector inicial aleatorio:
--> Errores finales(tanto por uno): [0.2, 0.26, 0.09, 0.29, 0.17,
-                                    0.26, 0.18, 0.13, 0.1, 0.27]
--> Valor medio de los errores: 19.5%
--> Desviacion tipica de los errores: 0.0694
+-> Errores finales(tanto por uno): [0.16, 0.18, 0.12, 0.13, 0.12,
+                                    0.13, 0.18, 0.17, 0.26, 0.27]
+-> Valor medio de los errores: 17.2%
+-> Desviacion tipica de los errores: 0.0515
 -> Iteraciones consumidas: [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
 -> Valor medio de iteraciones: 5000.0
 -> Desviacion tipica del numero de iteraciones: 0.0
@@ -357,7 +350,7 @@ Resultado de las 10 iteraciones -- Vector inicial aleatorio:
 
 En este caso, los datos no son linealmente separables por el ruido, y por lo tanto, \emph{PLA} no convergerá. Por lo cual, el algoritmo consumirá el número máximo de iteraciones, el cual está establecido a un valor de $5000$. Teniendo en cuenta que anteriormente necesitábamos de media aproximadamente 40-45 iteraciones sobre \emph{Epochs}, este valor de $5000$ parece más que razonable para ajustarnos a la muestra.
 
-Al consumir ambos el máximo de iteraciones, no podemos realizar comparaciones respecto a esto entre los dos algoritmos. Con vector inicial cero hemos obtenido un error ligeramente mejor que con vector inicial aleatorio. Además, la desviación típica de los errores es menor, por lo que nos encontramos con que el vector inicial cero proporciona en media errores más bajos y es más estable que considerar vector inicial aleatorio. Y de nuevo, como en el caso de un \emph{dataset} linealmente separable, concluimos que es mejor considerar un vector inicial cero que un vector inicial aleatorio.
+Al consumir ambos el máximo de iteraciones, no podemos realizar comparaciones respecto a esto entre los dos algoritmos. De nuevo, con vector inicial cero tenemos un error significativamente menor que el error medio con vector inicial aleatorio. Y de nuevo, al tener ausencia de factores aleatorios, tenemos una estabilidad que el vector inicial aleatorio no tiene.
 
 Al igual que hacíamos en el subapartado anterior, mostramos la gráfica de convergencia. Con la diferencia de que esta vez, solo mostramos la ejecución para vector inicial aleatorio.
 
@@ -367,7 +360,7 @@ Al igual que hacíamos en el subapartado anterior, mostramos la gráfica de conv
     \caption{Gráfica de convergencia - PLA con $V_{ini} = 0$ y ruido sintético}
 \end{figure}
 
-Se ve claramente el comportamiento errático de \emph{PLA} que conocíamos de teoría. Por tanto, no tiene sentido que mostremos otro gráfico viendo el progreso usando vector inicial aleatorio. Este gráfico es útil para ver que, aunque con el experimento digamos que usando vector inicial cero tenemos más estabilidad que usando vector inicial aleatorio, la estabilidad del algoritmo en general es muy mala. Además, motiva el uso de la mejora \emph{PLA-Pocket}. Usando esta mejora del algoritmo, obtendríamos una gráfica de convergencia monótonamente decreciente.
+Se ve claramente el comportamiento errático de \emph{PLA} que conocíamos de teoría. Por tanto, no tiene sentido que mostremos otro gráfico viendo el progreso usando vector inicial aleatorio. Este gráfico es útil para motivar el uso de la mejora \emph{PLA-Pocket}. Usando esta mejora del algoritmo, obtendríamos una gráfica de convergencia monótonamente decreciente.
 
 Además, queda claro que 5000 iteraciones son más que suficientes, pues nunca vamos a lograr $E_{in} = 0$, y además, al no decrecer el error monótonamente tampoco parece beneficioso consumir más iteraciones.
 
