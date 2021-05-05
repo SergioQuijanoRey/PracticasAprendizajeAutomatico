@@ -8,6 +8,7 @@ numpy = "*"
 matplotlib = "*"
 pandas = "*"
 sklearn = "*"
+jupyter = "*"
 
 [dev-packages]
 autopep8 = "*"
