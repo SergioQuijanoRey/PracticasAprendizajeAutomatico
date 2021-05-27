@@ -121,6 +121,37 @@
 
 \section{Problema de regresión}
 
+\subsection{Exploración del problema}
+
+Tras esta exploración del problema => No tenemos conocimiento suficiente para proponer una trasnformación de los datos en base al conocimiento del problema o una selección de las características más relevantes del problema. Por ello, usamos técnicas estadísticas para selección de características y la técnica CV para selección de modelos / transformaciones
+
+\subsubsection{Descripción del problema}
+
+% TODO -- escribir algo
+
+\subsubsection{Exploración del \emph{Dataset}}
+
+Antes de empezar a explorar los datos del problema, separamos train, test => No queremos saber nada sobre el test que nos pueda influir => para evitar data snooping
+Mostramos las estadisticas de las variables sin normalizar => tabla que he construido con pandas
+Rangos de variables dispares => justifica la necesidad de normalizar los datos
+Todos los datos son reales o enteros => no es necesario realizar otro tipo de codificaciones
+
+\subsection{Preprocesado de los datos}
+
+\subsubsection{Eliminación de outliers}
+
+Eliminamos outliers => valores que se desvían más de 4 veces la desviación típica
+Eliminamos outliers antes de normalizar, porque estamos normalizando con la media y la desviacion tipica, los outliers pueden afectar a una buena normalizacion: https://scikit-learn.org/stable/modules/preprocessing.html#scaling-data-with-outliers => esta en el .bib
+Outliers con una sola variable por simplicidad => tenemos muchos datos, la pérdida no va a ser muy grande
+Decir lo que es el Z-score (numero de desviaciones típicas en las que nos alejamos de la media). Quitamos filas con z-score mayor que 4
+
+\subsubsection{Normalización}
+
+Ya hemos justificado la necesidad de aplicar normalizacion
+Aplicamos normalización bien => sin tener en cuenta información del test => mostrar el código porque puede ser relevante
+
+
+
 \pagebreak
 \section{Problema de clasificación}
 
