@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from scipy import stats
 from core import *
 
@@ -80,8 +81,27 @@ def explore_training_set(df):
     print_full(stats)
     wait_for_user_input()
 
+    # TODO -- falta visualizar los datos en una grafica t-sne
+
 # Preprocesado de los datos
 #===============================================================================
+def split_train_dataset_into_X_and_Y(df):
+    """
+    Tenemos un dataframe con las variables dependientes y la variable dependiente. Esta funcion los
+    separa en un dataframe para cada tipo de variable
+
+    Parameters:
+    ===========
+    df: dataframe con los datos
+
+    Returns:
+    ========
+    df_X: dataframe con las variables dependientes
+    df_Y: dataframe con las variables a predecir (en este caso, una unica variable)
+    """
+
+    return df.loc[:, df.columns != "critical_temp"], df["critical_temp"]
+
 def remove_outliers(df, times_std_dev):
     """
     Elimina las filas de la matriz representada por df en las que, en alguna columna, el valor de la
@@ -91,36 +111,87 @@ def remove_outliers(df, times_std_dev):
     ==========
     df: dataframe sobre el que trabajamos
     times_std_dev: umbral de desviacion respecto a la desviacion estandar
+                   Un valor usual es 3.0, porque el 99.74% de los datos de una distribucion normal
+                   se encuentran en el intervalo (-3 std + mean, 3 std + mean)
 
     Returns:
     ========
     cleaned_df: dataframe al que hemos quitado las filas asociadas a los outliers descritos
-    """
-    # TODO -- implementar
-    raise NotImplementedError
 
+    TODO -- borra demasiados datos de nuestro dataset
+    """
+    return df[(np.abs(stats.zscore(df)) < times_std_dev).all(axis=1)]
+
+def normalize_dataset(train_df, test_df):
+    """
+    Normaliza el dataset, usando solo la informacion de los datos de entrenamiento. A los datos de
+    test se les aplica la misma transformacion. Notar que no se esta usando informacion de la
+    muestra de test para aplicar la normalizacion. Pero pasamos el conjunto de test para aplicar
+    la misma trasnformacion a estos datos
+
+    Parameters:
+    ===========
+    train_df: dataframe de datos de entrenamiento, de los que se calculan los estadisticos para la
+              transformacion
+    test_df: dataframe de datos de test. No se toma informacion de esta muestra para calcular la
+             trasnformacion
+
+    Returns:
+    ========
+    normalized_train: dataframe con los datos de entrenamiento normalizado
+    normalized_test: dataframe con los datos de test normalizados con la misma transformacion
+                     calculada a partir de los datos de entrenamiento
+    """
+    # Guardamos los nombres de las columna del dataframe, porque la tranformacion va a hacer que
+    # perdamos este metadato
+    prev_cols = train_df.columns
+    print(f"Prev cols: {prev_cols}")
+
+    scaler = StandardScaler()
+    normalized_train = scaler.fit_transform(train_df)
+    normalized_test = scaler.transform(test_df)
+
+    # La transformacion devuelve np.arrays, asi que volvemos a dataframes
+    normalized_train = pd.DataFrame(normalized_train, columns = prev_cols)
+    normalized_test = pd.DataFrame(normalized_test, columns = prev_cols)
+
+    return normalized_train, normalized_test
 
 # Funcion principal
 #===============================================================================
 if __name__ == "__main__":
     print("==> Carga de los datos")
     df = load_data_csv(file_path)
+    print(f"Tamaño de todo el dataset: {len(df)}")
+    wait_for_user_input()
 
     print("==> Separamos training y test")
     # 20% del dataset a test
     df_train, df_test = split_data(df, 0.2)
-
-    print("==> Exploracion de los datos de entrenamiento")
-
     print(f"Tamaño del set de entrenamiento: {len(df_train)}")
     print(f"Tamaño del set de test: {len(df_test)}")
     wait_for_user_input()
 
     # Mostramos las caracteristicas de los datos
+    print("==> Exploracion de los datos de entrenamiento")
     explore_training_set(df_train)
 
     print("==> Procesamiento de los datos")
-    df_train = remove_outliers(df_train, times_std_dev = 0.0)
-    print(f"Tamaño tras la limpieza: {len(df_train)}")
+    print("--> Separamos el dataframe de variables X y el dataframe de variable Y")
+    df_train_X, df_train_Y = split_train_dataset_into_X_and_Y(df_train) # Separamos datos de entrenamiento
+    df_test_X, df_train_Y = split_train_dataset_into_X_and_Y(df_test)   # Separamos datos de test
 
+    print("--> Borrando outliers")
+    prev_len = len(df_train_X)
+    df_train = remove_outliers(df_train_X, times_std_dev = 4.0)
+    print(f"Tamaño tras la limpieza de outliers del train_set: {len(df_train)}")
+    print(f"Numero de filas eliminadas: {prev_len - len(df_train)}")
+    wait_for_user_input()
 
+    print("--> Normalizando dataset")
+    # Notar que la variable de salida temperatura critica no la estamos normalizando
+    df_train_X, df_test_X = normalize_dataset(df_train_X, df_test_X)
+
+    print("Mostramos las estadisticas de los datos de entrenamiento normalizados")
+    explore_training_set(df_train_X)
+    wait_for_user_input()
