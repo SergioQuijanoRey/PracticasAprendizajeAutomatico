@@ -149,10 +149,12 @@ De nuevo, en el paper original \cite{original_paper_reg:paper} se describe el pr
 
 Se parte de las siguientes propiedades de los elementos que componen los distintos superconductores:
 
+% TODO -- esta tabla esta muy manchada
+\begin{table}
 \begin{center}
 \begin{tabular}{|c|c|}
- \hline
     Variable & Descripción \\
+    \hline
     Atomic Mass & Total proton and neutron rest masses \\
     First Ionization Energy & Energy required to remove a valence electron \\
     Atomic Radius & Calculated atomic radius \\
@@ -161,10 +163,11 @@ Se parte de las siguientes propiedades de los elementos que componen los distint
     Fusion Heat & Energy to change from solid to liquid without temperature change \\
     Thermal Conductivity &  Thermal conductivity coefficient $\kappa$ \\
     Valence & Typical number of chemical bonds formed by the element \\
- \hline
-\caption{Propiedades de los elementos usadas para crear las \emph{features}}
+    \hline
 \end{tabular}
 \end{center}
+    \caption{Propiedades de los elementos usadas para crear las \emph{features} }
+\end{table}
 
 Las \emph{features} más importantes a la hora de predecir $T_c$ son aquellas basadas en la \emph{thermal conductivity}, \emph{atomic radius}, \emph{valence}, \emph{electron affinity}, y \emph{atomic mass} \cite{original_paper_reg:paper}. Con esto podríamos pensar en descartar el resto de \emph{features} que no se basen en las anteriores, sin embargo, no tenemos el conocimiento suficiente sobre el problema para realizar este descarte con confianza, delegando esta decisión a la técnica \emph{Principal Componente Analysis} que más adelante desarrollaremos.
 
