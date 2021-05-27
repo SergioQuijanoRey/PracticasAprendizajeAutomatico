@@ -121,13 +121,69 @@
 
 \section{Problema de regresión}
 
-\subsection{Exploración del problema}
+Los superconductores tienen la interesante propiedad de poder lograr resistencias al paso de la corriente muy cercanas a $0\Omega$. Sin embargo, esto solo ocurre cuando están por debajo de la temperatura crítica para este fenómeno, denotada como $T_c$.
 
-Tras esta exploración del problema => No tenemos conocimiento suficiente para proponer una trasnformación de los datos en base al conocimiento del problema o una selección de las características más relevantes del problema. Por ello, usamos técnicas estadísticas para selección de características y la técnica CV para selección de modelos / transformaciones
+Un superconductor con un un valor de $T_c$ muy bajo no resultaría práctico en aplicaciones de ingeniería, pues para aprovechar sus propiedades interesantes debería realizarse un proceso de enfriamiento que potencialmente consumiría mucha energía. Por tanto, es interesante conocer los valores de $T_c$ de los superconductores, para determinar si es viable o no su aplicación en distintos problemas .
+
+No existe ningún modelo teórico para predecir el valor de $T_c$ de nuevos superconductores, por tanto es interesante plantear un modelo de regresión de aprendizaje automático para predecir dicho valor de $T_c$.
+
+\footnotetext{Del paper que se presenta en la página del \emph{dataset} de UCI, \cite{original_paper_reg:paper} }
+
+\subsection{Exploración del problema}
 
 \subsubsection{Descripción del problema}
 
-% TODO -- escribir algo
+Disponemos de dos archivos, \lstinline{train.csv} y \lstinline{unique_m.csv}. Este último archivo contiene las fórmulas químicas desglosadas de los superconductores con los que trabajamos. \lstinline{train.csv} contiene 81 características de los superconductores, y el valor de $T_c$ que queremos predecir.
+
+En el propio paper que se encuentra en la página del dataset con el que trabajamos, de UCI, se adjunta el \emph{paper} publicado que motiva el uso del \emph{dataset}, en el que se explica el tratamiento de los datos. En dicho tratamiento, se extraen las ya comentadas 81 \emph{features} de alto nivel. Por tanto, no parece posible que seamos capaces de obtener, a través de conocimiento experto del problema, más \emph{features} útiles para resolver este problema.
+
+Además, en el paper se detalla el proceso de extracción de las 81 \emph{features} a partir de las fórmulas químicas expuestas en \lstinline{unique_m.csv}. Por tanto, usaremos esta información de alto nivel y no atenderemos a la información que nos pueda proporcionar \lstinline{unique_m.csv}.
+
+En el mismo paper, el autor comenta que \emph{"We take an entirely data-driven approach"}, por lo tanto, esto junto a nuestra falta de conocimiento sobre el problema, justifica que usemos ténicas estadísticas para establecer el conjunto de características a emplear, y una ténica como \emph{cross-validation} para seleccionar el modelo a emplear, las transformaciones sobre los datos y distintos parámetros referentes al modelo escogido.
+
+\footnotetext{ \cite{original_paper_reg:paper} }
+
+\subsubsection{Descripción de las caracteríticas}
+
+De nuevo, en el paper original \cite{original_paper_reg:paper} se describe el proceso de extracción de características, que pasamos a resumir brevemente.
+
+Se parte de las siguientes propiedades de los elementos que componen los distintos superconductores:
+
+\begin{center}
+\begin{tabular}{|c|c|}
+ \hline
+    Variable & Descripción \\
+    Atomic Mass & Total proton and neutron rest masses \\
+    First Ionization Energy & Energy required to remove a valence electron \\
+    Atomic Radius & Calculated atomic radius \\
+    Density & Density at standard temperature and pressure \\
+    Electron Affinity & Energy required to add an electron to a neutral atom \\
+    Fusion Heat & Energy to change from solid to liquid without temperature change \\
+    Thermal Conductivity &  Thermal conductivity coefficient $\kappa$ \\
+    Valence & Typical number of chemical bonds formed by the element \\
+ \hline
+\caption{Propiedades de los elementos usadas para crear las \emph{features}}
+\end{tabular}
+\end{center}
+
+Las \emph{features} más importantes a la hora de predecir $T_c$ son aquellas basadas en la \emph{thermal conductivity}, \emph{atomic radius}, \emph{valence}, \emph{electron affinity}, y \emph{atomic mass} \cite{original_paper_reg:paper}. Con esto podríamos pensar en descartar el resto de \emph{features} que no se basen en las anteriores, sin embargo, no tenemos el conocimiento suficiente sobre el problema para realizar este descarte con confianza, delegando esta decisión a la técnica \emph{Principal Componente Analysis} que más adelante desarrollaremos.
+
+A partir de esto, se calculan las siguientes \emph{features}. Por cada material, en base a sus elementos, se calculan los siguientes estadísticos por cada \emph{feature} mostrada en la anterior tabla:
+
+\begin{itemize}
+    \item Mean
+    \item Weighted Mean
+    \item Geometric Mean
+    \item Weighted Geometric Mean
+    \item Entropy
+    \item Weighted Entropy
+    \item Range
+    \item Weighted Range
+    \item Standard Deviation
+    \item Weighted Standard Deviation
+\end{itemize}
+
+Las fórmulas para cada estadístico se pueden consultar en el ya mencionado \emph{paper} \cite{original_paper_reg:paper}. Notar que tenemos siempre el estadístico y su versión ponderada.
 
 \subsubsection{Exploración del \emph{Dataset}}
 
@@ -144,11 +200,13 @@ Eliminamos outliers => valores que se desvían más de 4 veces la desviación t�
 Eliminamos outliers antes de normalizar, porque estamos normalizando con la media y la desviacion tipica, los outliers pueden afectar a una buena normalizacion: https://scikit-learn.org/stable/modules/preprocessing.html#scaling-data-with-outliers => esta en el .bib
 Outliers con una sola variable por simplicidad => tenemos muchos datos, la pérdida no va a ser muy grande
 Decir lo que es el Z-score (numero de desviaciones típicas en las que nos alejamos de la media). Quitamos filas con z-score mayor que 4
+Si suponemos una distribucion normal => 99.74\% de los datos en [-3 std, 3 std]
 
 \subsubsection{Normalización}
 
 Ya hemos justificado la necesidad de aplicar normalizacion
 Aplicamos normalización bien => sin tener en cuenta información del test => mostrar el código porque puede ser relevante
+Comentar cómo estamos usando el scaler de sklearn
 
 
 
