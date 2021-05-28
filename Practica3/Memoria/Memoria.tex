@@ -3,7 +3,6 @@
 % Paquetes
 %===================================================================================================
 
-
 % Establecemos los márgenes
 \usepackage[a4paper, margin=1in]{geometry}
 
@@ -58,7 +57,6 @@
 % Para que los codigos tengan una fuente distinta
 \usepackage{courier}
 
-% TODO -- bajar el tamaño de la fuente
 \lstdefinestyle{CustomStyle}{
   language=Python,
   numbers=left,
@@ -114,7 +112,8 @@
 \listoffigures
 
 % Bibliografia
-\bibliography{References}
+% TODO -- ponerlo al final del archivo?
+\bibliography{./References}
 \bibliographystyle{ieeetr}
 
 \pagebreak
@@ -205,7 +204,7 @@ Mostramos el boxplot de la variable de salida => Problema con la representación
 \subsubsection{Eliminación de outliers}
 
 Eliminamos outliers => valores que se desvían más de 4 veces la desviación típica
-Eliminamos outliers antes de normalizar, porque estamos normalizando con la media y la desviacion tipica, los outliers pueden afectar a una buena normalizacion: https://scikit-learn.org/stable/modules/preprocessing.html#scaling-data-with-outliers => esta en el .bib
+Eliminamos outliers antes de normalizar, porque estamos normalizando con la media y la desviacion tipica, los outliers pueden afectar a una buena normalizacion: https://scikit-learn.org/stable/modules/preprocessing.html\#scaling-data-with-outliers => esta en el .bib
 Outliers con una sola variable por simplicidad => tenemos muchos datos, la pérdida no va a ser muy grande
 Decir lo que es el Z-score (numero de desviaciones típicas en las que nos alejamos de la media). Quitamos filas con z-score mayor que 4
 Si suponemos una distribucion normal => 99.74\% de los datos en [-3 std, 3 std]
