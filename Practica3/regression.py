@@ -77,15 +77,24 @@ def explore_training_set(df):
     stats = calculate_stats(df)
 
     print("Estadisticas del dataset de entrenamiento:")
-    print("==========================================")
+    print_bar()
     print_full(stats)
     wait_for_user_input()
 
-    # TODO -- falta visualizar los datos en una grafica t-sne
+    print("Grafica de cajas de la variable de salida")
+    print_bar()
+    plot_boxplot(df, columns=["critical_temp"], title="Grafico de cajas de la variable de salida Tc")
+
+    # TSNE -> No aporta informacion relevante en la exploracion de los datos
+    #  print("Mostrando grafica tsne --> Puede consumir mucho tiempo de computo")
+    #  df_X, _ = split_train_dataset_into_X_and_Y(df)  # Me quedo solo con los datos X, Y lo ignoro
+    #  plot_tsne(df_X, perplexity = 10)
+    #  plot_tsne(df_X, perplexity = 50)
+    #  plot_tsne(df_X, perplexity = 100)
 
 # Preprocesado de los datos
 #===============================================================================
-def split_train_dataset_into_X_and_Y(df):
+def split_dataset_into_X_and_Y(df):
     """
     Tenemos un dataframe con las variables dependientes y la variable dependiente. Esta funcion los
     separa en un dataframe para cada tipo de variable
@@ -102,7 +111,38 @@ def split_train_dataset_into_X_and_Y(df):
 
     return df.loc[:, df.columns != "critical_temp"], df["critical_temp"]
 
-def remove_outliers(df, times_std_dev):
+# TODO -- creo que esta mal programado
+def merge_dataset_from_X_and_Y(df_X, df_Y):
+    """
+    Operacion inversa a split_dataset_into_X_and_Y, junta el dataframe de caracteristicas de
+    prediccion y el dataframe de variables de salida en uno unico
+
+    Parameters:
+    ===========
+    df_X: dataframe de caracteristicas de prediccion
+    df_Y: dataframe de variables de salida
+
+    Returns:
+    ========
+    df: dataframe con los dos dataframes correctamente juntados
+    """
+
+    # Tomamos los datos de las variables de prediccion
+    df = df_X
+
+    # Añadimos los datos de las variables de salida
+    try:
+        for col in df_Y.columns:
+            df[col] = df_Y[col]
+
+    # Tenemos un pd.Series en vez de un pd.DataFrame
+    except:
+        # TODO -- que hacen los {left, right}_index???
+        df = df.merge(df_Y.to_frame(), left_index = True, right_index = True)
+
+    return df
+
+def remove_outliers(df, times_std_dev, output_cols = []):
     """
     Elimina las filas de la matriz representada por df en las que, en alguna columna, el valor de la
     fila esta mas de times_std_dev veces desviado de la media
@@ -113,14 +153,22 @@ def remove_outliers(df, times_std_dev):
     times_std_dev: umbral de desviacion respecto a la desviacion estandar
                    Un valor usual es 3.0, porque el 99.74% de los datos de una distribucion normal
                    se encuentran en el intervalo (-3 std + mean, 3 std + mean)
+    output_cols: columnas de salida, sobre las que no queremos comprobar los outliers
 
     Returns:
     ========
     cleaned_df: dataframe al que hemos quitado las filas asociadas a los outliers descritos
-
-    TODO -- borra demasiados datos de nuestro dataset
     """
-    return df[(np.abs(stats.zscore(df)) < times_std_dev).all(axis=1)]
+    # Quitamos las columnas de salida al dataframe. Se usa para la siguiente linea en la que hacemos
+    # la seleccion
+    df_not_output = df
+
+    # Filtramos las columnas, columna por columna
+    for col in output_cols:
+        df_not_output = df_not_output.loc[:, df_not_output.columns != col]
+
+    # Filtramos los outliers, sin tener en cuenta las columnas de variables de salida
+    return df[(np.abs(stats.zscore(df_not_output)) < times_std_dev).all(axis=1)]
 
 def normalize_dataset(train_df, test_df):
     """
@@ -145,7 +193,6 @@ def normalize_dataset(train_df, test_df):
     # Guardamos los nombres de las columna del dataframe, porque la tranformacion va a hacer que
     # perdamos este metadato
     prev_cols = train_df.columns
-    print(f"Prev cols: {prev_cols}")
 
     scaler = StandardScaler()
     normalized_train = scaler.fit_transform(train_df)
@@ -178,14 +225,19 @@ if __name__ == "__main__":
 
     print("==> Procesamiento de los datos")
     print("--> Separamos el dataframe de variables X y el dataframe de variable Y")
-    df_train_X, df_train_Y = split_train_dataset_into_X_and_Y(df_train) # Separamos datos de entrenamiento
-    df_test_X, df_train_Y = split_train_dataset_into_X_and_Y(df_test)   # Separamos datos de test
+    df_train_X, df_train_Y = split_dataset_into_X_and_Y(df_train) # Separamos datos de entrenamiento
+    df_test_X, df_train_Y = split_dataset_into_X_and_Y(df_test)   # Separamos datos de test
 
+    # TODO -- cuidado -- puedo estarme cargando datos de forma sesgada
     print("--> Borrando outliers")
     prev_len = len(df_train_X)
-    df_train = remove_outliers(df_train_X, times_std_dev = 4.0)
+
+    # No borramos los outliers en la variable de salida. Precisamente son los valores que nos
+    # interesan en la aplicacion practica
+    df_train = remove_outliers(df_train, times_std_dev = 4.0, output_cols = ["critical_temp"])
     print(f"Tamaño tras la limpieza de outliers del train_set: {len(df_train)}")
     print(f"Numero de filas eliminadas: {prev_len - len(df_train)}")
+    print(f"Porcentaje de filas eliminadas: {float(prev_len - len(df_train)) / float(prev_len) * 100.0}%")
     wait_for_user_input()
 
     print("--> Normalizando dataset")
@@ -193,5 +245,5 @@ if __name__ == "__main__":
     df_train_X, df_test_X = normalize_dataset(df_train_X, df_test_X)
 
     print("Mostramos las estadisticas de los datos de entrenamiento normalizados")
-    explore_training_set(df_train_X)
+    explore_training_set(merge_dataset_from_X_and_Y(df_train_X, df_train_Y)) # Junto los dos dataframes para ser pasados como parametro
     wait_for_user_input()
