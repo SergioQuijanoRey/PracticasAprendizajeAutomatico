@@ -173,6 +173,8 @@ Las \emph{features} más importantes a la hora de predecir $T_c$ son aquellas ba
 
 A partir de esto, se calculan las siguientes \emph{features}. Por cada material, en base a sus elementos, se calculan los siguientes estadísticos por cada \emph{feature} mostrada en la anterior tabla:
 
+Algo importante a destacar es que la unidad de temperatura para $T_c$ es \emph{Kelvin}, por lo que esta variable estará acotada inferiormente por cero. La temperatura ambiente en kelvin está en torno a los $298K$, por lo tanto, valores cercanos a esta referencia serán los más interesantes a la hora de escoger o no un material como superconductor.
+
 \begin{itemize}
     \item Mean
     \item Weighted Mean
@@ -188,12 +190,15 @@ A partir de esto, se calculan las siguientes \emph{features}. Por cada material,
 
 Las fórmulas para cada estadístico se pueden consultar en el ya mencionado \emph{paper} \cite{original_paper_reg:paper}. Notar que tenemos siempre el estadístico y su versión ponderada.
 
+Teniendo 8 variables, y 10 estadísticas por cada variable, llegamos a 80 características en el dataset. La característica que falta para llegar a las 81, es el número de elementos que compone la molécula del superconductor.
+
 \subsubsection{Exploración del \emph{Dataset}}
 
 Antes de empezar a explorar los datos del problema, separamos train, test => No queremos saber nada sobre el test que nos pueda influir => para evitar data snooping
 Mostramos las estadisticas de las variables sin normalizar => tabla que he construido con pandas
 Rangos de variables dispares => justifica la necesidad de normalizar los datos
 Todos los datos son reales o enteros => no es necesario realizar otro tipo de codificaciones
+Mostramos el boxplot de la variable de salida => Problema con la representación de la muestra. Muestra algo sesgada, pocos ejemplos en la muestra para valores de temperatura altos. Mostrar la figure 4 del paper. Pocos superconductores de alto Tc que son precisamente los que interesan
 
 \subsection{Preprocesado de los datos}
 
@@ -204,6 +209,8 @@ Eliminamos outliers antes de normalizar, porque estamos normalizando con la medi
 Outliers con una sola variable por simplicidad => tenemos muchos datos, la pérdida no va a ser muy grande
 Decir lo que es el Z-score (numero de desviaciones típicas en las que nos alejamos de la media). Quitamos filas con z-score mayor que 4
 Si suponemos una distribucion normal => 99.74\% de los datos en [-3 std, 3 std]
+Quitamos el 8.5\% de los datos. En el paper se cargan el 40\% de los datos, así que parece buena idea eliminar estos datos
+Mostramos de nuevo la variable de salida => sigue funcionando bien porque está toda la variabilidad
 
 \subsubsection{Normalización}
 
