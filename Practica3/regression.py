@@ -16,6 +16,9 @@ from core import *
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+from sklearn import linear_model
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import PolynomialFeatures
 
 # Parametros globales del programa
 #===============================================================================
@@ -286,6 +289,35 @@ def apply_PCA(df_train_X, df_test_X, explained_variation = 0.90, number_componen
 
     return df_transformed_X, df_test_transformed_X
 
+def show_results(coeffs, df_train_X, df_train_Y, df_test_X, df_test_Y):
+    """
+    Muestra los resultados del entrenamiento
+
+    Parameters:
+    ===========
+    coeffs: coeficientes que definen el hiperplano
+    df_train_X: conjunto de entrenamiento, variables de entrada
+    df_train_Y: conjunto de entrenamiento, variable de salida
+    df_test_X: conjunto de test, variables de entrada
+    df_test_Y: conjunto de test, variable de salida
+    """
+
+    # Computamamos las predicciones en la muestra de entrenamiento
+    f = lambda x: np.dot(x, coeffs)
+    predictions = f(df_train_X.to_numpy())
+
+    # Calculamos el error cuadratico medio en la muestra
+    in_sample_error = mean_squared_error(predictions, df_train_Y.to_numpy())
+
+    # Computamos las predicciones en el test y calculamos Etest
+    predictions = f(df_test_X.to_numpy())
+    test_sample_error = mean_squared_error(predictions, df_test_Y.to_numpy())
+
+    # Mostramos los resultados
+    print("Resultados del entrenamiento")
+    print_bar()
+    print(f"--> Error cuadratico medio en la muestra: {in_sample_error}")
+    print(f"--> Error cuadratico medio en el test: {test_sample_error}")
 
 # Funcion principal
 #===============================================================================
@@ -309,9 +341,8 @@ if __name__ == "__main__":
     print("==> Procesamiento de los datos")
     print("--> Separamos el dataframe de variables X y el dataframe de variable Y")
     df_train_X, df_train_Y = split_dataset_into_X_and_Y(df_train) # Separamos datos de entrenamiento
-    df_test_X, df_train_Y = split_dataset_into_X_and_Y(df_test)   # Separamos datos de test
+    df_test_X, df_test_Y = split_dataset_into_X_and_Y(df_test)   # Separamos datos de test
 
-    # TODO -- cuidado -- puedo estarme cargando datos de forma sesgada
     print("--> Borrando outliers")
     prev_len = len(df_train_X)
 
@@ -331,21 +362,48 @@ if __name__ == "__main__":
     print("--> Comprobando como ha afectado el borrado de outliers a la variable de salida")
     check_outliers_removal(df_train_original, df_train)
 
-    print("--> Estandarizando dataset")
+    print("--> Aplicando PCA a los datos")
+    # TODO -- volver a un valor de 10
+    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, number_components = 15)
+
+    print("--> Dataset despues de la transformacion PCA:")
+    explore_training_set(df_train_X, show_box_plot = False)
+
+    print("--> Estandarizando dataset PCA")
     # Notar que la variable de salida temperatura critica no la estamos estandarizando
-    #df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
+    df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
 
     # Juntamos de nuevo los dos dataframes en uno solo, para mostrar a continuacion algunas estadisticas
     # No juntamos los dataframes de test porque no queremos saber nada de ellos, de momento
-    #df_train = append_series_to_dataframe(df_train_X, df_train_Y, column_name = "critical_temp")
+    df_train = append_series_to_dataframe(df_train_X, df_train_Y, column_name = "critical_temp")
 
     print("Mostramos las estadisticas de los datos de entrenamiento estandarizados")
     explore_training_set(df_train)
     wait_for_user_input()
 
-    print("--> Aplicando PCA a los datos")
-    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, number_components = 10)
+    print(f"Tamaño df_train_X: {df_train_X.shape}")
+    print(f"Tamaño df_train_Y: {df_train_Y.shape}")
 
-    print("--> Dataset despues de la transformacion PCA:")
-    explore_training_set(df_train_X, show_box_plot = False)
+    print("==> Entrenamos con SGD el modelo lineal con las 10 columnas, para ser usado como baseline")
+    linear_regresion = linear_model.LinearRegression()
+    linear_regresion.fit(df_train_X.to_numpy(), df_train_Y.to_numpy())
+    show_results(linear_regresion.coef_, df_train_X, df_train_Y, df_test_X, df_test_Y)
+
+    # Hago polynomial features
+    poly = PolynomialFeatures(3)
+    df_train_X = poly.fit_transform(df_train_X)
+
+    # Ajusto ahora el test
+    df_test_X = poly.transform(df_test_X)
+
+    # Las reconvierto a dataframes para que funcionen bien
+    df_train_X = pd.DataFrame(df_train_X)
+    df_test_X = pd.DataFrame(df_test_X)
+
+
+    # Aplico aprendizaje
+    linear_regresion = linear_model.LinearRegression()
+    linear_regresion.fit(df_train_X, df_train_Y)
+    show_results(linear_regresion.coef_, df_train_X, df_train_Y, df_test_X, df_test_Y)
+
 
