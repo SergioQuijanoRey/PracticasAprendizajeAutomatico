@@ -112,33 +112,28 @@ def split_dataset_into_X_and_Y(df):
     return df.loc[:, df.columns != "critical_temp"], df["critical_temp"]
 
 # TODO -- creo que esta mal programado
-def merge_dataset_from_X_and_Y(df_X, df_Y):
+def append_series_to_dataframe(dataframe, series, column_name):
     """
-    Operacion inversa a split_dataset_into_X_and_Y, junta el dataframe de caracteristicas de
+    Añade un pandas.Series a un pandas.Dataframe
+
+    Se usa como operacion inversa a split_dataset_into_X_and_Y, junta el dataframe de caracteristicas de
     prediccion y el dataframe de variables de salida en uno unico
 
     Parameters:
     ===========
-    df_X: dataframe de caracteristicas de prediccion
-    df_Y: dataframe de variables de salida
+    dataframe: dataframe con toda la matriz de datos
+               Sera el dataframe con las caracteristicas de entrada
+    series: pandas.Series con la columna que queremos añadir
+            Sera la columna con la caracteristica a predecir
+    column_name: el nombre de la columna que queremos añadir
 
     Returns:
     ========
-    df: dataframe con los dos dataframes correctamente juntados
+    df: dataframe con los datos correctamente juntados
     """
 
-    # Tomamos los datos de las variables de prediccion
-    df = df_X
-
-    # Añadimos los datos de las variables de salida
-    try:
-        for col in df_Y.columns:
-            df[col] = df_Y[col]
-
-    # Tenemos un pd.Series en vez de un pd.DataFrame
-    except:
-        # TODO -- que hacen los {left, right}_index???
-        df = df.merge(df_Y.to_frame(), left_index = True, right_index = True)
+    df = dataframe
+    df[column_name] = series
 
     return df
 
@@ -170,11 +165,37 @@ def remove_outliers(df, times_std_dev, output_cols = []):
     # Filtramos los outliers, sin tener en cuenta las columnas de variables de salida
     return df[(np.abs(stats.zscore(df_not_output)) < times_std_dev).all(axis=1)]
 
-def normalize_dataset(train_df, test_df):
+def check_outliers_removal(df_train_original, df_train_cleaned):
     """
-    Normaliza el dataset, usando solo la informacion de los datos de entrenamiento. A los datos de
+    Comprueba cómo estamos eliminando los outliers en los datos de entrada. Eliminando outliers
+    en los datos de entrada, podemos estar sesgando la muestra. Por ejemplo, eliminando todas las
+    filas que tienen un valor alto de Tc, que en este caso, son de las que mas nos interesan
+
+    Parameters:
+    ===========
+    df_train_original: dataframe original, sin eliminar outliers
+    df_train_cleaned: dataframe al que se han borrado los outliers
+    """
+
+    # Calculamos el dataframe de las filas que hemos borrado
+    # Uso isin, que devuelve NaN si no se encuentra, por lo que despues aplico dropna
+    # El simbolo ~ hace el not, que es lo que quiero calcular (elementos en la tabla original que
+    # no se encuentran en la tabla limpiada)
+    df_diff = df_train_original[~df_train_original.isin(df_train_cleaned)]
+    df_diff = df_diff.dropna()
+
+    # Solo me interesa ver que valores toma la variable de salida
+    df_diff = df_diff["critical_temp"]
+    df_diff_stats = calculate_stats(df_diff.to_frame())
+
+    print_full(df_diff_stats)
+    wait_for_user_input()
+
+def standarize_dataset(train_df, test_df):
+    """
+    Estandariza el dataset, usando solo la informacion de los datos de entrenamiento. A los datos de
     test se les aplica la misma transformacion. Notar que no se esta usando informacion de la
-    muestra de test para aplicar la normalizacion. Pero pasamos el conjunto de test para aplicar
+    muestra de test para aplicar la estandarizacion. Pero pasamos el conjunto de test para aplicar
     la misma trasnformacion a estos datos
 
     Parameters:
@@ -186,8 +207,8 @@ def normalize_dataset(train_df, test_df):
 
     Returns:
     ========
-    normalized_train: dataframe con los datos de entrenamiento normalizado
-    normalized_test: dataframe con los datos de test normalizados con la misma transformacion
+    standarized_train: dataframe con los datos de entrenamiento estandarizados
+    standarized_test: dataframe con los datos de test estandarizados con la misma transformacion
                      calculada a partir de los datos de entrenamiento
     """
     # Guardamos los nombres de las columna del dataframe, porque la tranformacion va a hacer que
@@ -195,14 +216,14 @@ def normalize_dataset(train_df, test_df):
     prev_cols = train_df.columns
 
     scaler = StandardScaler()
-    normalized_train = scaler.fit_transform(train_df)
-    normalized_test = scaler.transform(test_df)
+    standarized_train = scaler.fit_transform(train_df)
+    standarized_test = scaler.transform(test_df)
 
     # La transformacion devuelve np.arrays, asi que volvemos a dataframes
-    normalized_train = pd.DataFrame(normalized_train, columns = prev_cols)
-    normalized_test = pd.DataFrame(normalized_test, columns = prev_cols)
+    standarized_train = pd.DataFrame(standarized_train, columns = prev_cols)
+    standarized_test = pd.DataFrame(standarized_test, columns = prev_cols)
 
-    return normalized_train, normalized_test
+    return standarized_train, standarized_test
 
 # Funcion principal
 #===============================================================================
@@ -234,16 +255,30 @@ if __name__ == "__main__":
 
     # No borramos los outliers en la variable de salida. Precisamente son los valores que nos
     # interesan en la aplicacion practica
+    df_train_original = df_train # Para mas tarde comparar entre el df limpiado y sin limpiar
     df_train = remove_outliers(df_train, times_std_dev = 4.0, output_cols = ["critical_temp"])
     print(f"Tamaño tras la limpieza de outliers del train_set: {len(df_train)}")
     print(f"Numero de filas eliminadas: {prev_len - len(df_train)}")
     print(f"Porcentaje de filas eliminadas: {float(prev_len - len(df_train)) / float(prev_len) * 100.0}%")
     wait_for_user_input()
 
-    print("--> Normalizando dataset")
-    # Notar que la variable de salida temperatura critica no la estamos normalizando
-    df_train_X, df_test_X = normalize_dataset(df_train_X, df_test_X)
+    # Comprobamos si el borrado de outliers en los datos de entrada afecta a los datos de salida
+    # que estamos borrando. No queremos sesgar los datos de salida de los que disponemos como ejemplos
+    # Por ejemplo, no podemos borrar todos las filas en las que el valor de salida es alto, porque
+    # son los que nos interesa en la práctica
+    print("--> Comprobando como ha afectado el borrado de outliers a la variable de salida")
+    check_outliers_removal(df_train_original, df_train)
 
-    print("Mostramos las estadisticas de los datos de entrenamiento normalizados")
-    explore_training_set(merge_dataset_from_X_and_Y(df_train_X, df_train_Y)) # Junto los dos dataframes para ser pasados como parametro
+    print("--> Estandarizando dataset")
+    # Notar que la variable de salida temperatura critica no la estamos estandarizando
+    df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
+
+    # Juntamos de nuevo los dos dataframes en uno solo, para mostrar a continuacion algunas estadisticas
+    # No juntamos los dataframes de test porque no queremos saber nada de ellos, de momento
+    df_train = append_series_to_dataframe(df_train_X, df_train_Y, column_name = "critical_temp")
+
+    print("Mostramos las estadisticas de los datos de entrenamiento estandarizados")
+    explore_training_set(df_train)
     wait_for_user_input()
+
+    print("--> Aplicando PCA a los datos")
