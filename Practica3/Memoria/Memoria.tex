@@ -193,30 +193,38 @@ Teniendo 8 variables, y 10 estadísticas por cada variable, llegamos a 80 caract
 
 \subsubsection{Exploración del \emph{Dataset}}
 
-Antes de empezar a explorar los datos del problema, separamos train, test => No queremos saber nada sobre el test que nos pueda influir => para evitar data snooping
-Mostramos las estadisticas de las variables sin normalizar => tabla que he construido con pandas
-Rangos de variables dispares => justifica la necesidad de normalizar los datos
-Todos los datos son reales o enteros => no es necesario realizar otro tipo de codificaciones
-Mostramos el boxplot de la variable de salida => Problema con la representación de la muestra. Muestra algo sesgada, pocos ejemplos en la muestra para valores de temperatura altos. Mostrar la figure 4 del paper. Pocos superconductores de alto Tc que son precisamente los que interesan
+==> Antes de empezar a explorar los datos del problema, separamos train, test => No queremos saber nada sobre el test que nos pueda influir => para evitar data snooping
+==> Mostramos las estadisticas de las variables sin normalizar => tabla que he construido con pandas
+==> Rangos de variables dispares => justifica la necesidad de normalizar los datos
+==> Todos los datos son reales o enteros => no es necesario realizar otro tipo de codificaciones
+==> Mostramos el boxplot de la variable de salida => Problema con la representación de la muestra. Muestra algo sesgada, pocos ejemplos en la muestra para valores de temperatura altos. Mostrar la figure 4 del paper. Pocos superconductores de alto Tc que son precisamente los que interesan
+==> Mostrar tabla de correlaciones???
 
 \subsection{Preprocesado de los datos}
 
 \subsubsection{Eliminación de outliers}
 
-Eliminamos outliers => valores que se desvían más de 4 veces la desviación típica
-Eliminamos outliers antes de normalizar, porque estamos normalizando con la media y la desviacion tipica, los outliers pueden afectar a una buena normalizacion: https://scikit-learn.org/stable/modules/preprocessing.html\#scaling-data-with-outliers => esta en el .bib
-Outliers con una sola variable por simplicidad => tenemos muchos datos, la pérdida no va a ser muy grande
-Decir lo que es el Z-score (numero de desviaciones típicas en las que nos alejamos de la media). Quitamos filas con z-score mayor que 4
-Si suponemos una distribucion normal => 99.74\% de los datos en [-3 std, 3 std]
-Quitamos el 8.5\% de los datos. En el paper se cargan el 40\% de los datos, así que parece buena idea eliminar estos datos
-Mostramos de nuevo la variable de salida => sigue funcionando bien porque está toda la variabilidad
+==> Eliminamos outliers => valores que se desvían más de 4 veces la desviación típica
+==> Eliminamos outliers antes de normalizar, porque estamos normalizando con la media y la desviacion tipica, los outliers pueden afectar a una buena normalizacion: https://scikit-learn.org/stable/modules/preprocessing.html\#scaling-data-with-outliers => esta en el .bib
+==> Outliers con una sola variable por simplicidad => tenemos muchos datos, la pérdida no va a ser muy grande
+==> Decir lo que es el Z-score (numero de desviaciones típicas en las que nos alejamos de la media). Quitamos filas con z-score mayor que 4
+==> Si suponemos una distribucion normal => 99.74\% de los datos en [-3 std, 3 std]
+==> Quitamos el 8.5\% de los datos. En el paper se cargan el 40\% de los datos, así que parece buena idea eliminar estos datos
+==> Mostramos de nuevo la variable de salida => sigue funcionando bien porque está toda la variabilidad
+==> El eliminado de los outliers es clave para el procedimiento PCA: https://medium.com/apprentice-journal/pca-application-in-machine-learning-4827c07a61db => el enlace esta en la .bib
+==> Mostramos por pantalla los valores de salida que eliminamos por culpa de outliers -> Eliminamos valores bajos asi que no preocuparse -> Además mostrar la tabla
 
 \subsubsection{Normalización}
 
-Ya hemos justificado la necesidad de aplicar normalizacion
-Aplicamos normalización bien => sin tener en cuenta información del test => mostrar el código porque puede ser relevante
-Comentar cómo estamos usando el scaler de sklearn
+==> Ya hemos justificado la necesidad de aplicar normalizacion
+==> Aplicamos normalización bien => sin tener en cuenta información del test => mostrar el código porque puede ser relevante
+==> Comentar cómo estamos usando el scaler de sklearn
+==> La variable de salida no se normaliza, pues esto no tiene sentido
+==> Mostar de nuevo la tabla con los datos
 
+\subsubsection{Principal Component Analysis}
+
+==> Como se muestra en https://medium.com/apprentice-journal/pca-application-in-machine-learning-4827c07a61db (pillar el bib) está muy afectado por outliers, que ya nos hemos preocupado de eliminar
 
 
 \pagebreak
