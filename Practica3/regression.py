@@ -3,18 +3,19 @@ Author:
     - Sergio Quijano Rey
     - sergioquijano@correo.ugr.es
 Practica 3 - Problema de regresion
-
-TODO:
-    [ ] Comprobar si los datos estan balanceados
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from scipy import stats
+
+# TODO -- borrar -- debemos pasar esto al principio de este archivo
+from core import *
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from scipy import stats
-from core import *
+from sklearn.decomposition import PCA
 
 # Parametros globales del programa
 #===============================================================================
@@ -58,7 +59,7 @@ def split_data(df, test_percentage):
 
     return df_test, df_train
 
-def explore_training_set(df):
+def explore_training_set(df, show_box_plot = True):
     """
     Muestra caracteristicas relevantes del dataset de entrenamiento
 
@@ -66,6 +67,7 @@ def explore_training_set(df):
     ===========
     df: dataframe del que queremos realizar la exploracion
         No debe contener datos de test, pues no queremos visualizarlos
+    show_box_plot: indica si queremos mostrar el boxplot de la variable de salida o no
 
     Returns:
     ========
@@ -81,9 +83,10 @@ def explore_training_set(df):
     print_full(stats)
     wait_for_user_input()
 
-    print("Grafica de cajas de la variable de salida")
-    print_bar()
-    plot_boxplot(df, columns=["critical_temp"], title="Grafico de cajas de la variable de salida Tc")
+    if show_box_plot == True:
+        print("Grafica de cajas de la variable de salida")
+        print_bar()
+        plot_boxplot(df, columns=["critical_temp"], title="Grafico de cajas de la variable de salida Tc")
 
     # TSNE -> No aporta informacion relevante en la exploracion de los datos
     #  print("Mostrando grafica tsne --> Puede consumir mucho tiempo de computo")
@@ -111,7 +114,6 @@ def split_dataset_into_X_and_Y(df):
 
     return df.loc[:, df.columns != "critical_temp"], df["critical_temp"]
 
-# TODO -- creo que esta mal programado
 def append_series_to_dataframe(dataframe, series, column_name):
     """
     Añade un pandas.Series a un pandas.Dataframe
@@ -132,8 +134,8 @@ def append_series_to_dataframe(dataframe, series, column_name):
     df: dataframe con los datos correctamente juntados
     """
 
-    df = dataframe
-    df[column_name] = series
+    df = dataframe.copy()
+    df[column_name] = series.copy()
 
     return df
 
@@ -225,6 +227,66 @@ def standarize_dataset(train_df, test_df):
 
     return standarized_train, standarized_test
 
+def apply_PCA(df_train_X, df_test_X, explained_variation = 0.90, number_components = None):
+    """
+    Aplica PCA al conjunto de entrada de los datos de entrenamiento
+
+    Parameters:
+    ===========
+    df_train_X: dataframe con los datos de entrada de entrenamiento
+                Importante: no debe contener la variable de salida
+    df_test_X: dataframe con los datos de entrada de test. Solo los queremos para aplicar la misma
+               transformacion que a los datos de entrada. No los usamos en el proceso de calcular
+               la trasnformacion
+    explained_variation: varianza explicada por los datos transformados que queremos alcanzar
+                         Se aplica solo cuando number_components == None
+    number_components: numero de componentes que queremos obtener, independientemente de la varianza
+                       explicada obtenida. Es opcional
+
+    Returns:
+    ========
+    df_transformed_X: datos de entrenamiento transformados
+    df_test_transformed_X: datos de test transformados usando la misma transformacion calculada a
+                           partir de los datos de entrenamiento
+    """
+
+    # Comprobacion de seguridad
+    if type(explained_variation) is not float:
+        raise Exception("El porcentaje de variabilidad explicada debe ser un flotante")
+
+    # Si tenemos numero de componentes, no hacemos caso a la varianza explicada
+    pca = None
+    if number_components is not None:
+        pca = PCA(number_components)
+    else:
+        # Queremos que PCA saque tantas dimensiones como porcentaje de variacion explidada especificado
+        pca = PCA(explained_variation)
+
+    # Nos ajustamos a la muestra de datos de entrenamiento
+    print("Ajustando los datos de entrenamiento a la transformacion")
+    pca.fit(df_train_X)
+
+    # Aplicamos la transformacion al conjunto de entrenamiento y de test
+    # Usamos variables para que no se modifiquen los dataframes pasados como parametro
+    df_transformed_X = pca.transform(df_train_X)
+    df_test_transformed_X = pca.transform(df_test_X)
+
+    # Recuperamos los datos en formato dataframe
+    # No podemos ponerle nombres a las columnas porque PCA mezcla las columnas sin tener nosotros
+    # control sobre como se hace la transformacion
+    df_transformed_X = pd.DataFrame(df_transformed_X)
+    df_test_transformed_X = pd.DataFrame(df_test_transformed_X)
+
+    # Mostramos algunos datos por pantalla
+    print(f"Ajuste realizado:")
+    print(f"\tPorcentaje de la varianza explicado: {pca.explained_variance_ratio_}")
+    print(f"\tPorcentaje de la varianza explicado total: {sum(pca.explained_variance_ratio_)}")
+    print(f"\tNumero de dimensiones obtenidas: {len(df_transformed_X.columns)}")
+    wait_for_user_input()
+
+    return df_transformed_X, df_test_transformed_X
+
+
 # Funcion principal
 #===============================================================================
 if __name__ == "__main__":
@@ -271,14 +333,19 @@ if __name__ == "__main__":
 
     print("--> Estandarizando dataset")
     # Notar que la variable de salida temperatura critica no la estamos estandarizando
-    df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
+    #df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
 
     # Juntamos de nuevo los dos dataframes en uno solo, para mostrar a continuacion algunas estadisticas
     # No juntamos los dataframes de test porque no queremos saber nada de ellos, de momento
-    df_train = append_series_to_dataframe(df_train_X, df_train_Y, column_name = "critical_temp")
+    #df_train = append_series_to_dataframe(df_train_X, df_train_Y, column_name = "critical_temp")
 
     print("Mostramos las estadisticas de los datos de entrenamiento estandarizados")
     explore_training_set(df_train)
     wait_for_user_input()
 
     print("--> Aplicando PCA a los datos")
+    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, number_components = 10)
+
+    print("--> Dataset despues de la transformacion PCA:")
+    explore_training_set(df_train_X, show_box_plot = False)
+
