@@ -96,7 +96,6 @@
 % Separacion entre parrafos
 \setlength{\parskip}{1em}
 
-
 % Contenido del documento
 %===================================================================================================
 \begin{document}
@@ -214,6 +213,15 @@ Teniendo 8 variables, y 10 estadísticas por cada variable, llegamos a 80 caract
 ==> El eliminado de los outliers es clave para el procedimiento PCA: https://medium.com/apprentice-journal/pca-application-in-machine-learning-4827c07a61db => el enlace esta en la .bib
 ==> Mostramos por pantalla los valores de salida que eliminamos por culpa de outliers -> Eliminamos valores bajos asi que no preocuparse -> Además mostrar la tabla,
 
+\subsubsection{Principal Component Analysis}
+
+==> Como se muestra en https://medium.com/apprentice-journal/pca-application-in-machine-learning-4827c07a61db (pillar el bib) está muy afectado por outliers, que ya nos hemos preocupado de eliminar
+=> Con 10 componentes obtenemos muchisima varianza explicada -> variables muy correladas, son estadisticas de lo mismo
+=> 8 variables originales -> 10 parece suficiente
+=> Poner el porcentaje de la variable explicada
+        => 0.9995126576534428
+==> No normalizamos antes porque entonces PCA funciona peor
+
 \subsubsection{Normalización}
 
 ==> Ya hemos justificado la necesidad de aplicar normalizacion
@@ -222,11 +230,25 @@ Teniendo 8 variables, y 10 estadísticas por cada variable, llegamos a 80 caract
 ==> La variable de salida no se normaliza, pues esto no tiene sentido
 ==> Mostar de nuevo la tabla con los datos
 
-\subsubsection{Principal Component Analysis}
+\subsection{Selección del modelo}
 
-==> Como se muestra en https://medium.com/apprentice-journal/pca-application-in-machine-learning-4827c07a61db (pillar el bib) está muy afectado por outliers, que ya nos hemos preocupado de eliminar
-=> Con 10 componentes obtenemos muchisima varianza explicada -> variables muy correladas, son estadisticas de lo mismo
-=> 8 variables originales -> 10 parece suficiente
+\subsubsection{Selección de la métrica de error}
+
+=> Métrica de error -> error cuadrático medio
+=> No uso error medio -> con error cuadrático medio se castigan más los outliers. Son funciones con una derivada mas sencilla a la hora de minimizar
+=> El ECM es de los pocos errores que hemos visto a la hora de aplicar regresión, mientras que en clasificación teníamos más variedad para elegir
+
+\subsubsection{Modelos candidatos}
+
+A la hora de seleccionar modelos disponemos de:
+
+\begin{itemize}
+    \item Ajustar un hiperplano
+\end{itemize}
+
+Así que en realidad a la hora de escoger un modelo debemos escoger la trasnsformación de los datos sobre la que ajustaremos un hiperparámetro. También deberemos escoger el regularizador
+
+\subsubsection{\emph{Cross-Validation}}
 
 
 \pagebreak
