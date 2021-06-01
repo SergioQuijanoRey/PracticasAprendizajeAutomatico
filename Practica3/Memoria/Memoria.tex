@@ -77,6 +77,9 @@
 % Para enumerados dentro de enumerados
 \usepackage{enumitem}
 
+% Para mejores tablas
+\usepackage{tabularx}
+
 % Metadatos del documento
 %===================================================================================================
 \title{
@@ -110,10 +113,8 @@
 % Lista de figuras
 \listoffigures
 
-% Bibliografia
-% TODO -- ponerlo al final del archivo?
-\bibliography{./References}
-\bibliographystyle{ieeetr}
+% Lista de tablas
+\listoftables
 
 \pagebreak
 
@@ -121,11 +122,9 @@
 
 Los superconductores tienen la interesante propiedad de poder lograr resistencias al paso de la corriente muy cercanas a $0\Omega$. Sin embargo, esto solo ocurre cuando están por debajo de la temperatura crítica para este fenómeno, denotada como $T_c$.
 
-Un superconductor con un un valor de $T_c$ muy bajo no resultaría práctico en aplicaciones de ingeniería, pues para aprovechar sus propiedades interesantes debería realizarse un proceso de enfriamiento que potencialmente consumiría mucha energía. Por tanto, es interesante conocer los valores de $T_c$ de los superconductores, para determinar si es viable o no su aplicación en distintos problemas .
+Un superconductor con un un valor de $T_c$ muy bajo no resultaría práctico en aplicaciones de ingeniería, pues para aprovechar sus propiedades interesantes debería realizarse un proceso de enfriamiento que potencialmente consumiría mucha energía. Por tanto, es interesante conocer los valores de $T_c$ de los superconductores, para determinar si es viable o no su aplicación en distintos problemas.
 
-No existe ningún modelo teórico para predecir el valor de $T_c$ de nuevos superconductores, por tanto es interesante plantear un modelo de regresión de aprendizaje automático para predecir dicho valor de $T_c$.
-
-\footnotetext{Del paper que se presenta en la página del \emph{dataset} de UCI, \cite{original_paper_reg:paper} }
+No existe ningún modelo teórico para predecir el valor de $T_c$ de nuevos superconductores, por tanto es interesante plantear un modelo de regresión de aprendizaje automático para predecir dicho valor de $T_c$ \cite{original_paper_reg:paper}.
 
 \subsection{Exploración del problema}
 
@@ -133,58 +132,68 @@ No existe ningún modelo teórico para predecir el valor de $T_c$ de nuevos supe
 
 Disponemos de dos archivos, \lstinline{train.csv} y \lstinline{unique_m.csv}. Este último archivo contiene las fórmulas químicas desglosadas de los superconductores con los que trabajamos. \lstinline{train.csv} contiene 81 características de los superconductores, y el valor de $T_c$ que queremos predecir.
 
-En el propio paper que se encuentra en la página del dataset con el que trabajamos, de UCI, se adjunta el \emph{paper} publicado que motiva el uso del \emph{dataset}, en el que se explica el tratamiento de los datos. En dicho tratamiento, se extraen las ya comentadas 81 \emph{features} de alto nivel. Por tanto, no parece posible que seamos capaces de obtener, a través de conocimiento experto del problema, más \emph{features} útiles para resolver este problema.
+En el propio paper \cite{original_paper_reg:paper} que se encuentra en la página del dataset con el que trabajamos, de UCI, se explica el tratamiento de los datos. En dicha sección, se detalla el proceso de extracción de las 81 características. A partir de las fórmulas codificadas en \lstinline{unique_m.csv}, se extraen propiedades de los átomos que forman las moléculas. Al ser moléculas con más de un átomo, se toman estadísticos de las propiedades. Estas propiedades y estadísticos se detallan en \emph{\ref{descripcion_caracteristicas}. \nameref{descripcion_caracteristicas}}.
 
-Además, en el paper se detalla el proceso de extracción de las 81 \emph{features} a partir de las fórmulas químicas expuestas en \lstinline{unique_m.csv}. Por tanto, usaremos esta información de alto nivel y no atenderemos a la información que nos pueda proporcionar \lstinline{unique_m.csv}.
+Por tanto, no parece factible que seamos capaces de obtener, a partir de conocimiento experto del problema, más \emph{features}, de más alto nivel a ser posible, que resulten útiles para resolver el problema. Consecuentemente, no usaremos la información que nos pueda proporcionar \lstinline{unique_m.csv}, ignorando este \emph{dataset} por completo.
 
-En el mismo paper, el autor comenta que \emph{"We take an entirely data-driven approach"}, por lo tanto, esto junto a nuestra falta de conocimiento sobre el problema, justifica que usemos ténicas estadísticas para establecer el conjunto de características a emplear, y una ténica como \emph{cross-validation} para seleccionar el modelo a emplear, las transformaciones sobre los datos y distintos parámetros referentes al modelo escogido.
+En el mismo paper, el autor comenta: \emph{"We take an entirely data-driven approach"}. Por lo tanto, esto junto a nuestra falta de conocimiento sobre el problema, justifica que usemos ténicas estadísticas para establecer el conjunto de características a emplear (principalmente \emph{PCA}), y una ténica como \emph{cross-validation} para seleccionar el modelo a emplear, las transformaciones sobre los datos y distintos parámetros referentes al modelo escogido.
 
-\footnotetext{ \cite{original_paper_reg:paper} }
+\pagebreak
 
-\subsubsection{Descripción de las caracteríticas}
+\subsubsection{Problema a resolver}
+
+Queremos aprender una función objetivo de la forma:
+
+$$f: \mathcal{X} \rightarrow \mathcal{Y}$$
+
+donde $\mathcal{X}$ es el conjunto real de dimensión 81 (las 81 características de las que disponemos), e $\mathcal{Y}$ son valores reales, en el intervalo $[0, \infty]$. Como comentaremos en \emph{\ref{descripcion_caracteristicas}. \nameref{descripcion_caracteristicas}}, la unidad de medida de la temperatura son los Kelvin, y por tanto, tenemos una cota inferior de esta variable real.
+
+Más adelante realizaremos transformaciones sobre el conjunto de datos original, por lo tanto, pasaremos de aprender un $f: \mathcal{X} \rightarrow \mathcal{Y}$ a aprender un $f: \hat{\mathcal{X}} \rightarrow \mathcal{Y}$, donde $\hat{\mathcal{X}}$ tendra otra dimensión.
+
+Por tanto quedan claros los elementos de un problema de regresión, queremos encontrar una función $g: \hat{\mathcal{X}} \rightarrow \mathcal{Y}$ de forma que $\forall x \in \hat{\mathcal{X}}, g(x) \approx f(x)$.
+
+\subsubsection{Descripción de las caracteríticas} \label{descripcion_caracteristicas}
 
 De nuevo, en el paper original \cite{original_paper_reg:paper} se describe el proceso de extracción de características, que pasamos a resumir brevemente.
 
-Se parte de las siguientes propiedades de los elementos que componen los distintos superconductores:
+Se parte de las siguientes propiedades de los átomos que componen las moléculas de los superconductores:
 
-% TODO -- esta tabla esta muy manchada
-\begin{table}
-\begin{center}
-\begin{tabular}{|c|c|}
-    Variable & Descripción \\
+\begin{table}[H]
+\begin{tabularx}{\textwidth}{|X|X|}
+    \textbf{Variable} & \textbf{Descripción} \\
     \hline
-    Atomic Mass & Total proton and neutron rest masses \\
-    First Ionization Energy & Energy required to remove a valence electron \\
-    Atomic Radius & Calculated atomic radius \\
-    Density & Density at standard temperature and pressure \\
-    Electron Affinity & Energy required to add an electron to a neutral atom \\
-    Fusion Heat & Energy to change from solid to liquid without temperature change \\
-    Thermal Conductivity &  Thermal conductivity coefficient $\kappa$ \\
-    Valence & Typical number of chemical bonds formed by the element \\
+    Masa atómica & Masa total del protón y neutrón en reposo \\
+    Energía de primera ionización & Energia necesaria para eliminar una valencia del electrón \\
+    Radio Atómico & Radio atómico \\
+    Densidad & Densidad a una temperatura y presión estandar \\
+    Afinidad del electrón & Energia necesaria para añadir un electrón a un átomo neutro \\
+    Calor de fusión & Energía necesaria para pasar de estado sólido a líquido sin cambio de temperatura \\
+    Conductividad térmica &  Coeficientes de conductividad térmica $\kappa$ \\
+    Valencia & Número típico de enlaces químicos formados por el elemento \\
     \hline
-\end{tabular}
-\end{center}
-    \caption{Propiedades de los elementos usadas para crear las \emph{features} }
+\end{tabularx}
+\caption{Propiedades de los elementos usadas para crear las \emph{features} }
 \end{table}
 
 Las \emph{features} más importantes a la hora de predecir $T_c$ son aquellas basadas en la \emph{thermal conductivity}, \emph{atomic radius}, \emph{valence}, \emph{electron affinity}, y \emph{atomic mass} \cite{original_paper_reg:paper}. Con esto podríamos pensar en descartar el resto de \emph{features} que no se basen en las anteriores, sin embargo, no tenemos el conocimiento suficiente sobre el problema para realizar este descarte con confianza, delegando esta decisión a la técnica \emph{Principal Componente Analysis} que más adelante desarrollaremos.
 
-A partir de esto, se calculan las siguientes \emph{features}. Por cada material, en base a sus elementos, se calculan los siguientes estadísticos por cada \emph{feature} mostrada en la anterior tabla:
+A partir de esto, se calculan las siguientes \emph{features}. Por cada material, en base a sus moléculas, se calculan los siguientes estadísticos por cada \emph{feature} mostrada en la anterior tabla y por cada átomo de la molécula:
 
-Algo importante a destacar es que la unidad de temperatura para $T_c$ es \emph{Kelvin}, por lo que esta variable estará acotada inferiormente por cero. La temperatura ambiente en kelvin está en torno a los $298K$, por lo tanto, valores cercanos a esta referencia serán los más interesantes a la hora de escoger o no un material como superconductor.
 
 \begin{itemize}
-    \item Mean
-    \item Weighted Mean
-    \item Geometric Mean
-    \item Weighted Geometric Mean
-    \item Entropy
-    \item Weighted Entropy
-    \item Range
-    \item Weighted Range
-    \item Standard Deviation
-    \item Weighted Standard Deviation
+    \item Media
+    \item Media ponderada
+    \item Media geométrica
+    \item Media geométrica ponderada
+    \item Entropía
+    \item Entropía ponderada
+    \item Rango
+    \item Rango ponderado
+    \item Desviación estandar
+    \item Desviación estandar ponderada
 \end{itemize}
+
+Algo importante a destacar es que la unidad de temperatura para $T_c$ es \emph{Kelvin}, por lo que esta variable estará acotada inferiormente por cero. La temperatura ambiente en kelvin está en torno a los $298K$, por lo tanto, valores cercanos a esta referencia serán los más interesantes a la hora de escoger o no un material como superconductor.
 
 Las fórmulas para cada estadístico se pueden consultar en el ya mencionado \emph{paper} \cite{original_paper_reg:paper}. Notar que tenemos siempre el estadístico y su versión ponderada.
 
@@ -192,7 +201,36 @@ Teniendo 8 variables, y 10 estadísticas por cada variable, llegamos a 80 caract
 
 \subsubsection{Exploración del \emph{Dataset}}
 
-==> Antes de empezar a explorar los datos del problema, separamos train, test => No queremos saber nada sobre el test que nos pueda influir => para evitar data snooping
+Antes de empezar a explorar los datos del problema, separamos el conjunto de \emph{training} y de \emph{test}. No queremos saber nada sobre el \emph{test\_dataset} durante esta exploración de los datos, para evitar caer en el \emph{data snooping}. Esta separación de los datos la realizamos con la función \lstinline{split_data} en la que hacemos:
+
+\begin{lstlisting}[language=Python]
+    df_test, df_train = train_test_split(df, test_size = test_percentage, shuffle = True, stratify = None)
+\end{lstlisting}
+
+Notar que estamos mezclando los datos pues \lstinline{shuffle = True}, con ello, y teniendo en cuenta que disponemos de muchos datos, queremos tener una muestra de entrenamiento representativa de los datos. Por ejemplo, no queremos que tengamos desbalanceos en la variable de salida, es decir, que en \emph{train} tengamos filas con valores de $T_c$ bajo, mientras que en \emph{test} tengamos filas con valores de $T_c$ altos, o viceversa. Como no tenemos clases, y al tener una cantidad tan grande de datos, no hacemos \emph{stratify != None}. Confiamos en que la mezcla aleatoria haga que nuestras muestras sean representativas y balanceadas, en el sentido que ya se ha especificado.
+
+Partimos de un \emph{dataset} con 21263 ejemplos. Al separar en \emph{train} y \emph{test}, nos quedamos con 17010 y 4253 ejemplos, respectivamente.
+
+Con la función \lstinline{explore_training_set} hacemos una pequeña exploración estadística de los datos, en la que mostramos una tabla con las estadísticas de las columnas. Esta tabla es la correspondiente a: \emph{\ref{Tabla con los estadísticos de las features}. \nameref{Tabla con los estadísticos de las features}}.
+
+
+% TODO -- poner aqui los datos, no se como hacerlo de forma limpia
+\begin{table}
+\begin{tabularx}{\textwidth}{|X|X|X|X|X|X|X|X|X|X|X|}
+name& type& mean& median& var& sdt& min& max& p25& p75& missing vals \\
+\hline
+    \end{tabularx}
+    \caption{Estadísticas de las \emph{features} del conjunto de entrenamiento}
+    \label{Tabla con los estadísticos de las features}
+\end{table}
+
+
+
+
+
+
+
+
 ==> Mostramos las estadisticas de las variables sin normalizar => tabla que he construido con pandas
 ==> Rangos de variables dispares => justifica la necesidad de normalizar los datos
 ==> Todos los datos son reales o enteros => no es necesario realizar otro tipo de codificaciones
@@ -253,5 +291,12 @@ Así que en realidad a la hora de escoger un modelo debemos escoger la trasnsfor
 
 \pagebreak
 \section{Problema de clasificación}
+
+\pagebreak
+
+% Bibliografia
+\bibliography{./References}
+\bibliographystyle{ieeetr}
+
 
 \end{document}
