@@ -322,6 +322,9 @@ def show_results(coeffs, df_train_X, df_train_Y, df_test_X, df_test_Y):
 # Funcion principal
 #===============================================================================
 if __name__ == "__main__":
+    print("==> Estableciendo semilla inicial aleatoria")
+    np.random.seed(123456789)
+
     print("==> Carga de los datos")
     df = load_data_csv(file_path)
     print(f"Tamaño de todo el dataset: {len(df)}")
