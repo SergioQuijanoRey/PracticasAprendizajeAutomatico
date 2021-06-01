@@ -275,6 +275,9 @@ name& type& mean& median& var& sdt& min& max& p25& p75& missing vals \\
 => Métrica de error -> error cuadrático medio
 => No uso error medio -> con error cuadrático medio se castigan más los outliers. Son funciones con una derivada mas sencilla a la hora de minimizar
 => El ECM es de los pocos errores que hemos visto a la hora de aplicar regresión, mientras que en clasificación teníamos más variedad para elegir
+=> No usamos SGDRegressor porque tenemos la suficiente potencia de cómputo para usar Lasso, Ridge y LinearModel
+=> Asi que elijo Linear normal, ridge y Lasso para CV etapa1
+    => Laso es interesante porque favorece que muchos coeficientes sean cero. Ridge favorece pesos pequeños pero no cero. Interesante para quitar terminos del polynomial fit que no me interesan
 
 \subsubsection{Modelos candidatos}
 
@@ -297,6 +300,5 @@ Así que en realidad a la hora de escoger un modelo debemos escoger la trasnsfor
 % Bibliografia
 \bibliography{./References}
 \bibliographystyle{ieeetr}
-
 
 \end{document}

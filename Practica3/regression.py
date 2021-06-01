@@ -13,12 +13,13 @@ from scipy import stats
 # TODO -- borrar -- debemos pasar esto al principio de este archivo
 from core import *
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn import linear_model
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import KFold
 
 # Parametros globales del programa
 #===============================================================================
@@ -319,6 +320,65 @@ def show_results(coeffs, df_train_X, df_train_Y, df_test_X, df_test_Y):
     print(f"--> Error cuadratico medio en la muestra: {in_sample_error}")
     print(f"--> Error cuadratico medio en el test: {test_sample_error}")
 
+def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
+    """
+    Lanza cross validation y muestra los resultados obtenidos
+    En esta primera etapa, fijaremos el valor de lambda para regularizacion, y moveremos el conjunto
+    de entrenamiento (sin PCA y sus transformaciones, PCA y sus trasnformaciones) y los modelos
+    considerados: ajuste lineal sin regularizador, o regularizacion LASSO o Ridge
+
+    Parameters:
+    ===========
+    df_train_X: dataframe con los datos de entrada, a los que hemos aplicado PCA
+    df_train_Y: dataframe con los datos de salida
+    df_train_X_original: dataframe con los datos sin aplicar PCA
+    """
+
+    # Valor del parametro de regularizacion. En el siguiente cross validation ya fijamos un buen
+    # valor para alpha
+    alpha = 0.05
+
+    # Modelos que vamos a validar
+    reg = linear_model.LinearRegression()
+    ridge = linear_model.Ridge(alpha=alpha)
+    lasso = linear_model.Lasso(alpha=alpha)
+    models = [reg, ridge, lasso]
+
+    # Transformaciones polinomiales que vamos a realizar de los datos
+    # Sin PCA no queremos hacer tantas transformaciones
+    # TODO -- probar con 4 en pca
+    pca_transforms = [1, 2, 3]
+    non_pca_transforms = [1, 2, 3]
+
+    # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
+    cv = KFold(n_splits=10, shuffle=True)
+
+    for model in models:
+        for order in pca_transforms:
+            # Transformamos los datos de entrada con polinomios
+            poly = PolynomialFeatures(order)
+            df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
+
+            scores = cross_val_score(model, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
+            print(f"PCA -> Model {model}, pol_order: {order}:")
+            print(f"\tMedia: {np.mean(scores)}")
+            print(f"\tMinimo: {np.min(scores)}")
+            print(f"\tMaximo: {np.max(scores)}")
+
+    # Hacemos lo mismo pero para el dataset sin PCA
+    for model in models:
+        for order in non_pca_transforms:
+            # Transformamos los datos de entrada con polinomios
+            poly = PolynomialFeatures(order)
+            df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X_original))
+
+            scores = cross_val_score(model, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
+            print(f"PCA -> Model {model}, pol_order: {order}:")
+            print(f"\tMedia: {np.mean(scores)}")
+            print(f"\tMinimo: {np.min(scores)}")
+            print(f"\tMaximo: {np.max(scores)}")
+
+
 # Funcion principal
 #===============================================================================
 if __name__ == "__main__":
@@ -366,8 +426,13 @@ if __name__ == "__main__":
     check_outliers_removal(df_train_original, df_train)
 
     print("--> Aplicando PCA a los datos")
+
+    # Guardo los datos originales sin aplicar PCA
+    df_train_X_original = df_train_X.copy()
+    df_test_X_original = df_test_X.copy()
+
     # TODO -- volver a un valor de 10
-    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, number_components = 15)
+    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, number_components = 10)
 
     print("--> Dataset despues de la transformacion PCA:")
     explore_training_set(df_train_X, show_box_plot = False)
@@ -387,26 +452,18 @@ if __name__ == "__main__":
     print(f"Tamaño df_train_X: {df_train_X.shape}")
     print(f"Tamaño df_train_Y: {df_train_Y.shape}")
 
-    print("==> Entrenamos con SGD el modelo lineal con las 10 columnas, para ser usado como baseline")
+    print("==> Calculamos algunos baselines haciendo entrenamiento")
+    print("--> Baseline de entrenar linear regression sin aplicar PCA")
+    linear_regresion = linear_model.LinearRegression()
+    linear_regresion.fit(df_train_X_original.to_numpy(), df_train_Y.to_numpy())
+    show_results(linear_regresion.coef_, df_train_X_original, df_train_Y, df_test_X_original, df_test_Y)
+
+    print("--> Baseline de entrenar linear regression al aplicar PCA, pero sin transformaciones polinomicas")
     linear_regresion = linear_model.LinearRegression()
     linear_regresion.fit(df_train_X.to_numpy(), df_train_Y.to_numpy())
     show_results(linear_regresion.coef_, df_train_X, df_train_Y, df_test_X, df_test_Y)
 
-    # Hago polynomial features
-    poly = PolynomialFeatures(3)
-    df_train_X = poly.fit_transform(df_train_X)
-
-    # Ajusto ahora el test
-    df_test_X = poly.transform(df_test_X)
-
-    # Las reconvierto a dataframes para que funcionen bien
-    df_train_X = pd.DataFrame(df_train_X)
-    df_test_X = pd.DataFrame(df_test_X)
-
-
-    # Aplico aprendizaje
-    linear_regresion = linear_model.LinearRegression()
-    linear_regresion.fit(df_train_X, df_train_Y)
-    show_results(linear_regresion.coef_, df_train_X, df_train_Y, df_test_X, df_test_Y)
+    print("==> Aplicamos Cross Validation")
+    show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
 
 
