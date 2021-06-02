@@ -160,6 +160,7 @@ Se parte de las siguientes propiedades de los átomos que componen las molécula
 
 \begin{table}[H]
 \begin{tabularx}{\textwidth}{|X|X|}
+    \hline
     \textbf{Variable} & \textbf{Descripción} \\
     \hline
     Masa atómica & Masa total del protón y neutrón en reposo \\
@@ -331,7 +332,7 @@ Con estos datos, podemos mostrar \emph{boxplots} de las variables, pero tampoco 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{output_var_boxplot}
+    \includegraphics[width=0.5\textwidth]{output_var_boxplot}
     \caption{Boxplot de la temperatura crítica}
 \end{figure}
 
@@ -407,15 +408,19 @@ Las estadísticas del conjunto de datos tras la transformación se refleja en la
     \label{Tabla con los estadísticos de las features 2}
 \end{table}
 
-Es claro que no controlamos la transformación, por tanto no tenemos interpretación de lo que representa cada columna.
+Es claro que no controlamos la transformación, por tanto no tenemos interpretación de lo que representa cada columna. También es claro que tenemos desviaciones típicas en órdenes de magnitud distintas y rangos (mínimo y máximo) completamente dispares. Por tanto, tanto como con el conjunto de datos original como en el conjunto tras aplicar \emph{PCA}, es necesario realizar una estandarización o normalización de los datos.
 
-\subsubsection{Normalización}
+\subsubsection{Estandarización}
+
+
 
 ==> Ya hemos justificado la necesidad de aplicar normalizacion
 ==> Aplicamos normalización bien => sin tener en cuenta información del test => mostrar el código porque puede ser relevante
+=> Mostrar normalización de los datos PCA y de los datos originales -> O comentar, porque no tiene nada de interesante la tabla
 ==> Comentar cómo estamos usando el scaler de sklearn
 ==> La variable de salida no se normaliza, pues esto no tiene sentido
 ==> Mostar de nuevo la tabla con los datos
+==> Se llama estandarizacion o normalizacion???
 
 \subsection{Selección del modelo}
 
@@ -446,6 +451,7 @@ Así que en realidad a la hora de escoger un modelo debemos escoger la trasnsfor
 
 Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
 
+==> Quitar tabularx porque va mal
 \begin{table}[H]
 \begin{tabularx}{\textwidth}{|X|X|X|X|X|X|}
     \hline
@@ -484,6 +490,7 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
 
 => Se resume en la siguiente tabla:
 
+=> Va mal tabularx
 \begin{table}[H]
 \begin{tabularx}{\textwidth}{|X|X|X|X|}
     \hline
