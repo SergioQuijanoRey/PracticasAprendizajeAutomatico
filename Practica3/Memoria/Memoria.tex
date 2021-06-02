@@ -293,6 +293,7 @@ Así que en realidad a la hora de escoger un modelo debemos escoger la trasnsfor
 
 => Explicar que he hecho en codigo, seleccion de lambda fijado por mi, la metrica de error negativa, las transformaciones que hemos realizado...
 => Comentar que en lasso saltan errores, y se vuelve a intentar asignando distintos valores o mas iteraciones -> No estoy muy seguro de esta politica
+=> Cuando uso No PCA, antes hago una normalizacion de los datos
 
 Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
 
@@ -313,28 +314,24 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
     Lasso  & PCA & 2 & -432.08 &-459.59 & -413.28 \\
     Lasso  & PCA & 3 & -358.46 &-382.28 & -335.32 \\
     Lasso  & PCA & 4 & -361.25 &-592.61 & -304.22 \\
-    Lineal & No PCA & 1 & -310.55 &-335.61 & -272.69 \\
-    Ridge  & No PCA & 1 &-310.84 &-324.05 & -299.61 \\
-    Lasso  & No PCA & 1 & -320.05 &-346.78 & -295.20 \\
+    Lineal & No PCA & 1 & -310.50 &-322.55 & -282.40 \\
+    Ridge  & No PCA & 1 & -328.42 &-355.69 & -310.94 \\
+    Lasso  & No PCA & 1 & -310.77 &-335.69 & -292.88 \\
     \hline
 \end{tabularx}
     \caption{Resultados de \emph{Cross Validation}, primera fase}
 \end{table}
 
-
-
-
-
-
-
-
-
-
-
-
-
+=> Por tanto, escogemos no aplicar PCA
+=> Por tanto, aunque la mejor media la da Linea No PCA, usamos Ridge No PCA, pues difieren solo en media en 0.30 ECM y no hemos jugado con el parametro de regularizacion, asi que parece que vamos a poder mejorar aun mas el performance del modelo
+    -> Ademas, ridge es más estable a vista del Maximo Minimo en un intervalo de menor longitud
+=> Puede tener sentido no aplicar PCA -> $N \geq d_{VC} * 10 \rightarrow d_{VC} \leq 1600$
 
 \subsubsection{\emph{Cross-Validation, segunda etapa}}
+
+=> Elegimos el dataset original sin PCA ni transformaciones polinomicas
+=> Regularizador ridge
+=> Rango de valores para lambda: $[10^-6 ... 10^-1, 1, 2]$ -> basado en ??
 
 
 

@@ -204,6 +204,9 @@ def standarize_dataset(train_df, test_df):
     muestra de test para aplicar la estandarizacion. Pero pasamos el conjunto de test para aplicar
     la misma trasnformacion a estos datos
 
+    Si no queremos standarizar las columnas de salida, separar antes los dataframes y pasar solo
+    la matriz de datos de entrada!!
+
     Parameters:
     ===========
     train_df: dataframe de datos de entrenamiento, de los que se calculan los estadisticos para la
@@ -353,25 +356,32 @@ def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
     # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
     cv = KFold(n_splits=10, shuffle=True)
 
-    for model in models:
-        for order in pca_transforms:
-            # Transformamos los datos de entrada con polinomios
-            # Notar que por defecto intruduce la columna del bias
-            poly = PolynomialFeatures(order)
-            df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
+    # TODO -- descomentar
+    #  for model in models:
+    #      for order in pca_transforms:
+    #          # Transformamos los datos de entrada con polinomios
+    #          # Notar que por defecto intruduce la columna del bias
+    #          poly = PolynomialFeatures(order)
+    #          df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
 
-            scores = cross_val_score(model, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
-            print(f"PCA -> Model {model}, pol_order: {order}:")
-            print(f"\tMedia: {np.mean(scores)}")
-            print(f"\tMinimo: {np.min(scores)}")
-            print(f"\tMaximo: {np.max(scores)}")
+    #          scores = cross_val_score(model, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
+    #          print(f"PCA -> Model {model}, pol_order: {order}:")
+    #          print(f"\tMedia: {np.mean(scores)}")
+    #          print(f"\tMinimo: {np.min(scores)}")
+    #          print(f"\tMaximo: {np.max(scores)}")
+
+    # El dataset sin PCA puede que no haya sido normalizado, asi que lo hacemos aqui
+    # No tiene efecto colateral
+    # Segundo parametro dummy porque no aplicamos el cambio al df de test, fuera de esta funcion se debe hacer la estandarizacion
+    # teniendo en cuenta en dataset de test si el df sin PCA se quiere emplear
+    df_no_pca_standarized_X, _ = standarize_dataset(df_train_X_original, df_train_X_original)
 
     # Hacemos lo mismo pero para el dataset sin PCA
     for model in models:
         for order in non_pca_transforms:
             # Transformamos los datos de entrada con polinomios
             poly = PolynomialFeatures(order)
-            df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X_original))
+            df_modified_X = pd.DataFrame(poly.fit_transform(df_no_pca_standarized_X))
 
             scores = cross_val_score(model, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
             print(f"No PCA -> Model {model}, pol_order: {order}:")
@@ -392,15 +402,27 @@ def show_cross_validation_step2(df_train_X, df_train_Y):
 
     Parameters:
     ===========
-    df_train_X: dataframe con los datos de entrada, a los que hemos aplicado PCA y la transformacion
-                polinomica que se escoge en el CV step 1
+    df_train_X: dataframe con los datos de entrada, son los datos ya trasnformados gracias a la eleccion
+                que hacemos en CV step1. En nuestro caso concreto, son los datos originales, sin
+                aplicar PCA ni transformaciones polinomicas
     df_train_Y: dataframe con los datos de salida
     """
 
-    # Hacemos la trasnformacion de los datos que vamos a usar
-    pol_order = 3
+    # Valores de regularización candidatos
+    candidates = [10**x for x in [-6, -5, -4, -3, -2, -1]]
+    candidates.append(1)
+    candidates.append(2)
 
+    # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
+    cv = KFold(n_splits=10, shuffle=True)
 
+    for lambd in candidates:
+        ridge = linear_model.Ridge(alpha=lambd)
+        scores = cross_val_score(ridge, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
+        print(f"Lambda == {lambd}")
+        print(f"\tMedia: {np.mean(scores)}")
+        print(f"\tMinimo: {np.min(scores)}")
+        print(f"\tMaximo: {np.max(scores)}")
 
 # Funcion principal
 #===============================================================================
@@ -450,7 +472,9 @@ if __name__ == "__main__":
 
     print("--> Aplicando PCA a los datos")
 
-    # Guardo los datos originales sin aplicar PCA
+    # Guardo los datos originales sin aplicar PCA, pero a los que se ha aplicado remove_outliers
+    # Notar que no estan normalizados, asi que mas adelante para ser usados con efectividad deberan
+    # ser normalizados
     df_train_X_original = df_train_X.copy()
     df_test_X_original = df_test_X.copy()
 
@@ -479,6 +503,7 @@ if __name__ == "__main__":
     print("--> Baseline de entrenar linear regression sin aplicar PCA")
     linear_regresion = linear_model.LinearRegression()
     linear_regresion.fit(df_train_X_original.to_numpy(), df_train_Y.to_numpy())
+
     show_results(linear_regresion.coef_, df_train_X_original, df_train_Y, df_test_X_original, df_test_Y)
 
     print("--> Baseline de entrenar linear regression al aplicar PCA, pero sin transformaciones polinomicas")
@@ -490,8 +515,9 @@ if __name__ == "__main__":
     show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
 
     print("==> Hacemos la transformacion a los datos que hemos escogido en CV")
-    poly = PolynomialFeatures(3)
-    df_train_X = pd.DataFrame(poly.fit_transform(df_train_X))
+    # En este caso, volvemos a usar el conjunto de datos original, sin aplicar PCA
+    df_train_X, _ = split_dataset_into_X_and_Y(df_train_no_pca.copy)
+    df_test_X = df_test_X_original
 
     print("==> Aplicamos Cross Validation -> Segundo paso")
     show_cross_validation_step2(df_train_X, df_train_Y)
