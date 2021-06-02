@@ -344,15 +344,25 @@ Por tanto, debemos preservar estos \emph{outliers} en la variable de salida, pue
 
 \subsubsection{Eliminación de outliers}
 
-==> Eliminamos outliers => valores que se desvían más de 4 veces la desviación típica
-==> Eliminamos outliers antes de normalizar, porque estamos normalizando con la media y la desviacion tipica, los outliers pueden afectar a una buena normalizacion: https://scikit-learn.org/stable/modules/preprocessing.html\#scaling-data-with-outliers => esta en el .bib
-==> Outliers con una sola variable por simplicidad => tenemos muchos datos, la pérdida no va a ser muy grande
-==> Decir lo que es el Z-score (numero de desviaciones típicas en las que nos alejamos de la media). Quitamos filas con z-score mayor que 4
-==> Si suponemos una distribucion normal => 99.74\% de los datos en [-3 std, 3 std]
-==> Quitamos el 8.5\% de los datos. En el paper se cargan el 40\% de los datos, así que parece buena idea eliminar estos datos
-==> Mostramos de nuevo la variable de salida => sigue funcionando bien porque está toda la variabilidad
-==> El eliminado de los outliers es clave para el procedimiento PCA: https://medium.com/apprentice-journal/pca-application-in-machine-learning-4827c07a61db => el enlace esta en la .bib
-==> Mostramos por pantalla los valores de salida que eliminamos por culpa de outliers -> Eliminamos valores bajos asi que no preocuparse -> Además mostrar la tabla,
+Antes de realizar normalización, debemos eliminar los \emph{outliers}. Estos son aquellos valores que están a una distancia de la media de más de 3 veces la desviación típica. Tenemos distintas características por cada dato, así que definimos los \emph{outliers} como aquellas filas que, en alguna de las variables que definen las columnas, se desvían como ya hemos especificado. Podríamos haber optado por técnicas que detectasen \emph{outliers} basándonos en más de una variable, pero por simplicidad, seguimos el procedimiento ya indicado. La opción multivariable preserva más datos, pero tenemos un \emph{dataset} lo suficientemente grande como para permitir el borrar más filas.
+
+En nuestro caso, por ser menos restrictivos, establecemos el límite en 4 veces la desviación típica.
+
+Todo esto está fundamentado en que, en una distribución normal, el $99.74\%$ de los datos se encuentran en el intervalo $[\mu - \sigma, \mu + \sigma]$. Al tener una gran cantidad de datos, por el teorema central del límite, podemos suponer que nuestra distribución de datos se aproxima a una distribución normal (multivariante al tener varias variables).
+
+Además, hacemos esto antes de estandarizar, pues para estandarizar, usamos los estadísticos media y desviación típica, que son muy sensibles a los valores \emph{outliers} \cite{scikit_scale_with_outliers:online}. También afectan los \emph{outliers} al procedimiento de \emph{PCA}, pues se basa en estadísticos altamente afectados por dichos \emph{outliers} \cite{pca_medium:online}.
+
+Previamente hemos justificado que no vamos a borrar \emph{outliers} respecto a la variable de salida.
+
+El código que borra los outliers se encuentra en la función \lstinline{remove_outliers}. Usamos una orden de acceso de la librería \lstinline{pandas} en la que usamos el estadístico \lstinline{zscore}, de la librería \lstinline{scipy}. Este valor \lstinline{zscore} lo que mide es el número de desviaciones típicas en las que un punto dista de la media de la variable aleatoria, es decir:
+
+$$z_{score}(x) := \frac{x - \mu}{\sigma}$$
+
+Borramos aquellos valores que, en alguna variable aleatoria columna, tengan un valor absoluto de \lstinline{zscore} mayor o igual que 4.
+
+Tras ejecutar el eliminado de \emph{outliers}, eliminamos el 8.78\% de los datos. Teniendo en cuenta la gran cantidad de datos de los que disponemos, junto al hecho de que en \cite{original_paper_reg:paper} comentan los autores que se quedan con el 67\% de los datos originales, para acabar con un \emph{dataset} de calidad, queda justificada esta pérdida de datos en pro de un conjunto de datos más limpio y de calidad.
+
+En este punto nos preocupamos de haber eliminado, sin fijarnos en la variable de salida, filas con valores de salida interesantes o que desbalanceen aún más el conjunto de datos. Sin embargo, computamos unas cuantas estadísticas de las filas eliminadas, respecto de la columna de salida $T_c$. La media de los datos eliminados es 12.82, y la desviación típica es 22.34. Por tanto estamos eliminando mayoritariamente filas con $T_c$ bajos, así que no vemos que estemos introduciendo aún más desbalanceo.
 
 \subsubsection{Principal Component Analysis}
 
