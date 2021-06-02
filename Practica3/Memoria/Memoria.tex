@@ -323,7 +323,7 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
 \end{table}
 
 => Por tanto, escogemos no aplicar PCA
-=> Por tanto, aunque la mejor media la da Linea No PCA, usamos Ridge No PCA, pues difieren solo en media en 0.30 ECM y no hemos jugado con el parametro de regularizacion, asi que parece que vamos a poder mejorar aun mas el performance del modelo
+=> Por tanto, aunque la mejor media la da Linea No PCA, usamos Ridge No PCA, pues difieren solo en media en 0.27 ECM y no hemos jugado con el parametro de regularizacion, asi que parece que vamos a poder mejorar aun mas el performance del modelo
     -> Ademas, ridge es más estable a vista del Maximo Minimo en un intervalo de menor longitud
 => Puede tener sentido no aplicar PCA -> $N \geq d_{VC} * 10 \rightarrow d_{VC} \leq 1600$
 
@@ -333,6 +333,30 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
 => Regularizador ridge
 => Rango de valores para lambda: $[10^-6 ... 10^-1, 1, 2]$ -> basado en ??
 
+=> Se resume en la siguiente tabla:
+
+\begin{table}[H]
+\begin{tabularx}{\textwidth}{|X|X|X|X|}
+    \hline
+    \textbf{Lambda} & \textbf{Valor medio} & \textbf{Valor mínimo} & \textbf{Valor máximo} \\
+    \hline
+    1e-07 & -310.50 &  -322.55 & -282.40 \\
+    1e-06 & -310.50 &  -322.55 & -282.40 \\
+    5e-06 & -310.55 &  -335.61 & -272.69 \\
+    1e-05 & -310.77 &  -335.67 & -292.98 \\
+    0.0001 & -310.74 &  -343.24 & -291.18 \\
+    0.001 & -310.79 &  -348.74 & -287.12 \\
+    0.01 & -310.58 &  -356.06 & -283.69 \\
+    0.1 & -310.75 &  -324.71 & -298.66 \\
+    1 & -310.99 &  -335.25 & -276.35 \\
+    2 & -311.13 &  -329.18 & -291.28 \\
+    5 & -311.90 &  -336.92 & -287.86 \\
+    \hline
+\end{tabularx}
+    \caption{Resultados de \emph{Cross Validation}, segunda fase}
+\end{table}
+
+=> A vista de esto, usamos $\lambda = 10^{-7}$
 
 
 ==> TODO -- en algun commento comentar que estamos usando unos baselines
