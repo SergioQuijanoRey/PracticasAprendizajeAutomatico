@@ -275,7 +275,7 @@ name& type& mean& median& var& sdt& min& max& p25& p75& missing vals \\
 => Métrica de error -> error cuadrático medio
 => No uso error medio -> con error cuadrático medio se castigan más los outliers. Son funciones con una derivada mas sencilla a la hora de minimizar
 => El ECM es de los pocos errores que hemos visto a la hora de aplicar regresión, mientras que en clasificación teníamos más variedad para elegir
-=> No usamos SGDRegressor porque tenemos la suficiente potencia de cómputo para usar Lasso, Ridge y LinearModel
+=> No usamos SGDRegressor porque tenemos la suficiente potencia de cómputo para usar Lasso, Ridge y LinearModel. Cuando el ordenador no puede más, es por la transformacion polinomica
 => Asi que elijo Linear normal, ridge y Lasso para CV etapa1
     => Laso es interesante porque favorece que muchos coeficientes sean cero. Ridge favorece pesos pequeños pero no cero. Interesante para quitar terminos del polynomial fit que no me interesan
 
@@ -289,9 +289,56 @@ A la hora de seleccionar modelos disponemos de:
 
 Así que en realidad a la hora de escoger un modelo debemos escoger la trasnsformación de los datos sobre la que ajustaremos un hiperparámetro. También deberemos escoger el regularizador
 
-\subsubsection{\emph{Cross-Validation}}
+\subsubsection{\emph{Cross-Validation}, primera etapa}
+
+=> Explicar que he hecho en codigo, seleccion de lambda fijado por mi, la metrica de error negativa, las transformaciones que hemos realizado...
+=> Comentar que en lasso saltan errores, y se vuelve a intentar asignando distintos valores o mas iteraciones -> No estoy muy seguro de esta politica
+
+Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
+
+\begin{table}[H]
+\begin{tabularx}{\textwidth}{|X|X|X|X|X|X|}
+    \hline
+    \textbf{Modelo} & \textbf{PCA \/ No PCA}& \textbf{Orden de la transformación polinómica} & \textbf{Valor medio} & \textbf{Valor mínimo} & \textbf{Valor máximo} \\
+    \hline
+    Lineal & PCA & 1 & -572.19 & -601.20 & -535.89 \\
+    Lineal & PCA & 2 & -431.65 &-476.37 & -412.32 \\
+    Lineal & PCA & 3 &-350.63 &-386.93 & -326.35 \\
+    Lineal & PCA & 4 & -2470.37 &-15358.09 & -283.22 \\
+    Ridge  & PCA & 1 &-572.15 &-609.16 & -541.24 \\
+    Ridge  & PCA & 2 & -431.82 &-472.09 & -404.95 \\
+    Ridge  & PCA & 3 & -348.22 &-363.54 & -332.83 \\
+    Ridge  & PCA & 4 & -2126.95 &-14843.43 & -333.92 \\
+    Lasso  & PCA & 1 & -572.15 &-634.92 & -549.44 \\
+    Lasso  & PCA & 2 & -432.08 &-459.59 & -413.28 \\
+    Lasso  & PCA & 3 & -358.46 &-382.28 & -335.32 \\
+    Lasso  & PCA & 4 & -361.25 &-592.61 & -304.22 \\
+    Lineal & No PCA & 1 & -310.55 &-335.61 & -272.69 \\
+    Ridge  & No PCA & 1 &-310.84 &-324.05 & -299.61 \\
+    Lasso  & No PCA & 1 & -320.05 &-346.78 & -295.20 \\
+    \hline
+\end{tabularx}
+    \caption{Resultados de \emph{Cross Validation}, primera fase}
+\end{table}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+\subsubsection{\emph{Cross-Validation, segunda etapa}}
+
+
+
+==> TODO -- en algun commento comentar que estamos usando unos baselines
 \pagebreak
 \section{Problema de clasificación}
 
