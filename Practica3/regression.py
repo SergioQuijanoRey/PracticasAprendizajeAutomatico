@@ -346,9 +346,9 @@ def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
 
     # Transformaciones polinomiales que vamos a realizar de los datos
     # Sin PCA no queremos hacer tantas transformaciones
-    # TODO -- probar con 4 en pca
-    pca_transforms = [1, 2, 3]
-    non_pca_transforms = [1, 2, 3]
+    pca_transforms = [1, 2, 3, 4]
+    non_pca_transforms = [1] # No podemos hacer trasnformaciones superiores, el ordenador no tiene
+                             # memoria suficiente
 
     # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
     cv = KFold(n_splits=10, shuffle=True)
@@ -356,6 +356,7 @@ def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
     for model in models:
         for order in pca_transforms:
             # Transformamos los datos de entrada con polinomios
+            # Notar que por defecto intruduce la columna del bias
             poly = PolynomialFeatures(order)
             df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
 
@@ -373,10 +374,32 @@ def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
             df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X_original))
 
             scores = cross_val_score(model, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
-            print(f"PCA -> Model {model}, pol_order: {order}:")
+            print(f"No PCA -> Model {model}, pol_order: {order}:")
             print(f"\tMedia: {np.mean(scores)}")
             print(f"\tMinimo: {np.min(scores)}")
             print(f"\tMaximo: {np.max(scores)}")
+
+    # Paramos la ejecucion hasta que el usuario pulse una tecla
+    print_bar(car = "-")
+    wait_for_user_input()
+
+def show_cross_validation_step2(df_train_X, df_train_Y):
+    """
+    Lanza cross validation y muestra los resultados obtenidos, en la segunda etapa
+    En esta etapa, ya hemos elegido que vamos a usar el dataset con PCA y transformacion polinomica
+    Tambien hemos elegido el modelo a usar, y el regularizador. Asi que en esta fase de CV lo que
+    vamos a elegir es el valor de lambda de penalizacion del regularizador
+
+    Parameters:
+    ===========
+    df_train_X: dataframe con los datos de entrada, a los que hemos aplicado PCA y la transformacion
+                polinomica que se escoge en el CV step 1
+    df_train_Y: dataframe con los datos de salida
+    """
+
+    # Hacemos la trasnformacion de los datos que vamos a usar
+    pol_order = 3
+
 
 
 # Funcion principal
@@ -431,7 +454,7 @@ if __name__ == "__main__":
     df_train_X_original = df_train_X.copy()
     df_test_X_original = df_test_X.copy()
 
-    # TODO -- volver a un valor de 10
+    # Aplicamos PCA
     df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, number_components = 10)
 
     print("--> Dataset despues de la transformacion PCA:")
@@ -463,7 +486,14 @@ if __name__ == "__main__":
     linear_regresion.fit(df_train_X.to_numpy(), df_train_Y.to_numpy())
     show_results(linear_regresion.coef_, df_train_X, df_train_Y, df_test_X, df_test_Y)
 
-    print("==> Aplicamos Cross Validation")
+    print("==> Aplicamos Cross Validation -> Primer paso")
     show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
+
+    print("==> Hacemos la transformacion a los datos que hemos escogido en CV")
+    poly = PolynomialFeatures(3)
+    df_train_X = pd.DataFrame(poly.fit_transform(df_train_X))
+
+    print("==> Aplicamos Cross Validation -> Segundo paso")
+    show_cross_validation_step2(df_train_X, df_train_Y)
 
 
