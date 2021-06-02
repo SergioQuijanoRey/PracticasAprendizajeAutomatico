@@ -366,12 +366,48 @@ En este punto nos preocupamos de haber eliminado, sin fijarnos en la variable de
 
 \subsubsection{Principal Component Analysis}
 
-==> Como se muestra en https://medium.com/apprentice-journal/pca-application-in-machine-learning-4827c07a61db (pillar el bib) está muy afectado por outliers, que ya nos hemos preocupado de eliminar
-=> Con 10 componentes obtenemos muchisima varianza explicada -> variables muy correladas, son estadisticas de lo mismo
-=> 8 variables originales -> 10 parece suficiente
-=> Poner el porcentaje de la variable explicada
-        => 0.9995126576534428
-==> No normalizamos antes porque entonces PCA funciona peor
+Con esta técnica buscamos reducir la dimensionalidad de nuestro conjunto de datos, manteniendo el máximo de la variabilidad original (que es lo que nos permite llevar a cabo un proceso de aprendizaje).
+
+Buscamos una base ortonormal de un espacio $\mathbb{R}^{\hat{d}}$ donde $\hat{d} << d$, es decir, el nuevo espacio euclídeo tiene una dimensión mucho menor que el espacio original. Todo esto gracias a calcular los valores propios de la matriz de covarianzas del conjunto de datos original \cite{pca_wikipedia:online} \cite{pca_article:online}. Con ello, y usando propiedades de vectores y espacios propios, expresamos en espacio con vectores que están linealmente incorrelados.
+
+Además, esta técnica devuelve los vectores de la base ordenados según la varianza que explican del conjunto de datos original.
+
+En nuestro caso, esta trasnformación del espacio la realizamos gracias a la función \lstinline{apply_PCA}. Podemos especificar el número de variables con el que nos queremos quedar, como el porcentaje de varianza que queremos alcanzar. Notar que pasamos como parámetro el conjunto de test. Este conjunto de test \textbf{no se usa para calcular la transformación}, solo se pasa para aplicar la misma transformación calculada, de nuevo, exclusivamente usando los datos del conjunto de entrenamiento.
+
+Cuando buscamos un 95\%, con 3 componentes parece que es suficiente. Esto parece tener sentido, pues tenemos 8 variables dependientes de los átomos, que ya de por sí estarán en cierto grado correladas, y 10 estadísticas moleculares, que podemos suponer altamente correladas. Sin embargo, quedarnos de un conjunto de 81 variables con solo 3 parece excesivo. Por tanto tomamos arbitrariamente la decisión de quedarnos con 10 columnas, el 12.3\% de las variables. Esto porque ya hemos comentado que tenemos 8 variables atómicas, y añadimos dos variables más para tener algo de margen con las estadísticas moleculares.
+
+Quedándonos con 10 variables obtenemos un  99.950\% de la variabilidad original explicada.
+
+Un detalle destacable es que antes de aplicar \emph{PCA} no estandarizamos el conjunto de datos, pues esto produce peores resultados. Esto tiene sentido pues \emph{PCA} se basa en correlación de variables, que es alterada cuando hacemos estandarización basada en una única variable a la vez (como veremos más adelante).
+
+Las estadísticas del conjunto de datos tras la transformación se refleja en la siguiente tabla:
+
+\begin{table}[H]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline
+    \textbf{Columna}                             &    \textbf{mean}&       \textbf{median}&           \textbf{var}&          \textbf{sdt}&         \textbf{min}&           \textbf{max}&          \textbf{p25}&          \textbf{p75}  \\
+\hline
+
+0  &   -2.28e-13& -3464.06&  4.79e+7&  6923.94&  -8121.31&  39063.60& -4783.59&  3770.72 \\
+1  &    2.05e-12&    10.68&  2.30e+7&  4798.68& -11192.14&  18391.68& -2274.11&  1340.20 \\
+2  &   -3.15e-13&   -17.09&  3.82e+6&  1956.17& -10235.37&  14248.53&  -774.02&   684.64 \\
+3  &   -6.75e-13&    98.48&  8.06e+5&   897.95&  -3794.20&   7688.15&  -574.11&   512.52 \\
+4  &   -8.79e-13&    93.72&  6.67e+5&   816.88&  -4432.94&   5548.37&  -539.45&   479.13 \\
+5  &    6.42e-13&   -82.54&  4.10e+5&   641.01&  -2259.87&   4500.24&  -273.61&   286.83 \\
+6  &   -4.11e-13&    -3.76&  1.16e+5&   340.72&  -1790.88&   2917.67&  -182.77&   175.26 \\
+7  &   -9.67e-14&   -49.58&  6.11e+4&   247.32&  -1530.81&   2782.81&  -153.15&   135.49 \\
+8  &    6.75e-15&     7.06&  3.34e+4&   182.90&   -779.76&    855.90&   -79.61&   111.87 \\
+9  &    1.09e-13&    -8.45&  1.61e+4&   127.25&   -510.65&   1033.12&   -73.78&    66.47 \\
+
+\hline
+    \end{tabular}
+    }
+    \caption{Estadísticas de las \emph{features} tras aplicar \emph{PCA}}
+    \label{Tabla con los estadísticos de las features 2}
+\end{table}
+
+Es claro que no controlamos la transformación, por tanto no tenemos interpretación de lo que representa cada columna.
 
 \subsubsection{Normalización}
 

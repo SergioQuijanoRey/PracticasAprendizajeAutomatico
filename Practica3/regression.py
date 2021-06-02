@@ -505,6 +505,7 @@ if __name__ == "__main__":
     print(f"Tamaño df_train_X: {df_train_X.shape}")
     print(f"Tamaño df_train_Y: {df_train_Y.shape}")
 
+    # TODO -- hacerlo mas tarde para que no parezca data snooping
     print("==> Calculamos algunos baselines haciendo entrenamiento")
     print("--> Baseline de entrenar linear regression sin aplicar PCA")
     linear_regresion = linear_model.LinearRegression()
