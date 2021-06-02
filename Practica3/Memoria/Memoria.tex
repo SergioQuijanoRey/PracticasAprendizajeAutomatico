@@ -14,7 +14,7 @@
 
 % Paquete para incluir imagenes
 \usepackage{graphicx}
-\graphicspath{ {./images/} }
+\graphicspath{ {./Imagenes/} }
 
 % Para fijar las imagenes en la posicion deseada
 \usepackage{float}
@@ -213,11 +213,11 @@ Partimos de un \emph{dataset} con 21263 ejemplos. Al separar en \emph{train} y \
 
 Con la función \lstinline{explore_training_set} hacemos una pequeña exploración estadística de los datos, en la que mostramos una tabla con las estadísticas de las columnas. Esta tabla es la correspondiente a las dos tablas separadas: \emph{\ref{Tabla con los estadísticos de las features 1}. \nameref{Tabla con los estadísticos de las features 1}} y \emph{\ref{Tabla con los estadísticos de las features 2}. \nameref{Tabla con los estadísticos de las features 2}}.
 
-\begin{table}
+\begin{table}[H]
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
 \hline
-name                             &    type&         mean&       median&           var&          sdt&         min&           max&          p25&          p75  \\
+    \textbf{name}                             &    \textbf{type}&         \textbf{mean}&       \textbf{median}&           \textbf{var}&          \textbf{sdt}&         \textbf{min}&           \textbf{max}&          \textbf{p25}&          \textbf{p75}  \\
 \hline
 number\_of\_elements               &   int64&     4.11&     4.00&  2.08e+0&     1.44&    1.00&      9.00&     3.00&     5.00 \\
 mean\_atomic\_mass                 & float64&    87.42&    84.78&  8.80e+2&    29.67&    6.94&    208.98&    72.38&   100.35 \\
@@ -275,11 +275,11 @@ wtd\_range\_ElectronAffinity       & float64&    59.32&    71.12&  8.29e+2&    2
     \label{Tabla con los estadísticos de las features 1}
 \end{table}
 
-\begin{table}
+\begin{table}[H]
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
 \hline
-name                             &    type&         mean&       median&           var&          sdt&         min&           max&          p25&          p75  \\
+    \textbf{name}                             &    \textbf{type}&         \textbf{mean}&       \textbf{median}&           \textbf{var}&          \textbf{sdt}&         \textbf{min}&           \textbf{max}&          \textbf{p25}&          \textbf{p75}  \\
 \hline
 std\_ElectronAffinity             & float64&    49.01&    51.12&  4.81e+2&    21.94&    0.00&    162.89&    38.43&    56.52 \\
 wtd\_std\_ElectronAffinity         & float64&    44.50&    48.16&  4.23e+2&    20.58&    0.00&    169.07&    33.34&    53.43 \\
@@ -321,12 +321,25 @@ critical\_temp                    & float64&    34.37&    20.00&  1.17e+3&    34
     \label{Tabla con los estadísticos de las features 2}
 \end{table}
 
-==> Mostramos las estadisticas de las variables sin normalizar => tabla que he construido con pandas
-==> Rangos de variables dispares => justifica la necesidad de normalizar los datos
-==> Todos los datos son reales o enteros => no es necesario realizar otro tipo de codificaciones
-==> Mostramos el boxplot de la variable de salida => Problema con la representación de la muestra. Muestra algo sesgada, pocos ejemplos en la muestra para valores de temperatura altos. Mostrar la figure 4 del paper. Pocos superconductores de alto Tc que son precisamente los que interesan
-==> Mostrar tabla de correlaciones???
+No mostramos el valor \emph{missing values}, porque en todos los casos son cero, así que no tenemos que preocuparnos de cómo afrontar este problema.
 
+La tabla deja claro que los rangos de las variables son muy dispares, así como las desviaciones típicas. Por ejemplo, wtd\_mean\_ThermalConductivity toma un rango de valores que va desde 0 hasta 406.96, mientas que por ejemplo entropy\_ThermalConductivity va desde 0 hasta 1.63. Lo mismo se puede decir de las desviaciones típicas. Muchos algoritmos y modelos son sensibles a rangos de valores dispares entre distintas caracteríticas. Otros directamente esperan que se siga una distribución parecida a una normal para tener un comportamiento decente. Por tanto, y como no es perjudicial realizar una estandarización, queda justificada la posterior estandarización que vamos a llevar a cabo.
+
+Otro elemento a tener en cuenta es que todas las variables son reales o enteras, y por tanto, tampoco es necesaria una técnica como \emph{one hot encoding} para codificar variables categóricas.
+
+Con estos datos, podemos mostrar \emph{boxplots} de las variables, pero tampoco extraeríamos demasiada información, pues más tarde vamos a estandarizar los datos, como ya hemos comentado, y además, vamos a eliminar los \emph{outliers}.Sin embargo, la variable de salida \emph{critical\_temp} no va a ser estandarizada ni eliminados los \emph{outliers} asociados a esta columna. Mostramos su \emph{boxplot}:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{output_var_boxplot}
+    \caption{Boxplot de la temperatura crítica}
+\end{figure}
+
+La caja del gráfico muestran los extremos de los extremos que fijan el percentil 25 y 75. Por tanto, podemos ver que nuestros datos de entrada están muy acumulados en valores de salida bajos. Es decir, la mayoría de datos con los que trabajamos están asociados a superconductores con un $T_c$ bajo, y por tanto menos interesantes. Esto mismo se comenta en el paper original, en la figura 4 \cite{original_paper_reg:paper}.
+
+Por tanto, debemos preservar estos \emph{outliers} en la variable de salida, pues son precisamente los datos que nos interesa predecir. Podríamos intentar solucionar este desbalanceo eliminando datos en la parte de mayor acumulación (datos de baja temperatura $T_c$). Sin embargo, a vista de lo desplazada que está la caja del gráfico, eliminaríamos demasiados datos, con lo que seguramente no mejoraríamos el rendimiento de la función aprendida. Además, nuestro objetivo no es aprender bien la función para superconductores con $T_c$ alto (aunque sean los más interesantes), sino aprender bien la función $f$ que ya hemos descrito anteriormente.
+
+\pagebreak
 \subsection{Preprocesado de los datos}
 
 \subsubsection{Eliminación de outliers}
