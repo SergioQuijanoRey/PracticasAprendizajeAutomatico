@@ -293,13 +293,13 @@ def apply_PCA(df_train_X, df_test_X, explained_variation = 0.90, number_componen
 
     return df_transformed_X, df_test_transformed_X
 
-def show_results(coeffs, df_train_X, df_train_Y, df_test_X, df_test_Y):
+def show_results(model, df_train_X, df_train_Y, df_test_X, df_test_Y):
     """
     Muestra los resultados del entrenamiento
 
     Parameters:
     ===========
-    coeffs: coeficientes que definen el hiperplano
+    model: modelo sklearn que queremos evaluar
     df_train_X: conjunto de entrenamiento, variables de entrada
     df_train_Y: conjunto de entrenamiento, variable de salida
     df_test_X: conjunto de test, variables de entrada
@@ -307,21 +307,24 @@ def show_results(coeffs, df_train_X, df_train_Y, df_test_X, df_test_Y):
     """
 
     # Computamamos las predicciones en la muestra de entrenamiento
-    f = lambda x: np.dot(x, coeffs)
-    predictions = f(df_train_X.to_numpy())
+    predictions = model.predict(df_train_X.to_numpy())
 
     # Calculamos el error cuadratico medio en la muestra
     in_sample_error = mean_squared_error(predictions, df_train_Y.to_numpy())
+    in_sample_r2 = model.score(df_train_X, df_train_Y)
 
     # Computamos las predicciones en el test y calculamos Etest
-    predictions = f(df_test_X.to_numpy())
+    predictions = model.predict(df_test_X.to_numpy())
     test_sample_error = mean_squared_error(predictions, df_test_Y.to_numpy())
+    test_sample_r2 = model.score(df_test_X, df_test_Y)
 
     # Mostramos los resultados
     print("Resultados del entrenamiento")
     print_bar()
     print(f"--> Error cuadratico medio en la muestra: {in_sample_error}")
+    print(f"--> R2 en la muestra: {in_sample_r2}")
     print(f"--> Error cuadratico medio en el test: {test_sample_error}")
+    print(f"--> R2 en el test: {test_sample_r2}")
 
 def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
     """
@@ -356,19 +359,18 @@ def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
     # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
     cv = KFold(n_splits=10, shuffle=True)
 
-    # TODO -- descomentar
-    #  for model in models:
-    #      for order in pca_transforms:
-    #          # Transformamos los datos de entrada con polinomios
-    #          # Notar que por defecto intruduce la columna del bias
-    #          poly = PolynomialFeatures(order)
-    #          df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
+    for model in models:
+        for order in pca_transforms:
+            # Transformamos los datos de entrada con polinomios
+            # Notar que por defecto intruduce la columna del bias
+            poly = PolynomialFeatures(order)
+            df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
 
-    #          scores = cross_val_score(model, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
-    #          print(f"PCA -> Model {model}, pol_order: {order}:")
-    #          print(f"\tMedia: {np.mean(scores)}")
-    #          print(f"\tMinimo: {np.min(scores)}")
-    #          print(f"\tMaximo: {np.max(scores)}")
+            scores = cross_val_score(model, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
+            print(f"PCA -> Model {model}, pol_order: {order}:")
+            print(f"\tMedia: {np.mean(scores)}")
+            print(f"\tMinimo: {np.min(scores)}")
+            print(f"\tMaximo: {np.max(scores)}")
 
     # El dataset sin PCA puede que no haya sido normalizado, asi que lo hacemos aqui
     # No tiene efecto colateral
@@ -409,9 +411,11 @@ def show_cross_validation_step2(df_train_X, df_train_Y):
     """
 
     # Valores de regularización candidatos
-    candidates = [10**x for x in [-6, -5, -4, -3, -2, -1]]
+    candidates = [10**x for x in [-7, -6, -5, -4, -3, -2, -1]]
+    candidates.append(5 * 10**(-6))
     candidates.append(1)
     candidates.append(2)
+    candidates.append(5)
 
     # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
     cv = KFold(n_splits=10, shuffle=True)
@@ -423,6 +427,8 @@ def show_cross_validation_step2(df_train_X, df_train_Y):
         print(f"\tMedia: {np.mean(scores)}")
         print(f"\tMinimo: {np.min(scores)}")
         print(f"\tMaximo: {np.max(scores)}")
+
+
 
 # Funcion principal
 #===============================================================================
@@ -504,22 +510,44 @@ if __name__ == "__main__":
     linear_regresion = linear_model.LinearRegression()
     linear_regresion.fit(df_train_X_original.to_numpy(), df_train_Y.to_numpy())
 
-    show_results(linear_regresion.coef_, df_train_X_original, df_train_Y, df_test_X_original, df_test_Y)
+    show_results(linear_regresion, df_train_X_original, df_train_Y, df_test_X_original, df_test_Y)
 
     print("--> Baseline de entrenar linear regression al aplicar PCA, pero sin transformaciones polinomicas")
     linear_regresion = linear_model.LinearRegression()
     linear_regresion.fit(df_train_X.to_numpy(), df_train_Y.to_numpy())
-    show_results(linear_regresion.coef_, df_train_X, df_train_Y, df_test_X, df_test_Y)
+    show_results(linear_regresion, df_train_X, df_train_Y, df_test_X, df_test_Y)
 
     print("==> Aplicamos Cross Validation -> Primer paso")
-    show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
+    # TODO -- descomentar
+    #  show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
 
     print("==> Hacemos la transformacion a los datos que hemos escogido en CV")
     # En este caso, volvemos a usar el conjunto de datos original, sin aplicar PCA
-    df_train_X, _ = split_dataset_into_X_and_Y(df_train_no_pca.copy)
+    # Los datos estan sin estandarizar, asi que los estandarizamos
+    df_train_X = df_train_X_original
     df_test_X = df_test_X_original
+    df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
 
     print("==> Aplicamos Cross Validation -> Segundo paso")
-    show_cross_validation_step2(df_train_X, df_train_Y)
+    # TODO -- descomentar
+    #  show_cross_validation_step2(df_train_X, df_train_Y)
 
+    print("==> Realizamos el entrenamiento sobre todo el conjunto de datos")
+
+    # Parametros que hemos escogido usando cross validation
+    #==========================================================================
+    # Datos a lo que no aplicamos PCA, solo borrado de outliers y estandarizacion
+    df_train_X = df_train_X
+    df_test_X = df_test_X
+
+    # Valor de lambda y modelo
+    lambd = 1e-7
+    model = linear_model.Ridge(alpha = lambd)
+
+    # Entrenamos sobre toda la poblacion de entrenamiento
+    model.fit(df_train_X, df_train_Y)
+    wait_for_user_input()
+
+    # Mostramos los resultados
+    show_results(model, df_train_X, df_train_Y, df_test_X, df_test_Y)
 
