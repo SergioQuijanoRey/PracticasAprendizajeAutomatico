@@ -529,6 +529,10 @@ if __name__ == "__main__":
     df_test_X = df_test_X_original
     df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
 
+    print("--> Conjunto de datos original, tras borrado de outliers y estandarizacion")
+    explore_training_set(df_train_X, show_box_plot=False)
+    wait_for_user_input()
+
     print("==> Aplicamos Cross Validation -> Segundo paso")
     # TODO -- descomentar
     #  show_cross_validation_step2(df_train_X, df_train_Y)

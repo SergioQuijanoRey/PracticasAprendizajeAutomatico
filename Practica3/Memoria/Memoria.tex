@@ -409,23 +409,66 @@ Las estadísticas del conjunto de datos tras la transformación se refleja en la
     \end{tabular}
     }
     \caption{Estadísticas de las \emph{features} tras aplicar \emph{PCA}}
-    \label{Tabla con los estadísticos de las features 2}
 \end{table}
 
 Es claro que no controlamos la transformación, por tanto no tenemos interpretación de lo que representa cada columna. También es claro que tenemos desviaciones típicas en órdenes de magnitud distintas y rangos (mínimo y máximo) completamente dispares. Por tanto, tanto como con el conjunto de datos original como en el conjunto tras aplicar \emph{PCA}, es necesario realizar una estandarización o normalización de los datos.
 
 \subsubsection{Estandarización}
 
+En este proceso, buscamos que las variables aleatorias de nuestro conjunto de datos queden con media cero y desviación típica uno. Este proceso no hace que las variables estén en un rango de valores similares, sin embargo, en este problema de regresión no parece ser importante. No usamos técnicas basadas en proximidad como \emph{nearest neighbour} o \emph{SVM}, en las que una normalización sería más adecuada la normalización \cite{normalization_vs_standarization:online}. En normalización conseguríamos que todas las variables estuviesen en el rango $[0, 1]$.
+
+En estandarización, aplicamos la siguiente operación a todas las variables aleatorias que conforman nuestro conjunto de datos:
+
+$\mathbb{X'} = \frac{\mathbb{X} - \mu}{\sigma}$
+
+El código usado para estandarizar se encuentra en \lstinline{standarize_dataset}. De nuevo, recibe como parámetro el conjunto de test. Este conjunto no se usa para calcular la transformación que representa la estandarización. Este cálculo solo toma información de los datos de entrenamiento. Por tanto, sobre el conjunto de test, solo se aplica la misma transformación.
+
+En dicho código usamos la clase \lstinline{StandarScaler} de \lstinline{sklearn}, que hace justo lo que hemos especificado \cite{sklearn_std_scaler:online}.
+
+Aplicamos estandarización tanto al conjunto original de datos, al que solo hemos borrado outliers, como al conjunto que queda tras aplicar \emph{PCA}.
+
+En dicho código se puede observar que no estamos estandarizando la variable de salida, pues esto no tiene sentido. En datos no vistos en el entrenamiento, nos llegan variables de entrada pero no de salida. Así que la predicción debe hacerse en el conjunto aleatorio que representa la variable aleatoria de salida original.
+
+Mostramos algunos de los datos, no todos pues no tiene mayor interés, de ambos conjuntos de datos tras estandarizar.
 
 
-==> Ya hemos justificado la necesidad de aplicar normalizacion
-==> Aplicamos normalización bien => sin tener en cuenta información del test => mostrar el código porque puede ser relevante
-=> Mostrar normalización de los datos PCA y de los datos originales -> O comentar, porque no tiene nada de interesante la tabla
-==> Comentar cómo estamos usando el scaler de sklearn
-==> La variable de salida no se normaliza, pues esto no tiene sentido
-==> Mostar de nuevo la tabla con los datos
-==> Se llama estandarizacion o normalizacion???
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{name}&                \textbf{mean}&     \textbf{median}&          \textbf{var}&        \textbf{sdt}&       \textbf{min}&         \textbf{max}&       \textbf{p25}&        \textbf{p75} \\
+\hline
+0&               -1.37-17&  -0.50&     1.00&   1.00& -1.17&    5.64& -0.69&   0.54 \\
+1&               -1.67-17&   0.00&     1.00&   1.00& -2.33&    3.83& -0.47&   0.27 \\
+2&               -3.44-18&  -0.00&     1.00&   1.00& -5.23&    7.28& -0.39&   0.35 \\
+\hline
+    \end{tabular}
+    \caption{Conjunto de datos tras aplicar \emph{PCA} y \emph{estandarización}}
+\end{table}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{name} &                                      \textbf{mean} &    \textbf{median} &       \textbf{var} &       \textbf{sdt} &       \textbf{min} &       \textbf{max} &       \textbf{p25} &       \textbf{p75} \\
+\hline
+numberof\_elements              &  1.95e-16& -0.07&  1.00&  1.00& -2.15&  3.38& -0.77&  0.61 \\
+meanatomic\_mass                & -5.66e-17& -0.08&  1.00&  1.00& -2.71&  4.09& -0.50&  0.43 \\
+wtdmean\_atomic\_mass            &  3.29e-17& -0.36&  1.00&  1.00& -1.98&  4.05& -0.62&  0.39 \\
+gmeanatomic\_mass               & -2.81e-16& -0.15&  1.00&  1.00& -2.12&  4.44& -0.43&  0.22 \\
+\ldots &  \ldots & \ldots & \ldots & \ldots &  \ldots & \ldots & \ldots & \ldots \\
+wtdrange\_Valence               & -4.75e-17& -0.42&  1.00&  1.00& -1.50&  5.59& -0.57&  0.44 \\
+stdValence                     & -3.22e-16& -0.08&  1.00&  1.00& -1.72&  4.42& -0.76&  0.75 \\
+wtdstd\_Valence                 &  7.12e-17& -0.38&  1.00&  1.00& -1.47&  5.08& -0.80&  0.75 \\
+\hline
+    \end{tabular}
+    \caption{Conjunto de datos sin aplicar \emph{PCA} tras la \emph{estandarización}}
+    \label{tabla_sin_pca}
+\end{table}
+
+En ambas tablas vemos que acabamos con desviación típica 1 y media prácticamente cero (notar que tenemos valores en órdenes de magnitud de $10^{-16}$ o $10^{-17}$, es decir, prácticamente cero). Aunque esta técnica de escalado no se centre en normalizar el rango de valores, si que hace que los rangos se normalicen algo. Por ejemplo, en la \emph{Tabla \ref{tabla_sin_pca}. \nameref{tabla_sin_pca}}, el valor de \emph{meanatomic\_mass} se mueve ahora en un rango $[-2.71, 4.09]$, mientras que en la \emph{Tabla \ref{Tabla con los estadísticos de las features}. \nameref{Tabla con los estadísticos de las features}} podemos ver que se movía en un rango $[6.94, 208.98]$. Así que aunque no estemos explícitamente preocupándonos por el rango de las variables, sí que estamos haciendo que no sean rangos tan amplios ni rangos tan dispares entre distintas variables.
+
+\pagebreak
 \subsection{Selección del modelo}
 
 \subsubsection{Selección de la métrica de error}
