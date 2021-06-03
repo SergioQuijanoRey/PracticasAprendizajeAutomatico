@@ -357,7 +357,7 @@ def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
 
     # Transformaciones polinomiales que vamos a realizar de los datos
     # Sin PCA no queremos hacer tantas transformaciones
-    pca_transforms = [1, 2, 3, 4]
+    pca_transforms = [1, 2]
     non_pca_transforms = [1] # No podemos hacer trasnformaciones superiores, el ordenador no tiene
                              # memoria suficiente
 
@@ -416,19 +416,15 @@ def show_cross_validation_step2(df_train_X, df_train_Y):
     """
 
     # Valores de regularización candidatos
-    candidates = [10**x for x in [-7, -6, -5, -4, -3, -2, -1]]
-    candidates.append(5 * 10**(-6))
+    candidates = [10**x for x in [-3, -2, -1]]
     candidates.append(1)
-    candidates.append(2)
-    candidates.append(5)
-    candidates.append(0.05)
 
     # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
     cv = KFold(n_splits=10, shuffle=True)
 
     for lambd in candidates:
-        ridge = linear_model.Ridge(alpha=lambd)
-        scores = cross_val_score(ridge, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
+        lasso = linear_model.Lasso(alpha=lambd)
+        scores = cross_val_score(lasso, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='neg_mean_squared_error', cv=cv, n_jobs=-1)
         print(f"Lambda == {lambd}")
         print(f"\tMedia: {np.mean(scores)}")
         print(f"\tMinimo: {np.min(scores)}")
@@ -482,16 +478,19 @@ if __name__ == "__main__":
     print("--> Comprobando como ha afectado el borrado de outliers a la variable de salida")
     check_outliers_removal(df_train_original, df_train)
 
-    print("--> Aplicando PCA a los datos")
+    print("--> Normalizando el conjunto de datos")
+    df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
+    print("Conjunto de entrenamiento tras normalizar")
+    explore_training_set(df_train_X, show_box_plot=False)
+    wait_for_user_input()
 
     # Guardo los datos originales sin aplicar PCA, pero a los que se ha aplicado remove_outliers
-    # Notar que no estan normalizados, asi que mas adelante para ser usados con efectividad deberan
-    # ser normalizados
     df_train_X_original = df_train_X.copy()
     df_test_X_original = df_test_X.copy()
 
     # Aplicamos PCA
-    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, number_components = 10)
+    print("--> Aplicando PCA a los datos")
+    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, explained_variation=0.99)
 
     print("--> Dataset despues de la transformacion PCA:")
     explore_training_set(df_train_X, show_box_plot = False)
@@ -515,16 +514,10 @@ if __name__ == "__main__":
     # TODO -- descomentar
     #  show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
 
-    print("==> Hacemos la transformacion a los datos que hemos escogido en CV")
-    # En este caso, volvemos a usar el conjunto de datos original, sin aplicar PCA
-    # Los datos estan sin estandarizar, asi que los estandarizamos
-    df_train_X = df_train_X_original
-    df_test_X = df_test_X_original
-    df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
-
-    print("--> Conjunto de datos original, tras borrado de outliers y estandarizacion")
-    explore_training_set(df_train_X, show_box_plot=False)
-    wait_for_user_input()
+    print("--> Aplicamos la transformacion polinomica de grado 2, que es la que escogemos")
+    poly = PolynomialFeatures(2)
+    df_train_X = pd.DataFrame(poly.fit_transform(df_train_X))
+    df_test_X = pd.DataFrame(poly.transform(df_test_X))
 
     print("==> Aplicamos Cross Validation -> Segundo paso")
     # TODO -- descomentar
@@ -534,13 +527,13 @@ if __name__ == "__main__":
 
     # Parametros que hemos escogido usando cross validation
     #==========================================================================
-    # Datos a lo que no aplicamos PCA, solo borrado de outliers y estandarizacion
+    # Datos a lo que aplicamos PCA y transformacion de orden 2
     df_train_X = df_train_X
     df_test_X = df_test_X
 
     # Valor de lambda y modelo
-    lambd = 1e-6
-    model = linear_model.Ridge(alpha = lambd)
+    lambd = 1e-3
+    model = linear_model.Lasso(alpha = lambd)
 
     # Entrenamos sobre toda la poblacion de entrenamiento
     model.fit(df_train_X, df_train_Y)
@@ -550,14 +543,10 @@ if __name__ == "__main__":
     show_results(model, df_train_X, df_train_Y, df_test_X, df_test_Y)
     wait_for_user_input()
 
-    # Pruebas
-    print("==> TODO -- borrar")
-    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, explained_variation=0.99)
-    poly = PolynomialFeatures(2)
-    df_train_X = pd.DataFrame(poly.fit_transform(df_train_X))
-    df_test_X = pd.DataFrame(poly.transform(df_test_X))
-
-    # Aplicamos el entrenamiento y mostramos los resultados
-    model.fit(df_train_X, df_train_Y)
-    show_results(model, df_train_X, df_train_Y, df_test_X, df_test_Y)
-    wait_for_user_input()
+    # Probamos con un dummy
+    # No usamos los datos a los que se han aplicado PCA y polinomios de orden 2, pues darian resultados
+    # aun mas pesimistas. Es decir, usamos la muestra original de los datos
+    print("==> Baseline usando la media")
+    dummy = DummyRegressor(strategy="mean")
+    dummy.fit(df_train_X_original, df_train_Y)
+    show_results(dummy, df_train_X_original, df_train_Y, df_test_X_original, df_test_Y)

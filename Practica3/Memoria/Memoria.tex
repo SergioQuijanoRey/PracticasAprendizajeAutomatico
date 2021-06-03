@@ -372,50 +372,6 @@ Tras ejecutar el eliminado de \emph{outliers}, eliminamos el 8.78\% de los datos
 
 En este punto nos preocupamos de haber eliminado, sin fijarnos en la variable de salida, filas con valores de salida interesantes o que desbalanceen aún más el conjunto de datos. Sin embargo, computamos unas cuantas estadísticas de las filas eliminadas, respecto de la columna de salida $T_c$. La media de los datos eliminados es 12.82, y la desviación típica es 22.34. Por tanto estamos eliminando mayoritariamente filas con $T_c$ bajos, así que no vemos que estemos introduciendo aún más desbalanceo.
 
-\subsubsection{Principal Component Analysis}
-
-Con esta técnica buscamos reducir la dimensionalidad de nuestro conjunto de datos, manteniendo el máximo de la variabilidad original (que es lo que nos permite llevar a cabo un proceso de aprendizaje).
-
-Buscamos una base ortonormal de un espacio $\mathbb{R}^{\hat{d}}$ donde $\hat{d} << d$, es decir, el nuevo espacio euclídeo tiene una dimensión mucho menor que el espacio original. Todo esto gracias a calcular los valores propios de la matriz de covarianzas del conjunto de datos original \cite{pca_wikipedia:online} \cite{pca_article:online}. Con ello, y usando propiedades de vectores y espacios propios, expresamos en espacio con vectores que están linealmente incorrelados.
-
-Además, esta técnica devuelve los vectores de la base ordenados según la varianza que explican del conjunto de datos original.
-
-En nuestro caso, esta trasnformación del espacio la realizamos gracias a la función \lstinline{apply_PCA}. Podemos especificar el número de variables con el que nos queremos quedar, como el porcentaje de varianza que queremos alcanzar. Notar que pasamos como parámetro el conjunto de test. Este conjunto de test \textbf{no se usa para calcular la transformación}, solo se pasa para aplicar la misma transformación calculada, de nuevo, exclusivamente usando los datos del conjunto de entrenamiento.
-
-Cuando buscamos un 95\%, con 3 componentes parece que es suficiente. Esto parece tener sentido, pues tenemos 8 variables dependientes de los átomos, que ya de por sí estarán en cierto grado correladas, y 10 estadísticas moleculares, que podemos suponer altamente correladas. Sin embargo, quedarnos de un conjunto de 81 variables con solo 3 parece excesivo. Por tanto tomamos arbitrariamente la decisión de quedarnos con 10 columnas, el 12.3\% de las variables. Esto porque ya hemos comentado que tenemos 8 variables atómicas, y añadimos dos variables más para tener algo de margen con las estadísticas moleculares.
-
-Quedándonos con 10 variables obtenemos un  99.950\% de la variabilidad original explicada.
-
-Un detalle destacable es que antes de aplicar \emph{PCA} no estandarizamos el conjunto de datos, pues esto produce peores resultados. Esto tiene sentido pues \emph{PCA} se basa en correlación de entre dos variables, que es alterada cuando hacemos estandarización basada en una única variable a la vez (como veremos más adelante).
-
-Las estadísticas del conjunto de datos tras la transformación se refleja en la siguiente tabla:
-
-\begin{table}[H]
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
-\hline
-    \textbf{Columna}                             &    \textbf{mean}&       \textbf{median}&           \textbf{var}&          \textbf{sdt}&         \textbf{min}&           \textbf{max}&          \textbf{p25}&          \textbf{p75}  \\
-\hline
-
-0  &   -2.28e-13& -3464.06&  4.79e+7&  6923.94&  -8121.31&  39063.60& -4783.59&  3770.72 \\
-1  &    2.05e-12&    10.68&  2.30e+7&  4798.68& -11192.14&  18391.68& -2274.11&  1340.20 \\
-2  &   -3.15e-13&   -17.09&  3.82e+6&  1956.17& -10235.37&  14248.53&  -774.02&   684.64 \\
-3  &   -6.75e-13&    98.48&  8.06e+5&   897.95&  -3794.20&   7688.15&  -574.11&   512.52 \\
-4  &   -8.79e-13&    93.72&  6.67e+5&   816.88&  -4432.94&   5548.37&  -539.45&   479.13 \\
-5  &    6.42e-13&   -82.54&  4.10e+5&   641.01&  -2259.87&   4500.24&  -273.61&   286.83 \\
-6  &   -4.11e-13&    -3.76&  1.16e+5&   340.72&  -1790.88&   2917.67&  -182.77&   175.26 \\
-7  &   -9.67e-14&   -49.58&  6.11e+4&   247.32&  -1530.81&   2782.81&  -153.15&   135.49 \\
-8  &    6.75e-15&     7.06&  3.34e+4&   182.90&   -779.76&    855.90&   -79.61&   111.87 \\
-9  &    1.09e-13&    -8.45&  1.61e+4&   127.25&   -510.65&   1033.12&   -73.78&    66.47 \\
-
-\hline
-    \end{tabular}
-    }
-    \caption{Estadísticas de las \emph{features} tras aplicar \emph{PCA}}
-\end{table}
-
-Es claro que no controlamos la transformación, por tanto no tenemos interpretación de lo que representa cada columna. También es claro que tenemos desviaciones típicas en órdenes de magnitud distintas y rangos (mínimo y máximo) completamente dispares. Por tanto, tanto como con el conjunto de datos original como en el conjunto tras aplicar \emph{PCA}, es necesario realizar una estandarización o normalización de los datos.
-
 \subsubsection{Estandarización}
 
 En este proceso, buscamos que las variables aleatorias de nuestro conjunto de datos queden con media cero y desviación típica uno. Este proceso no hace que las variables estén en un rango de valores similares, sin embargo, en este problema de regresión no parece ser importante. No usamos técnicas basadas en proximidad como \emph{nearest neighbour} o \emph{SVM}, en las que una normalización sería más adecuada la normalización \cite{normalization_vs_standarization:online}. En normalización conseguríamos que todas las variables estuviesen en el rango $[0, 1]$.
@@ -428,26 +384,11 @@ El código usado para estandarizar se encuentra en \lstinline{standarize_dataset
 
 En dicho código usamos la clase \lstinline{StandarScaler} de \lstinline{sklearn}, que hace justo lo que hemos especificado \cite{sklearn_std_scaler:online}.
 
-Aplicamos estandarización tanto al conjunto original de datos, al que solo hemos borrado outliers, como al conjunto que queda tras aplicar \emph{PCA}.
+Aplicamos estandarización tanto al conjunto original de datos, al que solo hemos borrado outliers, y tras aplicar la técnica \emph{PCA}, aplicaremos de nuevo estandarización a los datos transformados. Notar que es importante la estadarización previamente a \emph{PCA}, pues como se comentará más tarde, rangos de la desviación típica dispares puede hacer que una variable domine sobre las demas desproporcionadamente, obteniendo resultados no deseados.
 
 En dicho código se puede observar que no estamos estandarizando la variable de salida, pues esto no tiene sentido. En datos no vistos en el entrenamiento, nos llegan variables de entrada pero no de salida. Así que la predicción debe hacerse en el conjunto aleatorio que representa la variable aleatoria de salida original.
 
-Mostramos algunos de los datos, no todos pues no tiene mayor interés, de ambos conjuntos de datos tras estandarizar.
-
-
-\begin{table}[H]
-\centering
-\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
-\hline
-\textbf{name}&                \textbf{mean}&     \textbf{median}&          \textbf{var}&        \textbf{sdt}&       \textbf{min}&         \textbf{max}&       \textbf{p25}&        \textbf{p75} \\
-\hline
-0&               -1.37-17&  -0.50&     1.00&   1.00& -1.17&    5.64& -0.69&   0.54 \\
-1&               -1.67-17&   0.00&     1.00&   1.00& -2.33&    3.83& -0.47&   0.27 \\
-2&               -3.44-18&  -0.00&     1.00&   1.00& -5.23&    7.28& -0.39&   0.35 \\
-\hline
-    \end{tabular}
-    \caption{Conjunto de datos tras aplicar \emph{PCA} y \emph{estandarización}}
-\end{table}
+Mostramos algunos de los datos, no todos pues no tiene mayor interés, del conjunto de datos original tras estandarizar:
 
 \begin{table}[H]
 \centering
@@ -469,7 +410,93 @@ wtdstd\_Valence                 &  7.12e-17& -0.38&  1.00&  1.00& -1.47&  5.08& 
     \label{tabla_sin_pca}
 \end{table}
 
-En ambas tablas vemos que acabamos con desviación típica 1 y media prácticamente cero (notar que tenemos valores en órdenes de magnitud de $10^{-16}$ o $10^{-17}$, es decir, prácticamente cero). Aunque esta técnica de escalado no se centre en normalizar el rango de valores, si que hace que los rangos se normalicen algo. Por ejemplo, en la \emph{Tabla \ref{tabla_sin_pca}. \nameref{tabla_sin_pca}}, el valor de \emph{meanatomic\_mass} se mueve ahora en un rango $[-2.71, 4.09]$, mientras que en la \emph{Tabla \ref{Tabla con los estadísticos de las features}. \nameref{Tabla con los estadísticos de las features}} podemos ver que se movía en un rango $[6.94, 208.98]$. Así que aunque no estemos explícitamente preocupándonos por el rango de las variables, sí que estamos haciendo que no sean rangos tan amplios ni rangos tan dispares entre distintas variables.
+En la tablas vemos que acabamos con desviación típica 1 y media prácticamente cero (notar que tenemos valores en órdenes de magnitud de $10^{-16}$ o $10^{-17}$, es decir, prácticamente cero). Aunque esta técnica de escalado no se centre en normalizar el rango de valores, si que hace que los rangos se normalicen algo. Por ejemplo, en la \emph{Tabla \ref{tabla_sin_pca}. \nameref{tabla_sin_pca}}, el valor de \emph{meanatomic\_mass} se mueve ahora en un rango $[-2.71, 4.09]$, mientras que en la \emph{Tabla \ref{Tabla con los estadísticos de las features}. \nameref{Tabla con los estadísticos de las features}} podemos ver que se movía en un rango $[6.94, 208.98]$. Así que aunque no estemos explícitamente preocupándonos por el rango de las variables, sí que estamos haciendo que no sean rangos tan amplios ni rangos tan dispares entre distintas variables.
+
+\subsubsection{Principal Component Analysis}
+
+Con esta técnica buscamos reducir la dimensionalidad de nuestro conjunto de datos, manteniendo el máximo de la variabilidad original (que es lo que nos permite llevar a cabo un proceso de aprendizaje).
+
+Buscamos una base ortonormal de un espacio $\mathbb{R}^{\hat{d}}$ donde $\hat{d} << d$, es decir, el nuevo espacio euclídeo tiene una dimensión mucho menor que el espacio original. Todo esto gracias a calcular los valores propios de la matriz de covarianzas del conjunto de datos original \cite{pca_wikipedia:online} \cite{pca_article:online}. Con ello, y usando propiedades de vectores y espacios propios, expresamos en espacio con vectores que están linealmente incorrelados.
+
+Además, esta técnica devuelve los vectores de la base ordenados según la varianza que explican del conjunto de datos original.
+
+En nuestro caso, esta trasnformación del espacio la realizamos gracias a la función \lstinline{apply_PCA}. Podemos especificar el número de variables con el que nos queremos quedar, como el porcentaje de varianza que queremos alcanzar. Notar que pasamos como parámetro el conjunto de test. Este conjunto de test \textbf{no se usa para calcular la transformación}, solo se pasa para aplicar la misma transformación calculada, de nuevo, exclusivamente usando los datos del conjunto de entrenamiento.
+
+Un detalle destacable es que antes de aplicar \emph{PCA} debemos estandarizar el conjunto de datos, pues de otra forma trabajaríamos con peores resultados. De otra forma, rangos dispares en las desviaciones permitiría que una variable dominase demasiado a las otras variables al tener las estadísticas en rangos dispares \cite{normalize_before_pca:online}.
+
+Cuando buscamos un 99\% de varianza explicada, obtenemos una transformación del espacio $\mathbb{R}^{81}$ al espacio $\mathbb{R}^{30}$, es decir, hemos acabado con el $37.04\%$ de las variables originales, manteniendo el $99\%$ de la varaiblidad del dataset original. Con esto seremos capaces de realizar transformaciones no lineales de los datos, buscando un mejor ajuste lineal a la muestra de entrenamiento. Una reducción tan drástica tiene sentido, pues tenemos 8 variables dependientes de los átomos, que ya de por sí estarán en cierto grado correladas, y 10 estadísticas moleculares, que podemos suponer altamente correladas.
+
+
+Las estadísticas del conjunto de datos tras la transformación se refleja en la siguiente tabla:
+
+\begin{table}[H]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline
+    \textbf{Columna}                             &    \textbf{mean}&       \textbf{median}&           \textbf{var}&          \textbf{sdt}&         \textbf{min}&           \textbf{max}&          \textbf{p25}&          \textbf{p75}  \\
+0    & -1.35e-16&  -3.05&   31.45&   5.60&   -8.69&   18.00&  -4.69&   4.44 \\
+1    &  1.23e-17&  -0.29&    8.54&   2.92&   -7.42&   17.15&  -1.69&   1.10 \\
+2    &  1.53e-16&   0.26&    7.66&   2.76&  -10.17&   10.29&  -1.78&   2.17 \\
+3    &  1.15e-17&   0.09&    6.42&   2.53&   -8.03&   11.75&  -1.48&   1.36 \\
+4    &  4.50e-17&   0.23&    4.79&   2.18&   -8.72&   11.06&  -1.00&   1.01 \\
+5    &  3.43e-17&  -0.28&    3.05&   1.74&   -7.73&   10.46&  -1.15&   0.91 \\
+6    &  3.60e-18&  -0.11&    2.95&   1.71&   -7.06&    9.57&  -0.82&   0.78 \\
+7    & -5.65e-17&  -0.05&    2.56&   1.60&   -7.79&    9.03&  -0.65&   0.78 \\
+8    & -8.47e-18&  -0.10&    1.90&   1.38&   -6.53&    8.11&  -0.69&   0.73 \\
+9    & -7.70e-18&  -0.08&    1.60&   1.26&   -6.10&    8.13&  -0.81&   0.76 \\
+10   &  8.10e-19&   0.04&    1.46&   1.21&   -6.82&    7.16&  -0.57&   0.64 \\
+11   & -2.40e-17&  -0.04&    1.17&   1.08&   -3.88&    6.32&  -0.46&   0.50 \\
+12   &  2.50e-17&   0.04&    0.94&   0.97&   -4.42&    4.84&  -0.60&   0.52 \\
+13   &  8.87e-18&  -0.05&    0.81&   0.90&   -4.47&    4.75&  -0.42&   0.48 \\
+14   &  3.25e-17&  -0.02&    0.78&   0.88&   -4.08&    6.73&  -0.36&   0.38 \\
+15   & -5.81e-17&  -0.02&    0.63&   0.79&   -4.76&    4.84&  -0.40&   0.42 \\
+16   & -2.21e-17&  -0.09&    0.58&   0.76&   -3.44&    5.50&  -0.39&   0.27 \\
+17   &  1.80e-17&  -0.01&    0.44&   0.66&   -2.50&    4.05&  -0.37&   0.38 \\
+18   &  1.38e-17&  -0.01&    0.39&   0.62&   -3.76&    4.72&  -0.31&   0.27 \\
+19   & -1.69e-17&  -0.03&    0.30&   0.55&   -2.42&    3.17&  -0.32&   0.29 \\
+20   &  1.81e-17&  -0.03&    0.24&   0.49&   -1.75&    2.88&  -0.34&   0.29 \\
+21   & -2.99e-17&  -0.00&    0.22&   0.47&   -2.56&    3.53&  -0.21&   0.21 \\
+22   &  1.13e-17&  -0.00&    0.20&   0.45&   -2.59&    4.32&  -0.26&   0.28 \\
+23   &  4.11e-18&  -0.00&    0.16&   0.40&   -2.22&    3.08&  -0.22&   0.24 \\
+24   & -3.87e-18&  -0.00&    0.15&   0.39&   -2.20&    2.94&  -0.23&   0.22 \\
+25   & -4.30e-17&  -0.00&    0.14&   0.38&   -2.09&    2.79&  -0.21&   0.21 \\
+26   & -2.97e-17&  -0.02&    0.13&   0.37&   -2.01&    2.37&  -0.23&   0.21 \\
+27   & -2.85e-18&   0.00&    0.11&   0.34&   -1.67&    1.92&  -0.17&   0.17 \\
+28   & -1.64e-17&   0.00&    0.10&   0.32&   -2.03&    2.64&  -0.16&   0.15 \\
+29   &  3.84e-18&   0.01&    0.09&   0.30&   -1.60&    2.05&  -0.17&   0.16 \\
+30   & -3.34e-17&  -0.02&    0.08&   0.28&   -1.47&    1.92&  -0.15&   0.15 \\
+
+\hline
+
+\hline
+    \end{tabular}
+    }
+    \caption{Estadísticas de las \emph{features} tras aplicar \emph{PCA}}
+\end{table}
+
+Es claro que no controlamos la transformación, por tanto no tenemos interpretación de lo que representa cada columna. También es claro que tenemos desviaciones típicas en órdenes de magnitud distintas y rangos (mínimo y máximo) completamente dispares. Por tanto, tanto como con el conjunto de datos original como en el conjunto tras aplicar \emph{PCA}, es necesario realizar una estandarización o normalización de los datos.
+
+Estandarizamos estos nuevos datos, pues es claro que los rangos y las desviaciones son bastante dispares. Mostramos algunos de los datos, no tiene mayor interés mostrar las 30 filas:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{name}&                \textbf{mean}&     \textbf{median}&          \textbf{var}&        \textbf{sdt}&       \textbf{min}&         \textbf{max}&       \textbf{p25}&        \textbf{p75} \\
+\hline
+0               &-1.16e-17  &-0.54     &1.00   &1.00 &-1.55    &3.21 &-0.83   &0.79 \\
+1               & 1.87e-18  &-0.10     &1.00   &1.00 &-2.54    &5.87 &-0.57   &0.37 \\
+2               &-1.42e-17  & 0.09     &1.00   &1.00 &-3.67    &3.71 &-0.64   &0.78 \\
+\ldots &  \ldots & \ldots & \ldots & \ldots &  \ldots & \ldots & \ldots & \ldots \\
+28              &-1.48e-17  & 0.01     &1.00   &1.00 &-6.33    &8.21 &-0.50   &0.46 \\
+29              & 1.73e-17  & 0.05     &1.00   &1.00 &-5.23    &6.70 &-0.57   &0.53 \\
+30              & 1.00e-17  &-0.06     &1.00   &1.00 &-5.13    &6.69 &-0.53   &0.54 \\
+\hline
+    \end{tabular}
+    \caption{Conjunto de datos tras aplicar \emph{PCA} y \emph{estandarización}}
+\end{table}
+
+Y de nuevo, vemos que tenemos media aproximadamente cero y desviación típica igual a uno, como buscábamos
 
 \pagebreak
 \subsection{Selección del modelo}
@@ -527,7 +554,7 @@ Por otro lado, como hemos sido capaces de emplear la pseudoinversa sin problemas
 
 Con la orden \lstinline{cv = KFold(n_splits=10, shuffle=True)} especificamos los 10 \emph{folds} y que se use mezclado aleatorio para elegir los elementos de los \emph{folds}.
 
-En el conjunto de datos al que aplicamos \emph{PCA}, probamos las transformaciones polinímicas en el conjunto $\{1, 2, 3, 4\}$. Al conjunto de datos al que no aplicamos \emph{PCA}, no aplicamos transformaciones polinómicas, pues nuestro ordenador no es capaz de calcular estas transformaciones.
+En el conjunto de datos al que aplicamos \emph{PCA}, probamos las transformaciones polinímicas en el conjunto $\{1, 2\}$. No aplicamos transformaciones de orden superior pues nuestro ordenador no es capaz de calcular estas transformaciones. Al conjunto de datos al que no aplicamos \emph{PCA}, no aplicamos transformaciones polinómicas, pues de nuevo nuestro ordenador no es capaz realizar los cómputos
 
 Al usar \emph{Lasso}, el código lanza algunos errores porque no alcanza solución estable en el número máximo de iteraciones dado. Sin embargo, el código automáticamente vuelve a intentarlo con otra solución inicial aleatoria, llegando a encontrar la solución en el número máximo de iteraciones especificado.
 
@@ -539,18 +566,12 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
     \hline
     \textbf{Modelo} & \textbf{PCA \/ No PCA}& \textbf{Orden de la transformación polinómica} & \textbf{Valor medio} & \textbf{Valor mínimo} & \textbf{Valor máximo} \\
     \hline
-    Lineal & PCA & 1 & -572.19 & -601.20 & -535.89 \\
-    Lineal & PCA & 2 & -431.65 &-476.37 & -412.32 \\
-    Lineal & PCA & 3 &-350.63 &-386.93 & -326.35 \\
-    Lineal & PCA & 4 & -2470.37 &-15358.09 & -283.22 \\
-    Ridge  & PCA & 1 &-572.15 &-609.16 & -541.24 \\
-    Ridge  & PCA & 2 & -431.82 &-472.09 & -404.95 \\
-    Ridge  & PCA & 3 & -348.22 &-363.54 & -332.83 \\
-    Ridge  & PCA & 4 & -2126.95 &-14843.43 & -333.92 \\
-    Lasso  & PCA & 1 & -572.15 &-634.92 & -549.44 \\
-    Lasso  & PCA & 2 & -432.08 &-459.59 & -413.28 \\
-    Lasso  & PCA & 3 & -358.46 &-382.28 & -335.32 \\
-    Lasso  & PCA & 4 & -361.25 &-592.61 & -304.22 \\
+    Lineal & PCA & 1 & -365.39 &-411.91 & -347.46 \\
+    Lineal & PCA & 2 & -229.56 &-254.66 & -210.64 \\
+    Ridge  & PCA & 1 & -365.59 &-397.05 & -345.15 \\
+    Ridge  & PCA & 2 & -231.89 &-259.39 & -200.73 \\
+    Lasso  & PCA & 1 & -365.45 &-402.61 & -343.86 \\
+    Lasso  & PCA  & 2 & -231.36 &-267.28 & -213.01 \\
     Lineal & No PCA & 1 & -310.50 &-322.55 & -282.40 \\
     Ridge  & No PCA & 1 & -310.77 &-335.69 & -292.88 \\
     Lasso  & No PCA & 1 & -328.42 &-355.69 & -310.94 \\
@@ -559,51 +580,42 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
     \caption{Resultados de \emph{Cross Validation}, primera fase}
 \end{table}
 
-La tabla deja claro que es mejor no aplicar \emph{PCA} y transformaciones polinómicas. Quizás con otra transformación sí que sería útil aplicar \emph{PCA}, pero en este caso no hemos encontrado unas trasnformaciones útiles. Centrándonos en las tres variantes para el \emph{dataset} sin aplicar \emph{PCA}, el mejor modelo es \emph{Linear Regression}. Sin embargo, \emph{Ridge} pierde en media por un error cuadrático medio de tan solo $0.27$. Como todavía no hemos encontrado un valor de $\lambda$ óptimo, elegimos este modelo a pesar de que tengamos un error ligeramente mayor, con la esperanza de que en la segunda fase de \emph{Cross Validation} consigamos un error menor.
+La tabla deja claro que lo mejor es aplicar \emph{PCA} y transformaciones polinómicas de segundo grado. Sería interesante conocer los resultados de aplicar trasnformaciones de hasta orden 3 en una máquina más potente, con mas memoria para almacenar los cálculos. El claro ganador es tomar \emph{PCA}, transformación de orden 2 y modelo lineal normal. Sin embargo, el segundo mejor, \emph{PCA} con orden 2 y Lasso, difiere en error cuadrático medio por tan solo un valor de $1.8$. Como todavía no hemos encontrado un valor de $\lambda$ óptimo, elegimos este modelo a pesar de que tengamos un error ligeramente mayor, con la esperanza de que en la segunda fase de \emph{Cross Validation} consigamos un error menor.
 
 En el \emph{dataset} al que no aplicamos PCA, es previsible que \emph{Lasso} iba a funcionar mal. Durante el curso hemos visto la regla práctica de que, para no tener problemas de generalización, es deseable que $N > 10 d_{VC}
-$. Tenemos, tras toda la limpieza de los datos, algo más de 15.500 columnas, y por tanto, al trabajar con modelos lineales, podemos trabajar con un número de variables en el orden de $1500$ columnas. Es claro que con 81 columnas no nos interesa hacer que algunas columnas sean cero, que es lo que consigue \emph{Lasso}. Lo que sí nos interesa es que los valores de los parámetros del modelo no sean muy grandes, que es lo que consigue \emph{Ridge}.
+$. Tenemos, tras toda la limpieza de los datos, algo más de 15.500 columnas, y por tanto, al trabajar con modelos lineales, podemos trabajar con un número de variables en el orden de $1500$ columnas. Es claro que con 81 columnas no nos interesa hacer que algunas columnas sean cero, que es lo que consigue \emph{Lasso}.
 
 \subsubsection{\emph{Cross-Validation, segunda etapa}}
 
-Como ya hemos justificado, elegimos regresión \emph{Ridge} sobre el conjunto de datos al que no aplicamos \emph{PCA}. Recordar que, a pesar de no estar aplicando \emph{PCA}, si estamos aplicando el borrado de \emph{outliers} y la estandarización de los datos.
-
-En esta fase escogemos el valor de $\lambda$: parámetro de penalización de la regularización. Estamos trabajando con solamente 81 columnas, con un conjunto de algo más de 15.500 ejemplos de entrenamiento. Por tanto, podemos esperar que acabemos con un valor de $\lambda$ pequeño. Por tanto, el rango de valores escodigo es $\lambda \in [10^{-7}, 5]$.
+Como ya hemos justificado, elegimos regresión \emph{Lasso} sobre el conjunto de datos al que aplicamos \emph{PCA}.
+En esta fase escogemos el valor de $\lambda$: parámetro de penalización de la regularización. El rango de valores escodigo es $\lambda \in [10^{-3}, 1]$, basándonos en que el el primer \emph{step} hemos tomado $\lambda = 0.05$ y que estamos trabajando con una dimensionalidad alta, por lo tanto, queremos que la penalización no sea demasiado baja.
 
 Los resultados de esta segunda fase se resumen en la siguiente fase:
 
 \begin{table}[H]
-\centering
-\begin{tabular}{|c|c|c|c|}
-    \hline
-    \textbf{Lambda} & \textbf{Valor medio} & \textbf{Valor mínimo} & \textbf{Valor máximo} \\
-    \hline
-    1e-07 & -310.50 &  -322.55 & -282.40 \\
-    1e-06 & -310.50 &  -322.55 & -282.40 \\
-    5e-06 & -310.55 &  -335.61 & -272.69 \\
-    1e-05 & -310.77 &  -335.67 & -292.98 \\
-    0.0001 & -310.74 &  -343.24 & -291.18 \\
-    0.001 & -310.79 &  -348.74 & -287.12 \\
-    0.01 & -310.58 &  -356.06 & -283.69 \\
-    0.05 & -310.58 & -338.59 & -280.38 \\
-    0.1 & -310.75 &  -324.71 & -298.66 \\
-    1 & -310.99 &  -335.25 & -276.35 \\
-    2 & -311.13 &  -329.18 & -291.28 \\
-    5 & -311.90 &  -336.92 & -287.86 \\
-    \hline
-\end{tabular}
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Lambda} & \textbf{Valor medio} & \textbf{Valor mínimo} & \textbf{Valor máximo} \\
+        \hline
+        0.001 & -228.24 & -250.70 & -210.52 \\
+        0.01  & -228.89 & -254.37 & -211.02 \\
+        0.1   & -236.02 & -261.20 & -212.81 \\
+        1     & -319.58 & -330.61 & -308.83 \\
+        \hline
+    \end{tabular}
     \caption{Resultados de \emph{Cross Validation}, segunda fase}
 \end{table}
 
-Los resultados de esta tabla eran previsibles por lo que ya hemos comentado. El error aumenta monótamente salvo en el salto de $\lambda = 0.001$ a $\lambda = 0.01$. El mejor resultado lo obtenemos con $\lambda \in \{10^{-7}, 10^{-6}\}$. Elegimos por tanto $10^{-6}$, con $10^{-7}$ puede ser que estemos castigando muy poco en la parte de regularización.
+Con los resultados de esta tabla, elegimos el parámetro del regularizador como $\lambda = 10^{-3}$, con lo que ya estamos listos para entrenar sobre todo el conjunto de datos, elegidos todos los parámetros de nuestro modelo final.
 
 \pagebreak
 \subsection{Entrenamiento sobre todo el \emph{train\_dataset} para seleccionar el modelo final}
 
-En este punto está justificado el que usemos el conjunto original de datos, al que hemos eliminado \emph{outliers} y estandarizado, sin emplear una técnica como \emph{PCA}. Además, usaremos como parámetros:
+En este punto está justificado el que usemos el conjunto original de datos, al que hemos eliminado \emph{outliers} y estandarizado. Tras esto, aplicamos \emph{PCA} obteniendo 30 variables, y estandarizando de nuevo.. Además, usaremos como parámetros:
 
 \begin{itemize}
-    \item $\lambda = 10^{-6}$
+    \item $\lambda = 10^{-3}$
     \item Máximo de iteraciones: 1000 iteraciones
     \item Tolerancia: $10^{-3}$
 \end{itemize}
@@ -616,8 +628,8 @@ Con esto obtenemos los siguientes resultados:
     \hline
     \textbf{Conjunto de datos} & \textbf{Error cuadrático medio} & \textbf{Error absoluto medio} & \textbf{$R^2$} \\
     \hline
-    Entrenamiento & 307.77 & 13.26 & 0.73 \\
-    Test & 311.28 & 13.40 & 0.73 \\
+    Entrenamiento & 216.97 & 10.42 & 0.81 \\
+    Test & 223.29 & 10.70 & 0.80 \\
     \hline
 \end{tabular}
     \caption{Resultados del entrenamiento}
@@ -627,15 +639,30 @@ Con esto obtenemos los siguientes resultados:
 
 El error cuadrático medio viene dado por $\frac{1}{N} \sum^N |g(x) - y|^2$ donde $g$ es la función aprendida, $x$ el dato de entrada e $y$ la etiqueta verdadera asociada. El error absoluto medio viene dado por $\frac{1}{N} \sum^N |g(x) - y|$, que es algo más interpretable que el error cuadrático medio. $R^2$ es el coeficiente de determinación lineal.
 
-Es claro que no hemos tenido problemas de \emph{overfitting}, pues el error en test no es demasiado dispar al error en la muestra. Los coeficientes de correlación son buenos, estamos explicando el $73\%$ de la varianza de la muestra con nuestro modelo lineal.
+Es claro que no hemos tenido problemas de \emph{overfitting}, pues el error en test no es demasiado dispar al error en la muestra. Los coeficientes de correlación son bastante buenos, estamos explicando el $80\%$ de la varianza de la muestra de test con nuestro modelo lineal.
 
-El error absoluto medio en el test se puede interpretar como que de media, para cada dato estamos prediciendo con un error $\pm 13.4 K$. Respecto a la bondad de nuestros resultados, en el paper original \cite{original_paper_reg:paper} se comenta que obtienen resultados con error \emph{rmse} de $9.5K$, donde \emph{rmse} es la raíz del error cuadrático medio. Nosotros obtenemos un \emph{rmse} en test de $17.64K$. Por tanto, con un modelo mucho más simple que el empleado en \cite{original_paper_reg:paper}, basado en árboles, hemos obtenido un \emph{rmse} de menos del doble.
+El error absoluto medio en el test se puede interpretar como que de media, para cada dato estamos prediciendo con un error $\pm 10.7 K$. Respecto a la bondad de nuestros resultados, en el paper original \cite{original_paper_reg:paper} se comenta que obtienen resultados con error \emph{rmse} de $9.5K$, donde \emph{rmse} es la raíz del error cuadrático medio. Nosotros obtenemos un \emph{rmse} en test de $14.94K$. Por tanto, con un modelo mucho más simple que el empleado en \cite{original_paper_reg:paper}, basado en árboles, hemos obtenido un \emph{rmse} cercano a este valor de referencia de $9.5K$.
 
-Además, la incertidumbre $\pm 13.4 K$ en datos que de media tiene un $T_c = 34.37$ y que se mueve en un rango $T_c \in [0.00, 185.00]$ parece aceptable, aunque claramente muy mejorable.
+Además, la incertidumbre $\pm 10.7 K$ en datos que de media tiene un $T_c = 34.37$ y que se mueve en un rango $T_c \in [0.00, 185.00]$ parece aceptable, aunque claramente es mejorable con el empleo de modelos más complejos, como demuestran los resultados obtenidos en \cite{original_paper_reg:paper}.
 
-El principal problema con el que nos hemos encontrado ha sido realizar una reducción de la dimensionalidad de nuestro conjunto de datos, acompañada con una transformación no lineal de los datos, que provocase un aumento del performance de la función aprendida sin caer en problemas de generalización. Como se ha justificado durante las secciones anteriores, \emph{Cross Validation} ha mostrado que nuestra transformación de los datos no ha sido efectiva, usando prácticamente los datos tal y como se nos han dado (previo borrado de \emph{outliers} y estandarización obligada).
+Usaremos un \emph{baseline} para ver si hemos aprendido de forma efectiva una función sobre los datos que no sea trivial. Consideramos la función \emph{baseline} que a todo $x$ le hace corresponder el valor medio de la variable $T_c$. Esto lo conseguimos con el \lstinline{DummyRegressor} de la liberería \lstinline{sklearn}. Los resultados obtenidos son:
 
-Por tanto, la principal mejora al trabajo presentado sería explorar más el problema para lograr encontrar, gracias a conocimiento experto sobre el problema, una \emph{NLT} efectiva. También sería interesante probar con modelos más avanzados para ver sí somos capaces de alcanzar resultados al nivel de los presentados en \cite{original_paper_reg:paper}.
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Conjunto de datos} & \textbf{Error cuadrático medio} & \textbf{Error absoluto medio} & \textbf{$R^2$} \\
+    \hline
+    Entrenamiento & 1173.58 & 29.34 &  0.0 \\
+    Test & 1172.19 & 29.23 & -3.70e-5 \\
+    \hline
+\end{tabular}
+    \caption{Resultados del baseline usando la media}
+\end{table}
+
+Es claro que estamos obteniendo resultados notablemente mejores, y por tanto, podemos concluir que hemos conseguido aprender de forma no trivial a partir de los datos de la muestra.
+
+Por tanto, la principal mejora al trabajo presentado sería considerar modelos más avanzados y adecuados al tipo de problema presentado. De todas formas, queda probada la potencia de los modelos lineales, a pesar de su simplicidad, cuando se emplean el preprocesado y trasnformación adecuado del conjunto de datos.
 
 \pagebreak
 \section{Problema de clasificación}
