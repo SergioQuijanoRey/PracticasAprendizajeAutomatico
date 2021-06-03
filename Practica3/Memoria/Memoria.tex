@@ -154,11 +154,11 @@ $$f: \mathcal{X} \rightarrow \mathcal{Y}$$
 
 donde $\mathcal{X}$ es el conjunto real de dimensión 81 (las 81 características de las que disponemos), e $\mathcal{Y}$ son valores reales, en el intervalo $[0, \infty]$. Como comentaremos en \emph{\ref{descripcion_caracteristicas}. \nameref{descripcion_caracteristicas}}, la unidad de medida de la temperatura son los Kelvin, y por tanto, tenemos una cota inferior de esta variable real.
 
-Más adelante realizaremos transformaciones sobre el conjunto de datos original, por lo tanto, pasaremos de aprender un $f: \mathcal{X} \rightarrow \mathcal{Y}$ a aprender un $f: \hat{\mathcal{X}} \rightarrow \mathcal{Y}$, donde $\hat{\mathcal{X}}$ tendra otra dimensión.
+Más adelante realizaremos transformaciones sobre el conjunto de datos original, por lo tanto, pasaremos de aprender un $f: \mathcal{X} \rightarrow \mathcal{Y}$ a aprender un $f: \hat{\mathcal{X}} \rightarrow \mathcal{Y}$, donde $\hat{\mathcal{X}}$ tendrá otra dimensión.
 
 Por tanto quedan claros los elementos de un problema de regresión, queremos encontrar una función $g: \hat{\mathcal{X}} \rightarrow \mathcal{Y}$ de forma que $\forall x \in \hat{\mathcal{X}}, g(x) \approx f(x)$.
 
-\subsubsection{Descripción de las caracteríticas} \label{descripcion_caracteristicas}
+\subsubsection{Descripción de las características} \label{descripcion_caracteristicas}
 
 De nuevo, en el paper original \cite{original_paper_reg:paper} se describe el proceso de extracción de características, que pasamos a resumir brevemente.
 
@@ -170,10 +170,10 @@ Se parte de las siguientes propiedades de los átomos que componen las molécula
     \textbf{Variable} & \textbf{Descripción} \\
     \hline
     Masa atómica & Masa total del protón y neutrón en reposo \\
-    Energía de primera ionización & Energia necesaria para eliminar una valencia del electrón \\
+    Energía de primera ionización & Energía necesaria para eliminar una valencia del electrón \\
     Radio Atómico & Radio atómico \\
-    Densidad & Densidad a una temperatura y presión estandar \\
-    Afinidad del electrón & Energia necesaria para añadir un electrón a un átomo neutro \\
+    Densidad & Densidad a una temperatura y presión estándar \\
+    Afinidad del electrón & Energía necesaria para añadir un electrón a un átomo neutro \\
     Calor de fusión & Energía necesaria para pasar de estado sólido a líquido sin cambio de temperatura \\
     Conductividad térmica &  Coeficientes de conductividad térmica $\kappa$ \\
     Valencia & Número típico de enlaces químicos formados por el elemento \\
@@ -196,8 +196,8 @@ A partir de esto, se calculan las siguientes \emph{features}. Por cada material,
     \item Entropía ponderada
     \item Rango
     \item Rango ponderado
-    \item Desviación estandar
-    \item Desviación estandar ponderada
+    \item Desviación estándar
+    \item Desviación estándar ponderada
 \end{itemize}
 
 Algo importante a destacar es que la unidad de temperatura para $T_c$ es \emph{Kelvin}, por lo que esta variable estará acotada inferiormente por cero. La temperatura ambiente en kelvin está en torno a los $298K$, por lo tanto, valores cercanos a esta referencia serán los más interesantes a la hora de escoger o no un material como superconductor.
@@ -331,7 +331,7 @@ critical\_temp                        &  34.37&    20.00&  1.17e+3&    34.25&   
 
 No mostramos el valor \emph{missing values}, porque en todos los casos son cero, así que no tenemos que preocuparnos de cómo afrontar este problema. Tampoco mostramos el valor de \emph{type}. Todos los valores son \emph{float64}, salvo \emph{number\_of\_elements}, \emph{range\_atomic\_radius} y \emph{range\_Valence}, que son \emph{int64}
 
-La tabla deja claro que los rangos de las variables son muy dispares, así como las desviaciones típicas. Por ejemplo, wtd\_mean\_ThermalConductivity toma un rango de valores que va desde 0 hasta 406.96, mientas que por ejemplo entropy\_ThermalConductivity va desde 0 hasta 1.63. Lo mismo se puede decir de las desviaciones típicas. Muchos algoritmos y modelos son sensibles a rangos de valores dispares entre distintas caracteríticas. Otros directamente esperan que se siga una distribución parecida a una normal para tener un comportamiento decente. Por tanto, y como no es perjudicial realizar una estandarización, queda justificada la posterior estandarización que vamos a llevar a cabo.
+La tabla deja claro que los rangos de las variables son muy dispares, así como las desviaciones típicas. Por ejemplo, wtd\_mean\_ThermalConductivity toma un rango de valores que va desde 0 hasta 406.96, mientas que por ejemplo entropy\_ThermalConductivity va desde 0 hasta 1.63. Lo mismo se puede decir de las desviaciones típicas. Muchos algoritmos y modelos son sensibles a rangos de valores dispares entre distintas características. Otros directamente esperan que se siga una distribución parecida a una normal para tener un comportamiento decente. Por tanto, y como no es perjudicial realizar una estandarización, queda justificada la posterior estandarización que vamos a llevar a cabo.
 
 Otro elemento a tener en cuenta es que todas las variables son reales o enteras, y por tanto, tampoco es necesaria una técnica como \emph{one hot encoding} para codificar variables categóricas.
 
@@ -374,7 +374,7 @@ En este punto nos preocupamos de haber eliminado, sin fijarnos en la variable de
 
 \subsubsection{Estandarización}
 
-En este proceso, buscamos que las variables aleatorias de nuestro conjunto de datos queden con media cero y desviación típica uno. Este proceso no hace que las variables estén en un rango de valores similares, sin embargo, en este problema de regresión no parece ser importante. No usamos técnicas basadas en proximidad como \emph{nearest neighbour} o \emph{SVM}, en las que una normalización sería más adecuada la normalización \cite{normalization_vs_standarization:online}. En normalización conseguríamos que todas las variables estuviesen en el rango $[0, 1]$.
+En este proceso, buscamos que las variables aleatorias de nuestro conjunto de datos queden con media cero y desviación típica uno. Este proceso no hace que las variables estén en un rango de valores similares, sin embargo, en este problema de regresión no parece ser importante. No usamos técnicas basadas en proximidad como \emph{nearest neighbour} o \emph{SVM}, en las que una normalización sería más adecuada la normalización \cite{normalization_vs_standarization:online}. En normalización conseguiríamos que todas las variables estuviesen en el rango $[0, 1]$.
 
 En estandarización, aplicamos la siguiente operación a todas las variables aleatorias que conforman nuestro conjunto de datos:
 
@@ -384,7 +384,7 @@ El código usado para estandarizar se encuentra en \lstinline{standarize_dataset
 
 En dicho código usamos la clase \lstinline{StandarScaler} de \lstinline{sklearn}, que hace justo lo que hemos especificado \cite{sklearn_std_scaler:online}.
 
-Aplicamos estandarización tanto al conjunto original de datos, al que solo hemos borrado outliers, y tras aplicar la técnica \emph{PCA}, aplicaremos de nuevo estandarización a los datos transformados. Notar que es importante la estadarización previamente a \emph{PCA}, pues como se comentará más tarde, rangos de la desviación típica dispares puede hacer que una variable domine sobre las demas desproporcionadamente, obteniendo resultados no deseados.
+Aplicamos estandarización tanto al conjunto original de datos, al que solo hemos borrado outliers, y tras aplicar la técnica \emph{PCA}, aplicaremos de nuevo estandarización a los datos transformados. Notar que es importante la estadarización previamente a \emph{PCA}, pues como se comentará más tarde, rangos de la desviación típica dispares puede hacer que una variable domine sobre las demás desproporcionadamente, obteniendo resultados no deseados.
 
 En dicho código se puede observar que no estamos estandarizando la variable de salida, pues esto no tiene sentido. En datos no vistos en el entrenamiento, nos llegan variables de entrada pero no de salida. Así que la predicción debe hacerse en el conjunto aleatorio que representa la variable aleatoria de salida original.
 
@@ -420,11 +420,11 @@ Buscamos una base ortonormal de un espacio $\mathbb{R}^{\hat{d}}$ donde $\hat{d}
 
 Además, esta técnica devuelve los vectores de la base ordenados según la varianza que explican del conjunto de datos original.
 
-En nuestro caso, esta trasnformación del espacio la realizamos gracias a la función \lstinline{apply_PCA}. Podemos especificar el número de variables con el que nos queremos quedar, como el porcentaje de varianza que queremos alcanzar. Notar que pasamos como parámetro el conjunto de test. Este conjunto de test \textbf{no se usa para calcular la transformación}, solo se pasa para aplicar la misma transformación calculada, de nuevo, exclusivamente usando los datos del conjunto de entrenamiento.
+En nuestro caso, esta transformación del espacio la realizamos gracias a la función \lstinline{apply_PCA}. Podemos especificar el número de variables con el que nos queremos quedar, como el porcentaje de varianza que queremos alcanzar. Notar que pasamos como parámetro el conjunto de test. Este conjunto de test \textbf{no se usa para calcular la transformación}, solo se pasa para aplicar la misma transformación calculada, de nuevo, exclusivamente usando los datos del conjunto de entrenamiento.
 
 Un detalle destacable es que antes de aplicar \emph{PCA} debemos estandarizar el conjunto de datos, pues de otra forma trabajaríamos con peores resultados. De otra forma, rangos dispares en las desviaciones permitiría que una variable dominase demasiado a las otras variables al tener las estadísticas en rangos dispares \cite{normalize_before_pca:online}.
 
-Cuando buscamos un 99\% de varianza explicada, obtenemos una transformación del espacio $\mathbb{R}^{81}$ al espacio $\mathbb{R}^{30}$, es decir, hemos acabado con el $37.04\%$ de las variables originales, manteniendo el $99\%$ de la varaiblidad del dataset original. Con esto seremos capaces de realizar transformaciones no lineales de los datos, buscando un mejor ajuste lineal a la muestra de entrenamiento. Una reducción tan drástica tiene sentido, pues tenemos 8 variables dependientes de los átomos, que ya de por sí estarán en cierto grado correladas, y 10 estadísticas moleculares, que podemos suponer altamente correladas.
+Cuando buscamos un 99\% de varianza explicada, obtenemos una transformación del espacio $\mathbb{R}^{81}$ al espacio $\mathbb{R}^{30}$, es decir, hemos acabado con el $37.04\%$ de las variables originales, manteniendo el $99\%$ de la variableidad del dataset original. Con esto seremos capaces de realizar transformaciones no lineales de los datos, buscando un mejor ajuste lineal a la muestra de entrenamiento. Una reducción tan drástica tiene sentido, pues tenemos 8 variables dependientes de los átomos, que ya de por sí estarán en cierto grado correladas, y 10 estadísticas moleculares, que podemos suponer altamente correladas.
 
 
 Las estadísticas del conjunto de datos tras la transformación se refleja en la siguiente tabla:
@@ -509,7 +509,7 @@ En las funciones \lstinline{show_cross_validation_step1} y \lstinline{show_cross
 
 \subsubsection{Selección de la métrica de error}
 
-En ambas fases de \emph{Cross Validation}, usaremos la misma métrica de error. En este caso, usamos el \textbf{Error cuadrático Medio}. Es una de las pocas métricas de error que conocemos para los problemas de regresión. De todas formas, elegimos esta mética porque es fácilmente interpretable, el término cuadrático castiga más los valores que se predicen peor que otra métrica como el error absoluto medio. El \emph{ECM} es una métrica de error que se usa en el proceso de aprendizaje, directamente en el método de los mínimos cuadrados ordinario ordinario, o como término del error aumentado, donde el \emph{ECM} es el sumando de la métrica del error que va acompañada de un término de penalización de la parte de regularización.
+En ambas fases de \emph{Cross Validation}, usaremos la misma métrica de error. En este caso, usamos el \textbf{Error cuadrático Medio}. Es una de las pocas métricas de error que conocemos para los problemas de regresión. De todas formas, elegimos esta métrica porque es fácilmente interpretable, el término cuadrático castiga más los valores que se predicen peor que otra métrica como el error absoluto medio. El \emph{ECM} es una métrica de error que se usa en el proceso de aprendizaje, directamente en el método de los mínimos cuadrados ordinario ordinario, o como término del error aumentado, donde el \emph{ECM} es el sumando de la métrica del error que va acompañada de un término de penalización de la parte de regularización.
 
 A la hora de especificar la métrica de error con \lstinline{sklearn}, usamos el error cuadrático medio negativo. Esto porque \lstinline{sklearn} busca maximizar esta \emph{score} en otras funciones. Así, un problema de minimizar el error, pasa a ser un problema de maximización cambiando el signo de la función a optimizar \cite{sklearn_neg_err:online}.
 
@@ -526,11 +526,11 @@ $$f_w(x):= w^T x, \forall x \in \mathbb{R}^D$$
 Así que lo buscamos elegir en esta fase de \emph{Cross Validation} es:
 
 \begin{itemize}
-    \item El conjunto de datos y la transformación que queremos aplicar sobre los datos: datos a los que no aplicamos PCA y sin transformaciones, datos a los que aplicamos PCA y aplicamos trasnformaciones polinómicas
+    \item El conjunto de datos y la transformación que queremos aplicar sobre los datos: datos a los que no aplicamos PCA y sin transformaciones, datos a los que aplicamos PCA y aplicamos transformaciones polinómicas
     \item El algoritmo de aprendizaje: mínimos cuadrados ordinarios, Ridge o Lasso
 \end{itemize}
 
-Respecto a las trasnformaciones de los datos, a falta de conocimiento experto sobre el problema para guiar las trasnformaciones empleadas, probamos con trasnformaciones polinómicas $\phi_q$. Fijado el orden $q$, calculamos todos los polinomios en varias variables de hasta orden $q$. Por ejemplo, con $q=3$, podemos encontrar en el vector transformado los elementos $x, x^2, xy, x^2y, y^2x, xyz, \ldots$. En código esto lo conseguimos con la función de \lstinline{sklearn} \lstinline{PolynomialFeatures} \cite{sklearn_polynomial:online}.
+Respecto a las transformaciones de los datos, a falta de conocimiento experto sobre el problema para guiar las transformaciones empleadas, probamos con transformaciones polinómicas $\phi_q$. Fijado el orden $q$, calculamos todos los polinomios en varias variables de hasta orden $q$. Por ejemplo, con $q=3$, podemos encontrar en el vector transformado los elementos $x, x^2, xy, x^2y, y^2x, xyz, \ldots$. En código esto lo conseguimos con la función de \lstinline{sklearn} \lstinline{PolynomialFeatures} \cite{sklearn_polynomial:online}.
 
 El primer modelo consiste en minimizar el error cuadrático medio a través de la matriz pseudoinversa \cite{sklearn_linear_reg:online}. Por tanto, no tenemos que preocuparnos de parámetros de procesos iterativos como la tolerancia.
 
@@ -546,7 +546,7 @@ En el caso de Lasso, tenemos la misma situación que con Ridge pero tomando el e
 
 Respecto al paso al código de los modelos ya detallados, podemos encontrar toda la información de \lstinline{sklearn} en la documentación oficial \cite{sklearn_linear_models_list:online}.
 
-Estamos considerando dos regularizadores distintos (los que se usan en Lasso y Ridge) en vez de decantarnos directamente por uno de los dos en base a alguna intuición que tengamos sobre los datos. Si tuviésemnos que elegir solo uno, eligiríamos \emph{Ridge} porque no estamos haciendo selección de características ni con una gran cantidad de variables. Sin embargo, estamos haciendo las transformaciones polinómicas sin tener mucha idea de si muchos de los monomios obtenidos van a ser útiles o no. Por eso confiamos en que Lasso no de peso a muchos monomios irrelevantes, dandole peso a algunos monomios relevantes de forma automática. Sin embargo, si esto falla, confiamos más en el empleo de \emph{Ridge}.
+Estamos considerando dos regularizadores distintos (los que se usan en Lasso y Ridge) en vez de decantarnos directamente por uno de los dos en base a alguna intuición que tengamos sobre los datos. Si tuviésemos que elegir solo uno, elegiríamos \emph{Ridge} porque no estamos haciendo selección de características ni con una gran cantidad de variables. Sin embargo, estamos haciendo las transformaciones polinómicas sin tener mucha idea de si muchos de los monomios obtenidos van a ser útiles o no. Por eso confiamos en que Lasso no de peso a muchos monomios irrelevantes, dándole peso a algunos monomios relevantes de forma automática. Sin embargo, si esto falla, confiamos más en el empleo de \emph{Ridge}.
 
 Por otro lado, como hemos sido capaces de emplear la pseudoinversa sin problemas de tiempos de cómputo, empleamos esta técnica \emph{one step solution} en vez de un enfoque iterativo que podríamos haber empleado con \emph{SGDRegressor}. Los momentos en los que el ordenador no es capaz de realizar los cómputos, es porque la transformación polinómica es demasiado grande.
 
@@ -554,7 +554,7 @@ Por otro lado, como hemos sido capaces de emplear la pseudoinversa sin problemas
 
 Con la orden \lstinline{cv = KFold(n_splits=10, shuffle=True)} especificamos los 10 \emph{folds} y que se use mezclado aleatorio para elegir los elementos de los \emph{folds}.
 
-En el conjunto de datos al que aplicamos \emph{PCA}, probamos las transformaciones polinímicas en el conjunto $\{1, 2\}$. No aplicamos transformaciones de orden superior pues nuestro ordenador no es capaz de calcular estas transformaciones. Al conjunto de datos al que no aplicamos \emph{PCA}, no aplicamos transformaciones polinómicas, pues de nuevo nuestro ordenador no es capaz realizar los cómputos
+En el conjunto de datos al que aplicamos \emph{PCA}, probamos las transformaciones polinómicas en el conjunto $\{1, 2\}$. No aplicamos transformaciones de orden superior pues nuestro ordenador no es capaz de calcular estas transformaciones. Al conjunto de datos al que no aplicamos \emph{PCA}, no aplicamos transformaciones polinómicas, pues de nuevo nuestro ordenador no es capaz realizar los cómputos
 
 Al usar \emph{Lasso}, el código lanza algunos errores porque no alcanza solución estable en el número máximo de iteraciones dado. Sin embargo, el código automáticamente vuelve a intentarlo con otra solución inicial aleatoria, llegando a encontrar la solución en el número máximo de iteraciones especificado.
 
@@ -580,7 +580,7 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
     \caption{Resultados de \emph{Cross Validation}, primera fase}
 \end{table}
 
-La tabla deja claro que lo mejor es aplicar \emph{PCA} y transformaciones polinómicas de segundo grado. Sería interesante conocer los resultados de aplicar trasnformaciones de hasta orden 3 en una máquina más potente, con mas memoria para almacenar los cálculos. El claro ganador es tomar \emph{PCA}, transformación de orden 2 y modelo lineal normal. Sin embargo, el segundo mejor, \emph{PCA} con orden 2 y Lasso, difiere en error cuadrático medio por tan solo un valor de $1.8$. Como todavía no hemos encontrado un valor de $\lambda$ óptimo, elegimos este modelo a pesar de que tengamos un error ligeramente mayor, con la esperanza de que en la segunda fase de \emph{Cross Validation} consigamos un error menor.
+La tabla deja claro que lo mejor es aplicar \emph{PCA} y transformaciones polinómicas de segundo grado. Sería interesante conocer los resultados de aplicar transformaciones de hasta orden 3 en una máquina más potente, con mas memoria para almacenar los cálculos. El claro ganador es tomar \emph{PCA}, transformación de orden 2 y modelo lineal normal. Sin embargo, el segundo mejor, \emph{PCA} con orden 2 y Lasso, difiere en error cuadrático medio por tan solo un valor de $1.8$. Como todavía no hemos encontrado un valor de $\lambda$ óptimo, elegimos este modelo a pesar de que tengamos un error ligeramente mayor, con la esperanza de que en la segunda fase de \emph{Cross Validation} consigamos un error menor.
 
 En el \emph{dataset} al que no aplicamos PCA, es previsible que \emph{Lasso} iba a funcionar mal. Durante el curso hemos visto la regla práctica de que, para no tener problemas de generalización, es deseable que $N > 10 d_{VC}
 $. Tenemos, tras toda la limpieza de los datos, algo más de 15.500 columnas, y por tanto, al trabajar con modelos lineales, podemos trabajar con un número de variables en el orden de $1500$ columnas. Es claro que con 81 columnas no nos interesa hacer que algunas columnas sean cero, que es lo que consigue \emph{Lasso}.
@@ -588,7 +588,7 @@ $. Tenemos, tras toda la limpieza de los datos, algo más de 15.500 columnas, y 
 \subsubsection{\emph{Cross-Validation, segunda etapa}}
 
 Como ya hemos justificado, elegimos regresión \emph{Lasso} sobre el conjunto de datos al que aplicamos \emph{PCA}.
-En esta fase escogemos el valor de $\lambda$: parámetro de penalización de la regularización. El rango de valores escodigo es $\lambda \in [10^{-3}, 1]$, basándonos en que el el primer \emph{step} hemos tomado $\lambda = 0.05$ y que estamos trabajando con una dimensionalidad alta, por lo tanto, queremos que la penalización no sea demasiado baja.
+En esta fase escogemos el valor de $\lambda$: parámetro de penalización de la regularización. El rango de valores escogido es $\lambda \in [10^{-3}, 1]$, basándonos en que el el primer \emph{step} hemos tomado $\lambda = 0.05$ y que estamos trabajando con una dimensionalidad alta, por lo tanto, queremos que la penalización no sea demasiado baja.
 
 Los resultados de esta segunda fase se resumen en la siguiente fase:
 
@@ -645,7 +645,7 @@ El error absoluto medio en el test se puede interpretar como que de media, para 
 
 Además, la incertidumbre $\pm 10.7 K$ en datos que de media tiene un $T_c = 34.37$ y que se mueve en un rango $T_c \in [0.00, 185.00]$ parece aceptable, aunque claramente es mejorable con el empleo de modelos más complejos, como demuestran los resultados obtenidos en \cite{original_paper_reg:paper}.
 
-Usaremos un \emph{baseline} para ver si hemos aprendido de forma efectiva una función sobre los datos que no sea trivial. Consideramos la función \emph{baseline} que a todo $x$ le hace corresponder el valor medio de la variable $T_c$. Esto lo conseguimos con el \lstinline{DummyRegressor} de la liberería \lstinline{sklearn}. Los resultados obtenidos son:
+Usaremos un \emph{baseline} para ver si hemos aprendido de forma efectiva una función sobre los datos que no sea trivial. Consideramos la función \emph{baseline} que a todo $x$ le hace corresponder el valor medio de la variable $T_c$. Esto lo conseguimos con el \lstinline{DummyRegressor} de la librería \lstinline{sklearn}. Los resultados obtenidos son:
 
 \begin{table}[H]
 \centering
@@ -662,7 +662,7 @@ Usaremos un \emph{baseline} para ver si hemos aprendido de forma efectiva una fu
 
 Es claro que estamos obteniendo resultados notablemente mejores, y por tanto, podemos concluir que hemos conseguido aprender de forma no trivial a partir de los datos de la muestra.
 
-Por tanto, la principal mejora al trabajo presentado sería considerar modelos más avanzados y adecuados al tipo de problema presentado. De todas formas, queda probada la potencia de los modelos lineales, a pesar de su simplicidad, cuando se emplean el preprocesado y trasnformación adecuado del conjunto de datos.
+Por tanto, la principal mejora al trabajo presentado sería considerar modelos más avanzados y adecuados al tipo de problema presentado. De todas formas, queda probada la potencia de los modelos lineales, a pesar de su simplicidad, cuando se emplean el preprocesado y la transformación adecuado del conjunto de datos.
 
 \pagebreak
 \section{Problema de clasificación}
