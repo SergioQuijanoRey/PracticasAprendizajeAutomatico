@@ -58,7 +58,7 @@ def calculate_stats(df):
     stats["mean"] = df.mean()
     stats["median"] = df.median()
     stats["var"] = df.var()
-    stats["sdt"] = df.std()
+    stats["std"] = df.std()
     stats["min"] = df.min()
     stats["max"] = df.max()
     stats["p25"] = df.quantile(0.25)
@@ -568,7 +568,7 @@ if __name__ == "__main__":
     print("--> Comprobando como ha afectado el borrado de outliers a la variable de salida")
     check_outliers_removal(df_train_original, df_train)
 
-    print("--> Normalizando el conjunto de datos")
+    print("--> Estandarizando el conjunto de datos")
     df_train_X, df_test_X = standarize_dataset(df_train_X, df_test_X)
     print("Conjunto de entrenamiento tras normalizar")
     explore_training_set(df_train_X, show_box_plot=False)
@@ -601,8 +601,7 @@ if __name__ == "__main__":
     print(f"Tamaño df_train_Y: {df_train_Y.shape}")
 
     print("==> Aplicamos Cross Validation -> Primer paso")
-    # TODO -- descomentar
-    #  show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
+    show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
 
     print("--> Aplicamos la transformacion polinomica de grado 2, que es la que escogemos")
     poly = PolynomialFeatures(2)
@@ -610,8 +609,7 @@ if __name__ == "__main__":
     df_test_X = pd.DataFrame(poly.transform(df_test_X))
 
     print("==> Aplicamos Cross Validation -> Segundo paso")
-    # TODO -- descomentar
-    #  show_cross_validation_step2(df_train_X, df_train_Y)
+    show_cross_validation_step2(df_train_X, df_train_Y)
 
     print("==> Realizamos el entrenamiento sobre todo el conjunto de datos")
 

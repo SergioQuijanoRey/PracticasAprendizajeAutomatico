@@ -45,7 +45,7 @@ def calculate_stats(df):
     stats["mean"] = df.mean()
     stats["median"] = df.median()
     stats["var"] = df.var()
-    stats["sdt"] = df.std()
+    stats["std"] = df.std()
     stats["min"] = df.min()
     stats["max"] = df.max()
     stats["p25"] = df.quantile(0.25)

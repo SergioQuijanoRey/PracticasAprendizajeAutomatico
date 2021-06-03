@@ -362,7 +362,9 @@ Además, hacemos esto antes de estandarizar, pues para estandarizar, usamos los 
 
 Previamente hemos justificado que no vamos a borrar \emph{outliers} respecto a la variable de salida.
 
-El código que borra los outliers se encuentra en la función \lstinline{remove_outliers}. Usamos una orden de acceso de la librería \lstinline{pandas} en la que usamos el estadístico \lstinline{zscore}, de la librería \lstinline{scipy}. Este valor \lstinline{zscore} lo que mide es el número de desviaciones típicas en las que un punto dista de la media de la variable aleatoria, es decir:
+El código que borra los outliers se encuentra en la función \lstinline{remove_outliers} \footnotemark. Usamos una orden de acceso de la librería \lstinline{pandas} en la que usamos el estadístico \lstinline{zscore}, de la librería \lstinline{scipy}. Este valor \lstinline{zscore} lo que mide es el número de desviaciones típicas en las que un punto dista de la media de la variable aleatoria, es decir:
+
+\footnotetext{En la sección \emph{\ref{consideraciones}. \nameref{consideraciones}} indicamos la librería adicional que hemos empleado para el cálculo del \emph{z-score}}
 
 $$z_{score}(x) := \frac{x - \mu}{\sigma}$$
 
@@ -667,8 +669,65 @@ Por tanto, la principal mejora al trabajo presentado sería considerar modelos m
 \pagebreak
 \section{Problema de clasificación}
 
+\subsection{Exploración de los datos}
+
+==> Hay 11 clases
+==> Clases balanceadas como mostramos en la grafica de barras
+==> Mostrar la tabla con todas las variables
+    ==> Muchas variables contiguas que tienen rangos muy similares, lo que nos hacen sospechar
+
+\subsubsection{Eliminado de outliers}
+
+=> Quitamos el 6\% de los datos
+
+\subsubsection{Cross Validation}
+
+
+=> Logistic Regression le cuesta mucho calcular
+=> SVC and NuSVC implement the “one-versus-one” approach for multi-class classification => https://scikit-learn.org/stable/modules/svm.html
+
+
+% Model LogReg, pol_order: 1, C: 0.9:
+%         Media: 0.9183421869511518
+%         Minimo: 0.9150102810143934
+%         Maximo: 0.9239204934886909
+% Model LogReg, pol_order: 1, C: 0.95:
+%         Media: 0.9187761071564464
+%         Minimo: 0.9120201096892139
+%         Maximo: 0.9250628284212932
+% Model LogReg, pol_order: 1, C: 1.0:
+%         Media: 0.9187076088277639
+%         Minimo: 0.9111263422435458
+%         Maximo: 0.9220927575965273
+% Model LogReg, pol_order: 1, C: 1.05:
+%         Media: 0.9190506382248239
+%         Minimo: 0.912268677176148
+%         Maximo: 0.9239031078610603
+% Model LogReg, pol_order: 1, C: 1.1:
+%         Media: 0.9187760653891728
+%         Minimo: 0.9131627056672761
+%         Maximo: 0.9232350925291295
+% Model LogReg, pol_order: 1, C: 1.15:
+%         Media: 0.9190731873316519
+%         Minimo: 0.9136394790952708
+%         Maximo: 0.9259766963673749
+% Model LogReg, pol_order: 1, C: 1.2:
+%         Media: 0.9187763786437246
+%         Minimo: 0.9145533470413525
+%         Maximo: 0.926416819012797
+% Model LogReg, pol_order: 2, C: 0.9:
+%         Media: 0.9649286677618045
+%         Minimo: 0.9611606122915238
+%         Maximo: 0.9702992917523418
+
 \pagebreak
 
+\section{Consideraciones adicionales} \label{consideraciones}
+
+Estamos usando la librería \lstinline{scipy} para el borrado de los outliers. En concreto, para hacer una \emph{query} a \lstinline{pandas} en la que calculamos el \emph{z-score}. Esto se ve en la función \lstinline{remove_outliers}
+
+
+\pagebreak
 % Bibliografia
 \bibliography{./References}
 \bibliographystyle{ieeetr}
