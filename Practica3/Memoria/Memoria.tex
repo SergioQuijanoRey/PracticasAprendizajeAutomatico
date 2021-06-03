@@ -386,7 +386,7 @@ Cuando buscamos un 95\%, con 3 componentes parece que es suficiente. Esto parece
 
 Quedándonos con 10 variables obtenemos un  99.950\% de la variabilidad original explicada.
 
-Un detalle destacable es que antes de aplicar \emph{PCA} no estandarizamos el conjunto de datos, pues esto produce peores resultados. Esto tiene sentido pues \emph{PCA} se basa en correlación de variables, que es alterada cuando hacemos estandarización basada en una única variable a la vez (como veremos más adelante).
+Un detalle destacable es que antes de aplicar \emph{PCA} no estandarizamos el conjunto de datos, pues esto produce peores resultados. Esto tiene sentido pues \emph{PCA} se basa en correlación de entre dos variables, que es alterada cuando hacemos estandarización basada en una única variable a la vez (como veremos más adelante).
 
 Las estadísticas del conjunto de datos tras la transformación se refleja en la siguiente tabla:
 
@@ -523,19 +523,19 @@ Estamos considerando dos regularizadores distintos (los que se usan en Lasso y R
 
 Por otro lado, como hemos sido capaces de emplear la pseudoinversa sin problemas de tiempos de cómputo, empleamos esta técnica \emph{one step solution} en vez de un enfoque iterativo que podríamos haber empleado con \emph{SGDRegressor}. Los momentos en los que el ordenador no es capaz de realizar los cómputos, es porque la transformación polinómica es demasiado grande.
 
+\subsubsection{Resultados de \emph{Cross-Validation}, primera etapa}
 
+Con la orden \lstinline{cv = KFold(n_splits=10, shuffle=True)} especificamos los 10 \emph{folds} y que se use mezclado aleatorio para elegir los elementos de los \emph{folds}.
 
-\subsubsection{\emph{Cross-Validation}, primera etapa}
+En el conjunto de datos al que aplicamos \emph{PCA}, probamos las transformaciones polinímicas en el conjunto $\{1, 2, 3, 4\}$. Al conjunto de datos al que no aplicamos \emph{PCA}, no aplicamos transformaciones polinómicas, pues nuestro ordenador no es capaz de calcular estas transformaciones.
 
-=> Explicar que he hecho en codigo, seleccion de lambda fijado por mi, la metrica de error negativa, las transformaciones que hemos realizado...
-=> Comentar que en lasso saltan errores, y se vuelve a intentar asignando distintos valores o mas iteraciones -> No estoy muy seguro de esta politica
-=> Cuando uso No PCA, antes hago una normalizacion de los datos
+Al usar \emph{Lasso}, el código lanza algunos errores porque no alcanza solución estable en el número máximo de iteraciones dado. Sin embargo, el código automáticamente vuelve a intentarlo con otra solución inicial aleatoria, llegando a encontrar la solución en el número máximo de iteraciones especificado.
 
 Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
 
-==> Quitar tabularx porque va mal
 \begin{table}[H]
-\begin{tabularx}{\textwidth}{|X|X|X|X|X|X|}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|}
     \hline
     \textbf{Modelo} & \textbf{PCA \/ No PCA}& \textbf{Orden de la transformación polinómica} & \textbf{Valor medio} & \textbf{Valor mínimo} & \textbf{Valor máximo} \\
     \hline
@@ -555,26 +555,26 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
     Ridge  & No PCA & 1 & -310.77 &-335.69 & -292.88 \\
     Lasso  & No PCA & 1 & -328.42 &-355.69 & -310.94 \\
     \hline
-\end{tabularx}
+\end{tabular}}
     \caption{Resultados de \emph{Cross Validation}, primera fase}
 \end{table}
 
-=> Por tanto, escogemos no aplicar PCA
-=> Por tanto, aunque la mejor media la da Linea No PCA, usamos Ridge No PCA, pues difieren solo en media en 0.27 ECM y no hemos jugado con el parametro de regularizacion, asi que parece que vamos a poder mejorar aun mas el performance del modelo
-    -> Ademas, ridge es más estable a vista del Maximo Minimo en un intervalo de menor longitud
-=> Puede tener sentido no aplicar PCA -> $N \geq d_{VC} * 10 \rightarrow d_{VC} \leq 1600$
+La tabla deja claro que es mejor no aplicar \emph{PCA} y transformaciones polinómicas. Quizás con otra transformación sí que sería útil aplicar \emph{PCA}, pero en este caso no hemos encontrado unas trasnformaciones útiles. Centrándonos en las tres variantes para el \emph{dataset} sin aplicar \emph{PCA}, el mejor modelo es \emph{Linear Regression}. Sin embargo, \emph{Ridge} pierde en media por un error cuadrático medio de tan solo $0.27$. Como todavía no hemos encontrado un valor de $\lambda$ óptimo, elegimos este modelo a pesar de que tengamos un error ligeramente mayor, con la esperanza de que en la segunda fase de \emph{Cross Validation} consigamos un error menor.
+
+En el \emph{dataset} al que no aplicamos PCA, es previsible que \emph{Lasso} iba a funcionar mal. Durante el curso hemos visto la regla práctica de que, para no tener problemas de generalización, es deseable que $N > 10 d_{VC}
+$. Tenemos, tras toda la limpieza de los datos, algo más de 15.500 columnas, y por tanto, al trabajar con modelos lineales, podemos trabajar con un número de variables en el orden de $1500$ columnas. Es claro que con 81 columnas no nos interesa hacer que algunas columnas sean cero, que es lo que consigue \emph{Lasso}. Lo que sí nos interesa es que los valores de los parámetros del modelo no sean muy grandes, que es lo que consigue \emph{Ridge}.
 
 \subsubsection{\emph{Cross-Validation, segunda etapa}}
 
-=> Elegimos el dataset original sin PCA ni transformaciones polinomicas
-=> Regularizador ridge
-=> Rango de valores para lambda: $[10^-6 ... 10^-1, 1, 2]$ -> basado en ??
+Como ya hemos justificado, elegimos regresión \emph{Ridge} sobre el conjunto de datos al que no aplicamos \emph{PCA}. Recordar que, a pesar de no estar aplicando \emph{PCA}, si estamos aplicando el borrado de \emph{outliers} y la estandarización de los datos.
 
-=> Se resume en la siguiente tabla:
+En esta fase escogemos el valor de $\lambda$: parámetro de penalización de la regularización. Estamos trabajando con solamente 81 columnas, con un conjunto de algo más de 15.500 ejemplos de entrenamiento. Por tanto, podemos esperar que acabemos con un valor de $\lambda$ pequeño. Por tanto, el rango de valores escodigo es $\lambda \in [10^{-7}, 5]$.
 
-=> Va mal tabularx
+Los resultados de esta segunda fase se resumen en la siguiente fase:
+
 \begin{table}[H]
-\begin{tabularx}{\textwidth}{|X|X|X|X|}
+\centering
+\begin{tabular}{|c|c|c|c|}
     \hline
     \textbf{Lambda} & \textbf{Valor medio} & \textbf{Valor mínimo} & \textbf{Valor máximo} \\
     \hline
@@ -585,19 +585,58 @@ Los resultados de \emph{Cross Validation} se resumen en la siguiente tabla:
     0.0001 & -310.74 &  -343.24 & -291.18 \\
     0.001 & -310.79 &  -348.74 & -287.12 \\
     0.01 & -310.58 &  -356.06 & -283.69 \\
+    0.05 & -310.58 & -338.59 & -280.38 \\
     0.1 & -310.75 &  -324.71 & -298.66 \\
     1 & -310.99 &  -335.25 & -276.35 \\
     2 & -311.13 &  -329.18 & -291.28 \\
     5 & -311.90 &  -336.92 & -287.86 \\
     \hline
-\end{tabularx}
+\end{tabular}
     \caption{Resultados de \emph{Cross Validation}, segunda fase}
 \end{table}
 
-=> A vista de esto, usamos $\lambda = 10^{-7}$
+Los resultados de esta tabla eran previsibles por lo que ya hemos comentado. El error aumenta monótamente salvo en el salto de $\lambda = 0.001$ a $\lambda = 0.01$. El mejor resultado lo obtenemos con $\lambda \in \{10^{-7}, 10^{-6}\}$. Elegimos por tanto $10^{-6}$, con $10^{-7}$ puede ser que estemos castigando muy poco en la parte de regularización.
 
+\pagebreak
+\subsection{Entrenamiento sobre todo el \emph{train\_dataset} para seleccionar el modelo final}
 
-==> TODO -- en algun commento comentar que estamos usando unos baselines
+En este punto está justificado el que usemos el conjunto original de datos, al que hemos eliminado \emph{outliers} y estandarizado, sin emplear una técnica como \emph{PCA}. Además, usaremos como parámetros:
+
+\begin{itemize}
+    \item $\lambda = 10^{-6}$
+    \item Máximo de iteraciones: 1000 iteraciones
+    \item Tolerancia: $10^{-3}$
+\end{itemize}
+
+Con esto obtenemos los siguientes resultados:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Conjunto de datos} & \textbf{Error cuadrático medio} & \textbf{Error absoluto medio} & \textbf{$R^2$} \\
+    \hline
+    Entrenamiento & 307.77 & 13.26 & 0.73 \\
+    Test & 311.28 & 13.40 & 0.73 \\
+    \hline
+\end{tabular}
+    \caption{Resultados del entrenamiento}
+\end{table}
+
+\subsubsection{Análisis de los resultados}
+
+El error cuadrático medio viene dado por $\frac{1}{N} \sum^N |g(x) - y|^2$ donde $g$ es la función aprendida, $x$ el dato de entrada e $y$ la etiqueta verdadera asociada. El error absoluto medio viene dado por $\frac{1}{N} \sum^N |g(x) - y|$, que es algo más interpretable que el error cuadrático medio. $R^2$ es el coeficiente de determinación lineal.
+
+Es claro que no hemos tenido problemas de \emph{overfitting}, pues el error en test no es demasiado dispar al error en la muestra. Los coeficientes de correlación son buenos, estamos explicando el $73\%$ de la varianza de la muestra con nuestro modelo lineal.
+
+El error absoluto medio en el test se puede interpretar como que de media, para cada dato estamos prediciendo con un error $\pm 13.4 K$. Respecto a la bondad de nuestros resultados, en el paper original \cite{original_paper_reg:paper} se comenta que obtienen resultados con error \emph{rmse} de $9.5K$, donde \emph{rmse} es la raíz del error cuadrático medio. Nosotros obtenemos un \emph{rmse} en test de $17.64K$. Por tanto, con un modelo mucho más simple que el empleado en \cite{original_paper_reg:paper}, basado en árboles, hemos obtenido un \emph{rmse} de menos del doble.
+
+Además, la incertidumbre $\pm 13.4 K$ en datos que de media tiene un $T_c = 34.37$ y que se mueve en un rango $T_c \in [0.00, 185.00]$ parece aceptable, aunque claramente muy mejorable.
+
+El principal problema con el que nos hemos encontrado ha sido realizar una reducción de la dimensionalidad de nuestro conjunto de datos, acompañada con una transformación no lineal de los datos, que provocase un aumento del performance de la función aprendida sin caer en problemas de generalización. Como se ha justificado durante las secciones anteriores, \emph{Cross Validation} ha mostrado que nuestra transformación de los datos no ha sido efectiva, usando prácticamente los datos tal y como se nos han dado (previo borrado de \emph{outliers} y estandarización obligada).
+
+Por tanto, la principal mejora al trabajo presentado sería explorar más el problema para lograr encontrar, gracias a conocimiento experto sobre el problema, una \emph{NLT} efectiva. También sería interesante probar con modelos más avanzados para ver sí somos capaces de alcanzar resultados al nivel de los presentados en \cite{original_paper_reg:paper}.
+
 \pagebreak
 \section{Problema de clasificación}
 

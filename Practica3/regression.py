@@ -17,9 +17,10 @@ from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn import linear_model
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import KFold
+from sklearn.dummy import DummyRegressor
 
 # Parametros globales del programa
 #===============================================================================
@@ -311,19 +312,23 @@ def show_results(model, df_train_X, df_train_Y, df_test_X, df_test_Y):
 
     # Calculamos el error cuadratico medio en la muestra
     in_sample_error = mean_squared_error(predictions, df_train_Y.to_numpy())
+    in_sample_mean_abs_err = mean_absolute_error(predictions, df_train_Y.to_numpy())
     in_sample_r2 = model.score(df_train_X, df_train_Y)
 
     # Computamos las predicciones en el test y calculamos Etest
     predictions = model.predict(df_test_X.to_numpy())
     test_sample_error = mean_squared_error(predictions, df_test_Y.to_numpy())
+    test_sample_mean_abs_err = mean_absolute_error(predictions, df_test_Y.to_numpy())
     test_sample_r2 = model.score(df_test_X, df_test_Y)
 
     # Mostramos los resultados
     print("Resultados del entrenamiento")
     print_bar()
     print(f"--> Error cuadratico medio en la muestra: {in_sample_error}")
+    print(f"--> Error absoluto medio en la muestra: {in_sample_mean_abs_err}")
     print(f"--> R2 en la muestra: {in_sample_r2}")
     print(f"--> Error cuadratico medio en el test: {test_sample_error}")
+    print(f"--> Error absoluto medio en el test: {test_sample_mean_abs_err}")
     print(f"--> R2 en el test: {test_sample_r2}")
 
 def show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original):
@@ -416,6 +421,7 @@ def show_cross_validation_step2(df_train_X, df_train_Y):
     candidates.append(1)
     candidates.append(2)
     candidates.append(5)
+    candidates.append(0.05)
 
     # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
     cv = KFold(n_splits=10, shuffle=True)
@@ -505,19 +511,6 @@ if __name__ == "__main__":
     print(f"Tamaño df_train_X: {df_train_X.shape}")
     print(f"Tamaño df_train_Y: {df_train_Y.shape}")
 
-    # TODO -- hacerlo mas tarde para que no parezca data snooping
-    print("==> Calculamos algunos baselines haciendo entrenamiento")
-    print("--> Baseline de entrenar linear regression sin aplicar PCA")
-    linear_regresion = linear_model.LinearRegression()
-    linear_regresion.fit(df_train_X_original.to_numpy(), df_train_Y.to_numpy())
-
-    show_results(linear_regresion, df_train_X_original, df_train_Y, df_test_X_original, df_test_Y)
-
-    print("--> Baseline de entrenar linear regression al aplicar PCA, pero sin transformaciones polinomicas")
-    linear_regresion = linear_model.LinearRegression()
-    linear_regresion.fit(df_train_X.to_numpy(), df_train_Y.to_numpy())
-    show_results(linear_regresion, df_train_X, df_train_Y, df_test_X, df_test_Y)
-
     print("==> Aplicamos Cross Validation -> Primer paso")
     # TODO -- descomentar
     #  show_cross_validation_step1(df_train_X, df_train_Y, df_train_X_original)
@@ -546,7 +539,7 @@ if __name__ == "__main__":
     df_test_X = df_test_X
 
     # Valor de lambda y modelo
-    lambd = 1e-7
+    lambd = 1e-6
     model = linear_model.Ridge(alpha = lambd)
 
     # Entrenamos sobre toda la poblacion de entrenamiento
@@ -555,4 +548,16 @@ if __name__ == "__main__":
 
     # Mostramos los resultados
     show_results(model, df_train_X, df_train_Y, df_test_X, df_test_Y)
+    wait_for_user_input()
 
+    # Pruebas
+    print("==> TODO -- borrar")
+    df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, explained_variation=0.99)
+    poly = PolynomialFeatures(2)
+    df_train_X = pd.DataFrame(poly.fit_transform(df_train_X))
+    df_test_X = pd.DataFrame(poly.transform(df_test_X))
+
+    # Aplicamos el entrenamiento y mostramos los resultados
+    model.fit(df_train_X, df_train_Y)
+    show_results(model, df_train_X, df_train_Y, df_test_X, df_test_Y)
+    wait_for_user_input()
