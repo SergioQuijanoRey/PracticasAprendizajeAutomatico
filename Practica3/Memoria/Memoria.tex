@@ -474,24 +474,56 @@ En ambas tablas vemos que acabamos con desviación típica 1 y media prácticame
 \pagebreak
 \subsection{Selección del modelo}
 
+En esta sección vamos a emplear la técnicas de \emph{Cross Validation} para la selección del modelo y los parámetros empleados durante el aprendizaje. Vamos a emplear dos veces \emph{CV} como vamos a detallar más adelante.
+
+En realidad estamos usando la técnica de \emph{K-Fold Cross Validation}, con $K = 10$. En esta técnica, tomamos nuestro \emph{dataset} de entrenamiento y lo dividimos en $K$ \emph{folds} o subgrupos. Una vez hecho esto, realizamos $K$ veces el proceso de tomar un \emph{fold} como conjunto de validación, y los restantes $K-1$ \emph{folds} para entrenar el modelo candidato. Sobre el \emph{fold} de validación calculamos una métrica de error. Así tenemos $K$ entrenamientos con $K$ métricas, de las que podemos calcular estadísticas como media, mínimo y máximo, \ldots
+
+En las funciones \lstinline{show_cross_validation_step1} y \lstinline{show_cross_validation_step2} aplicamos dos veces el proceso de \emph{Cross Validation}.
+
 \subsubsection{Selección de la métrica de error}
 
-=> Métrica de error -> error cuadrático medio
-=> No uso error medio -> con error cuadrático medio se castigan más los outliers. Son funciones con una derivada mas sencilla a la hora de minimizar
-=> El ECM es de los pocos errores que hemos visto a la hora de aplicar regresión, mientras que en clasificación teníamos más variedad para elegir
-=> No usamos SGDRegressor porque tenemos la suficiente potencia de cómputo para usar Lasso, Ridge y LinearModel. Cuando el ordenador no puede más, es por la transformacion polinomica
-=> Asi que elijo Linear normal, ridge y Lasso para CV etapa1
-    => Laso es interesante porque favorece que muchos coeficientes sean cero. Ridge favorece pesos pequeños pero no cero. Interesante para quitar terminos del polynomial fit que no me interesan
+En ambas fases de \emph{Cross Validation}, usaremos la misma métrica de error. En este caso, usamos el \textbf{Error cuadrático Medio}. Es una de las pocas métricas de error que conocemos para los problemas de regresión. De todas formas, elegimos esta mética porque es fácilmente interpretable, el término cuadrático castiga más los valores que se predicen peor que otra métrica como el error absoluto medio. El \emph{ECM} es una métrica de error que se usa en el proceso de aprendizaje, directamente en el método de los mínimos cuadrados ordinario ordinario, o como término del error aumentado, donde el \emph{ECM} es el sumando de la métrica del error que va acompañada de un término de penalización de la parte de regularización.
 
-\subsubsection{Modelos candidatos}
+A la hora de especificar la métrica de error con \lstinline{sklearn}, usamos el error cuadrático medio negativo. Esto porque \lstinline{sklearn} busca maximizar esta \emph{score} en otras funciones. Así, un problema de minimizar el error, pasa a ser un problema de maximización cambiando el signo de la función a optimizar \cite{sklearn_neg_err:online}.
 
-A la hora de seleccionar modelos disponemos de:
+\subsubsection{Primera etapa - Modelos candidatos}
+
+A la hora de resolver este problema tenemos como modelo el ajuste de un hiperplano a los datos. Es decir, nuestra clase de funciones que representa el modelo viene dada por:
+
+$$\mathcal{H} := \{f_w / w \in \mathbb{R}^D\}$$
+
+donde $w \in \mathbb{R}^d$ son los parámetros que definen cada una de las hipótesis pertenecientes a la clase de funciones, que especifican la función de la siguiente forma:
+
+$$f_w(x):= w^T x, \forall x \in \mathbb{R}^D$$
+
+Así que lo buscamos elegir en esta fase de \emph{Cross Validation} es:
 
 \begin{itemize}
-    \item Ajustar un hiperplano
+    \item El conjunto de datos y la transformación que queremos aplicar sobre los datos: datos a los que no aplicamos PCA y sin transformaciones, datos a los que aplicamos PCA y aplicamos trasnformaciones polinómicas
+    \item El algoritmo de aprendizaje: mínimos cuadrados ordinarios, Ridge o Lasso
 \end{itemize}
 
-Así que en realidad a la hora de escoger un modelo debemos escoger la trasnsformación de los datos sobre la que ajustaremos un hiperparámetro. También deberemos escoger el regularizador
+Respecto a las trasnformaciones de los datos, a falta de conocimiento experto sobre el problema para guiar las trasnformaciones empleadas, probamos con trasnformaciones polinómicas $\phi_q$. Fijado el orden $q$, calculamos todos los polinomios en varias variables de hasta orden $q$. Por ejemplo, con $q=3$, podemos encontrar en el vector transformado los elementos $x, x^2, xy, x^2y, y^2x, xyz, \ldots$. En código esto lo conseguimos con la función de \lstinline{sklearn} \lstinline{PolynomialFeatures} \cite{sklearn_polynomial:online}.
+
+El primer modelo consiste en minimizar el error cuadrático medio a través de la matriz pseudoinversa \cite{sklearn_linear_reg:online}. Por tanto, no tenemos que preocuparnos de parámetros de procesos iterativos como la tolerancia.
+
+En segundo modelo consiste en minimizar el error aumentado en el que el término de penalización de regularización viene dado por $\lambda ||w||^2_2$. Con esto, favorecemos soluciones con valores en los pesos no muy grandes, aunque no necesariamente cero. Se realiza un proceso iterativo, donde los valores por defecto son \cite{sklearn_ridge:online}:
+
+\begin{itemize}
+    \item Máximo de iteraciones: 1000 iteraciones por defecto. A vista de nuestros datos, parece un número suficiente de iteraciones
+    \item Tolerancia: por defecto, $10^{-3}$, diferencia de error mínima entre dos iteraciones. Teniendo en cuenta de que llegaremos a errores en el intervalo $[300, 1800]$, parece una tolerancia mucho más que aceptable
+    \item Alpha: valor que nosotros hemos llamado en el curso $\lambda$. Término de penalización para la regularización. Lo establecemos nosotros a un valor de 0.05. Parece sensato pues en otros muchos problemas hemos visto que se emplea valores en el intervalo $[10^{-2}, 1]$. Además tenemos una dimensionalidad pequeña así que no parece necesario tomar un valor alto para $\lambda$
+\end{itemize}
+
+En el caso de Lasso, tenemos la misma situación que con Ridge pero tomando el error para la parte de regularización como $\sum_{k = 1}^{d} |w_k|$. En este caso, estamos favoreciendo el que muchos parámetros sean cero. Por tanto, es un buen modelo para selección de características. Usamos los mismos parámetros que especificados para Ridge.
+
+Respecto al paso al código de los modelos ya detallados, podemos encontrar toda la información de \lstinline{sklearn} en la documentación oficial \cite{sklearn_linear_models_list:online}.
+
+Estamos considerando dos regularizadores distintos (los que se usan en Lasso y Ridge) en vez de decantarnos directamente por uno de los dos en base a alguna intuición que tengamos sobre los datos. Si tuviésemnos que elegir solo uno, eligiríamos \emph{Ridge} porque no estamos haciendo selección de características ni con una gran cantidad de variables. Sin embargo, estamos haciendo las transformaciones polinómicas sin tener mucha idea de si muchos de los monomios obtenidos van a ser útiles o no. Por eso confiamos en que Lasso no de peso a muchos monomios irrelevantes, dandole peso a algunos monomios relevantes de forma automática. Sin embargo, si esto falla, confiamos más en el empleo de \emph{Ridge}.
+
+Por otro lado, como hemos sido capaces de emplear la pseudoinversa sin problemas de tiempos de cómputo, empleamos esta técnica \emph{one step solution} en vez de un enfoque iterativo que podríamos haber empleado con \emph{SGDRegressor}. Los momentos en los que el ordenador no es capaz de realizar los cómputos, es porque la transformación polinómica es demasiado grande.
+
+
 
 \subsubsection{\emph{Cross-Validation}, primera etapa}
 
