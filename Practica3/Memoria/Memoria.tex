@@ -93,7 +93,7 @@
 %===================================================================================================
 \title{
     {Aprendizaje Automático - Tercera Práctica}\\
-    {Dos caso de uso reales}\\  % TODO -- repensar el titulo de la practica
+    {Dos caso de uso reales}\\
     {Modelos Lineales}
 }
 
@@ -685,7 +685,7 @@ Disponemos de un archivo \lstinline{Sensorless_drive_diagnosis.txt} que contiene
 
 \subsubsection{Descripción de las características}
 
-Información extraída a partir de datos otorgados por la corriente eléctrica del motor. En concreto, información extraida de las fases de la corriente eléctrica generada por el motor \cite{paper_clasificacion_1:paper}. Estos datos pueden ser recogidos durante la conducción.
+Información extraída a partir de datos otorgados por la corriente eléctrica del motor. En concreto, información extraída de las fases de la corriente eléctrica generada por el motor \cite{paper_clasificacion_1:paper}. Estos datos pueden ser recogidos durante la conducción.
 
 Además, los datos con los que trabajamos han sido recogidos durante distintas condiciones de operación, para cada uno de los tipos de motores.
 
@@ -699,7 +699,7 @@ Queremos aprender una función objetivo de la forma:
 
 $$f: \mathbb{X} \rightarrow \mathbb{Y}$$
 
-donde $\mathbb{X}$ es el conjunto de las 47 carácterísticas extraídas sobre los motores, e $\mathbb{Y}$ es el conjunto $\{1, 2, \ldots, 11\}$ de todas las etiquetas en las que se agrupan los ejemplos. De nuevo, más adelante realizaremos transformaciones sobre los datos (borrado de \emph{outliers}, \emph{PCA} y estandarización), con lo que realmente buscamos aprender una función objetivo de la forma $f: \hat{\mathbb{X}} \rightarrow \mathbb{Y}$ donde $\hat{\mathbb{X}} = \phi(\mathbb{X})$ es el espacio transformado del original.
+donde $\mathbb{X}$ es el conjunto de las 47 características extraídas sobre los motores, e $\mathbb{Y}$ es el conjunto $\{1, 2, \ldots, 11\}$ de todas las etiquetas en las que se agrupan los ejemplos. De nuevo, más adelante realizaremos transformaciones sobre los datos (borrado de \emph{outliers}, \emph{PCA} y estandarización), con lo que realmente buscamos aprender una función objetivo de la forma $f: \hat{\mathbb{X}} \rightarrow \mathbb{Y}$ donde $\hat{\mathbb{X}} = \phi(\mathbb{X})$ es el espacio transformado del original.
 
 Al tener una variable de salida $\mathbb{Y}$ discreta, es claro que estamos ante un problema de clasificación.
 
@@ -777,7 +777,7 @@ Disponemos de un \emph{dataset} de 58509 ejemplos. Tras la separación acabamos 
 
 Todas las variables son de tipo \emph{float64}, salvo la variable de salida, que lógicamente es de tipo entero. No tenemos \emph{missing values} así que no tenemos que preocuparnos de emplear técnicas para tratar este problema.
 
-Todas las variables de entrada son contiunas, así que tampoco es necesario emplear técnicas como \emph{one hot encoding} para codificar las variables categóricas.
+Todas las variables de entrada son continuas, así que tampoco es necesario emplear técnicas como \emph{one hot encoding} para codificar las variables categóricas.
 
 Es destacable que tenemos distintas variables contiguas en las que las estadísticas mostradas son prácticamente la misma. Por ejemplo, las de las columnas 7 y 8, o las columnas 9, 10 y 11. Pensamos que esto es debido a que estamos usando estadísticas de una misma variable que pueden ser muy parecidas. Con ello, pensamos que aplicar la técnica \emph{PCA} va a ser útil a la hora de reducir la dimensionalidad de nuestro problema.
 
@@ -804,7 +804,7 @@ En \cite{paper_clasificacion_1:paper}, en la figura 4, se indica el accuracy obt
 
 Así que escogemos estandarizar el \emph{dataset} sin \emph{outliers}. De nuevo, remarcamos que es esencial eliminar los \emph{outliers} antes de estandarizar, pues este proceso es muy sensible a los \emph{outliers}. Y del mismo modo, es esencial estandarizar antes de aplicar \emph{PCA}, pues una variables con desviaciones típicas muy desbalanceadas puede provocar que unas pocas variables copen todo el protagonismo en el cambio de los vectores que forman la base del nuevo espacio.
 
-Aplicamos la técnica \emph{PCA}. Buscamos tener una varianza explicada por encima del 99\%. Terminamos con un espacio de dimensión 26, así que nos hemos quedado con aproximadamente el 55\% de las dimensiones iniciales. Hemos reducido la dimensionalidad del problema a casi la mitad. Esto era lo esperado por lo que ya hemos comentado: muchas variables en el mismo rango, lo que nos hacía pensar en que estaban áltamente correladas, variables sin apenas varianza, \ldots
+Aplicamos la técnica \emph{PCA}. Buscamos tener una varianza explicada por encima del 99\%. Terminamos con un espacio de dimensión 26, así que nos hemos quedado con aproximadamente el 55\% de las dimensiones iniciales. Hemos reducido la dimensionalidad del problema a casi la mitad. Esto era lo esperado por lo que ya hemos comentado: muchas variables en el mismo rango, lo que nos hacía pensar en que estaban altamente correladas, variables sin apenas varianza, \ldots
 
 Como en regresión, y por los mismos motivos, aplicamos estandarización al conjunto que queda tras \emph{PCA}. Este conjunto viene resumido en la siguiente tabla de estadísticas descriptivas:
 
@@ -886,7 +886,7 @@ En ambos casos, estamos aplicando \emph{k-fold cross validation} con un valor $k
 
 De nuevo, el código que implementa todo lo que ya hemos comentado se encuentra en la función \lstinline{show_cross_validation}.
 
-Esta función consume muchísimo tiempo. Por ello, no hemos sido capaces de terminar de probar con todos los modelos que se habían propuesto inicialmente. Paro la ejecución tras seis horas de cómputo en mi máquina \footnote{En \emph{\ref{consideraciones}. \nameref{consideraciones}} mostramos las carácterísticas de la máquina en la que hemos realizado la ejecución}. Por tanto, el código que llama a \lstinline{show\_cross\_validation} está comentado.
+Esta función consume muchísimo tiempo. Por ello, no hemos sido capaces de terminar de probar con todos los modelos que se habían propuesto inicialmente. Paro la ejecución tras seis horas de cómputo en mi máquina \footnote{En \emph{\ref{consideraciones}. \nameref{consideraciones}} mostramos las características de la máquina en la que hemos realizado la ejecución}. Por tanto, el código que llama a \lstinline{show\_cross\_validation} está comentado.
 
 
 Los resultados obtenidos se muestran en la \emph{Tabla \ref{tabla_cv_clasif}. \nameref{tabla_cv_clasif}}
@@ -938,7 +938,7 @@ Los resultados obtenidos se muestran en la \emph{Tabla \ref{tabla_cv_clasif}. \n
     \label{tabla_cv_clasif}
 \end{table}
 
-Es claro que los dos modelos que mejor media de \emph{acuraccy} son Regresión Logística, con una trasnformación cuadrática, y valor de $C$ 1.05 y 1.20. Elegimos $C = 1.20$ pues el rango $[min, max]$ tiene una longitud de 0.05, mientras que en el otro caso tenemos una longitud de 0.09, y así el valor $C=1.20$ pare ser más estable.
+Es claro que los dos modelos que mejor media de \emph{acuraccy} son Regresión Logística, con una transformación cuadrática, y valor de $C$ 1.05 y 1.20. Elegimos $C = 1.20$ pues el rango $[min, max]$ tiene una longitud de 0.05, mientras que en el otro caso tenemos una longitud de 0.09, y así el valor $C=1.20$ pare ser más estable.
 
 Los resultados para los parámetros que nos ha dado tiempo a ejecutar en \emph{Support Vector Machine} son muy buenos, pero no han logrado el nivel de regresión logística.
 
@@ -1013,11 +1013,11 @@ Mostramos los resultados en la siguiente tabla:
 
 \subsubsection{Análisis de los resultados}
 
-El estadístico \emph{Accuracy} se calcula como el porcentaje de valores bien predecidos entre todos los valores sobre los que realizamos el cálculo. La \emph{precisión} es el porcentaje de verdaderos positivos entre verdaderos y falsos positivios. Como estamos trabajando con clasificación multiclase, calculamos este estadístico clase a clase y calculamos la media entre todas las clases. Esto usando la opción de \lstinline{sklearn} \lstinline{average = 'macro'}. \emph{F1} es la media armónica entre precisión y \emph{recall}, donde \emph{recall} es el porcentaje de verdaderos positivos que clasificamos correctamente. De nuevo, debemos usar la técnica \lstinline{average = 'macro'} \cite{towards_scores:online}.
+El estadístico \emph{Accuracy} se calcula como el porcentaje de valores bien predichos entre todos los valores sobre los que realizamos el cálculo. La \emph{precisión} es el porcentaje de verdaderos positivos entre verdaderos y falsos positivos. Como estamos trabajando con clasificación multiclase, calculamos este estadístico clase a clase y calculamos la media entre todas las clases. Esto usando la opción de \lstinline{sklearn} \lstinline{average = 'macro'}. \emph{F1} es la media armónica entre precisión y \emph{recall}, donde \emph{recall} es el porcentaje de verdaderos positivos que clasificamos correctamente. De nuevo, debemos usar la técnica \lstinline{average = 'macro'} \cite{towards_scores:online}.
 
-Lo primero es observar que estamos obteniendo unos resultados muy bienos en el test, con las tres estadísticas entorno al $94.7\%$ (cuando mostramos más de 3 decimales, vemos que no son exactamente el mismo valor). Son estadísticas que no se alejan demasiado (en torno a un 4\%) de las estadísticas logradas en el conjunto de entrenamiento. Por tanto, no hemos tenido problemas de \emph{overfitting}.
+Lo primero es observar que estamos obteniendo unos resultados muy buenos en el test, con las tres estadísticas entorno al $94.7\%$ (cuando mostramos más de 3 decimales, vemos que no son exactamente el mismo valor). Son estadísticas que no se alejan demasiado (en torno a un 4\%) de las estadísticas logradas en el conjunto de entrenamiento. Por tanto, no hemos tenido problemas de \emph{overfitting}.
 
-En segundo lugar, la matriz de confusión en la muestra de test muestra también buenos resultados. En esta matriz, la fila $i$ indica el valor verdadero de la clase, y la fila $j$ muestra el valor en el que hemos clasificado. Por tanto, lo que queremos es que la mayor parte de valores estén en la diagonal principal, como es nuestro caso. Vemos que en algunas clases estamos clasificando mal, por ejemplo, confundimos la clase 2 con la clase 10 en 88 ejemplos de la muestra. Sin embargo, teniendo en cuenta que estamos trabajando con una muestra de test con 11702 ejemplos, estos valores qeu quedan fuera de la diagonal principal no parecen relevantes. Ninguno de estos valores fuera de la diagonal llega a los 100 ejemplos, y por tanto, en una muestra de 11700 ejemplos no parecen relevantes.
+En segundo lugar, la matriz de confusión en la muestra de test muestra también buenos resultados. En esta matriz, la fila $i$ indica el valor verdadero de la clase, y la fila $j$ muestra el valor en el que hemos clasificado. Por tanto, lo que queremos es que la mayor parte de valores estén en la diagonal principal, como es nuestro caso. Vemos que en algunas clases estamos clasificando mal, por ejemplo, confundimos la clase 2 con la clase 10 en 88 ejemplos de la muestra. Sin embargo, teniendo en cuenta que estamos trabajando con una muestra de test con 11702 ejemplos, estos valores que quedan fuera de la diagonal principal no parecen relevantes. Ninguno de estos valores fuera de la diagonal llega a los 100 ejemplos, y por tanto, en una muestra de 11700 ejemplos no parecen relevantes.
 
 Es decir, hemos aprendido efectivamente una función que aproxima $f$ de forma no trivial (por ejemplo, una función que siempre clasifique en la misma etiqueta, o que clasifique aleatoriamente). Además, parece más complejo aprender una función trivial en clasificación multietiqueta que alcance un \emph{performance tan bueno}.
 

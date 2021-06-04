@@ -149,7 +149,6 @@ def split_data(df, test_percentage):
     df_test: dataframe con los datos de test
     """
 
-    # TODO -- el stratify no debe ser None -- le voy a preguntar al profesor
     df_test, df_train = train_test_split(df, test_size = test_percentage, shuffle = True, stratify = None)
 
     return df_test, df_train
