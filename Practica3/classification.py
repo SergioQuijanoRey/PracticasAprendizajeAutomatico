@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn import linear_model
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import precision_score, accuracy_score, confusion_matrix, f1_score
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import KFold
 from sklearn.dummy import DummyRegressor
@@ -314,12 +314,10 @@ def show_cross_validation(df_train_X, df_train_Y):
 
     # Modelos que vamos a validar
     logistic_reg = LogisticRegression(penalty='l2')
-
     models = ["LogReg"]
 
     # Transformaciones polinomiales que vamos a realizar de los datos
     # Sin PCA no queremos hacer tantas transformaciones
-    # TODO -- seguir solo con orden 2, el resto lo tenemos ya calculado
     transforms = [1, 2]
 
     # Cross validation <- 10 fold, con shuffle de los datos (puede introducir variabilidad en los resultados)
@@ -328,44 +326,42 @@ def show_cross_validation(df_train_X, df_train_Y):
     # Hacemos cross validation sobre los datos
     # Support Vector machines no haran caso a las transformaciones de los datos, esto lo conseguiremos
     # usando distintos kernels
-    # TODO -- descomentar
-    #  for model in models:
-    #      for order in transforms:
-    #          for C in C_values:
-    #              # Seleccionamos el modelo a emplear
-    #              mdl = None
-    #              if model == "LogReg":
-    #                  mdl = LogisticRegression(penalty='l2', C=C, multi_class="multinomial")
+    for model in models:
+        for order in transforms:
+            for C in C_values:
+                # Seleccionamos el modelo a emplear
+                mdl = None
+                if model == "LogReg":
+                    mdl = LogisticRegression(penalty='l2', C=C, multi_class="multinomial")
 
-    #              # Transformamos los datos de entrada con polinomios
-    #              # Notar que por defecto intruduce la columna del bias
-    #              poly = PolynomialFeatures(order)
-    #              df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
+                # Transformamos los datos de entrada con polinomios
+                # Notar que por defecto intruduce la columna del bias
+                poly = PolynomialFeatures(order)
+                df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
 
-    #              scores = cross_val_score(mdl, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
-    #              print(f"Model {model}, pol_order: {order}, C: {C}:")
-    #              print(f"\tMedia: {np.mean(scores)}")
-    #              print(f"\tMinimo: {np.min(scores)}")
-    #              print(f"\tMaximo: {np.max(scores)}")
+                scores = cross_val_score(mdl, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
+                print(f"Model {model}, pol_order: {order}, C: {C}:")
+                print(f"\tMedia: {np.mean(scores)}")
+                print(f"\tMinimo: {np.min(scores)}")
+                print(f"\tMaximo: {np.max(scores)}")
 
     # Iteramos sobre SVMS. Las transformaciones seran segun los kernels especificados
     # El kernel lineal lo ponemos aparte porque acepta un parametro adicional: degree
-    kernels = ['poly', 'rbf']
+    kernels = ['linear', 'rbf']
 
     # Con SVM podemos emplear ordenes mayores gracias al kernel trick
     transforms = [1, 2, 3]
 
-    # Primero kernel lineal, que es el que acepta degree como parametro
-    # TODO -- descomentar
-    #  for order in transforms:
-    #      for C in C_values:
-    #          # ovr: one versus rest -> Estrategia para clasificacion multiclase
-    #          model = SVC(C=C, kernel = 'linear', degree = order, decision_function_shape="ovr")
-    #          scores = cross_val_score(model, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
-    #          print(f"Model {model} Linear, pol_order: {order}, C: {C}:")
-    #          print(f"\tMedia: {np.mean(scores)}")
-    #          print(f"\tMinimo: {np.min(scores)}")
-    #          print(f"\tMaximo: {np.max(scores)}")
+    # Primero kernel polinomial, que es el que acepta degree como parametro
+    for order in transforms:
+        for C in C_values:
+            # ovr: one versus rest -> Estrategia para clasificacion multiclase
+            model = SVC(C=C, kernel = 'poly', degree = order, decision_function_shape="ovr")
+            scores = cross_val_score(model, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
+            print(f"Model {model} Linear, pol_order: {order}, C: {C}:")
+            print(f"\tMedia: {np.mean(scores)}")
+            print(f"\tMinimo: {np.min(scores)}")
+            print(f"\tMaximo: {np.max(scores)}")
 
     # Iteramos sobre el resto de kernels
     for kernel in kernels:
@@ -380,6 +376,49 @@ def show_cross_validation(df_train_X, df_train_Y):
 
     # Paramos la ejecucion hasta que el usuario pulse una tecla
     print_bar(car = "-")
+    wait_for_user_input()
+
+def show_results(model, df_train_X, df_train_Y, df_test_X, df_test_Y):
+    """
+    Muestra los resultados del entrenamiento
+
+    Parameters:
+    ===========
+    model: modelo sklearn que queremos evaluar
+    df_train_X: conjunto de entrenamiento, variables de entrada
+    df_train_Y: conjunto de entrenamiento, etiquetas
+    df_test_X: conjunto de test, variables de entrada
+    df_test_Y: conjunto de test, etiquetas
+    """
+
+    # Computamamos las predicciones en la muestra de entrenamiento
+    predictions = model.predict(df_train_X.to_numpy())
+
+    # Calculamos el error cuadratico medio en la muestra
+    in_sample_acc = accuracy_score(predictions, df_train_Y.to_numpy())
+    in_sample_f1 = f1_score(predictions, df_train_Y.to_numpy(), average='macro')
+    in_sample_prec = precision_score(predictions, df_train_Y.to_numpy(), average="macro")
+    in_sample_conf = confusion_matrix(predictions, df_train_Y.to_numpy())
+
+    # Computamos las predicciones en el test y calculamos Etest
+    predictions = model.predict(df_test_X.to_numpy())
+    test_sample_acc = accuracy_score(predictions, df_test_Y.to_numpy())
+    test_sample_f1 = f1_score(predictions, df_test_Y.to_numpy(), average="macro")
+    test_sample_prec = precision_score(predictions, df_test_Y.to_numpy(), average = "macro")
+    test_sample_conf = confusion_matrix(predictions, df_test_Y.to_numpy())
+
+    # Mostramos los resultados
+    print("Resultados del entrenamiento")
+    print_bar()
+    print(f"--> Accuracy en la muestra: {in_sample_acc}")
+    print(f"--> Precision en la muestra: {in_sample_prec}")
+    print(f"--> F1 en la muestra: {in_sample_f1}")
+    print(f"--> Matriz de confusion en la muestra:\n{in_sample_conf}")
+    print("")
+    print(f"--> Accuracy en el test: {test_sample_acc}")
+    print(f"--> Precision en el test: {test_sample_prec}")
+    print(f"--> F1 en el test: {test_sample_f1}")
+    print(f"--> Matriz de confusion en el test:\n{test_sample_conf}")
     wait_for_user_input()
 
 # Funcion principal
@@ -434,7 +473,6 @@ if __name__ == "__main__":
     explore_training_set(df_train_X, show_plot=False)
     wait_for_user_input()
 
-    # TODO -- guardar los datos originales para cross validation??
     # Aplicamos PCA
     print("--> Aplicando PCA a los datos")
     df_train_X, df_test_X = apply_PCA(df_train_X, df_test_X, explained_variation=0.99)
@@ -455,4 +493,24 @@ if __name__ == "__main__":
     wait_for_user_input()
 
     print("==> Aplicamos Cross Validation")
-    show_cross_validation(df_train_X, df_train_Y)
+    # ESTA COMENTADO PORQUE CONSUME DEMASIADO TIEMPO DE COMPUTO
+    #  show_cross_validation(df_train_X, df_train_Y)
+
+    print("==> Entrenando sobre todo el conjunto de datos")
+
+    print("--> Transformando con monomios de hasta grado 2")
+    poly = PolynomialFeatures(2)
+    df_train_X = pd.DataFrame(poly.fit_transform(df_train_X))
+    df_test_X = pd.DataFrame(poly.fit_transform(df_test_X))
+
+    # Parametros escogidos:
+    C = 1.2
+    lgr = LogisticRegression(penalty='l2', C=C, multi_class="multinomial")
+
+    # Entrenamos sobre toda la poblacion de entrenamiento
+    print("--> Ajustando los datos de entrenamiento")
+    lgr.fit(df_train_X, df_train_Y)
+
+    print("--> Mostrando resultados")
+    show_results(lgr, df_train_X, df_train_Y, df_test_X, df_test_Y)
+
