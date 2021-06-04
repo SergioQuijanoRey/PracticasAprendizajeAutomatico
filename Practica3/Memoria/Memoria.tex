@@ -669,45 +669,186 @@ Por tanto, la principal mejora al trabajo presentado sería considerar modelos m
 \pagebreak
 \section{Problema de clasificación}
 
+\subsection{Exploración del problema}
+
 Buscamos obtener información sobre distintos motores eléctricos sin necesidad de introducir más sensores. Dicha introducción de sensores provocaría un aumento de los costes, directamente por el coste de los propios sensores, e indirectamente por el coste de almacenar información que pudiera ser redundante. Por tanto, se busca clasificar motores en distintas categorías empleando información ya disponible en los motores electromecánicos, como más tarde se explicará.
 
 Los motores se dividirán en 11 clases según los defectos que puedan presentar viendo la corriente que generan. Así que tenemos una clase para indicar estado correcto, y 10 clases para indicar distintos defectos \cite{paper_clasificacion_1:paper}.
 
-\subsection{Exploración del problema}
-
 \subsubsection{Descripción del problema}
+
+Disponemos de un archivo \lstinline{Sensorless_drive_diagnosis.txt} que contiene las 47 \emph{features} que ya hemos indicado, y una última fila para las etiquetas de las 11 clases en las que dividimos los motores.
 
 
 \subsubsection{Descripción de las características}
 
 Información extraída a partir de datos otorgados por la corriente eléctrica del motor. En concreto, información extraida de las fases de la corriente eléctrica generada por el motor \cite{paper_clasificacion_1:paper}. Estos datos pueden ser recogidos durante la conducción.
 
-Además, los datos con los que trabajamos han sido recogidos durante distintas condiciones, para cada uno de los tipos de motores.
+Además, los datos con los que trabajamos han sido recogidos durante distintas condiciones de operación, para cada uno de los tipos de motores.
 
-Las \emph{features} se extraen usando la descomposición \emph{Empirical Model Decomposition}, que forma parte de la \emph{Hilbert Huang Transformation}. Estos datos se vuelven a descomponer usando \emph{Intrinsic Modal Functions}, a partir de las cuales se calculan estadísticas como media empírica, desviación estándar, oblicuidad y excente \cite{paper_clasificacion_1:paper}.
+Las \emph{features} se extraen usando la descomposición \emph{Empirical Model Decomposition}, que forma parte de la \emph{Hilbert Huang Transformation}. Estos datos se vuelven a descomponer usando \emph{Intrinsic Modal Functions}, a partir de las cuales se calculan estadísticas como media empírica, desviación estándar, oblicuidad y excedente \cite{paper_clasificacion_1:paper}.
 
-Este proceso genera las 48 \emph{features} que usaremos para la clasificación
+Este proceso genera las 47 \emph{features} que usaremos para la clasificación. Al igual que en el problema de clasificación, no disponemos de conocimiento experto para extraer, de estas 47 \emph{features}, otras \emph{features} de mayor calidad. Y por tanto, queda justificado que empleemos técnicas estadísticas como \emph{PCA}.
+
+\subsubsection{Problema a resolver}
+
+Queremos aprender una función objetivo de la forma:
+
+$$f: \mathbb{X} \rightarrow \mathbb{Y}$$
+
+donde $\mathbb{X}$ es el conjunto de las 47 carácterísticas extraídas sobre los motores, e $\mathbb{Y}$ es el conjunto $\{1, 2, \ldots, 11\}$ de todas las etiquetas en las que se agrupan los ejemplos. De nuevo, más adelante realizaremos transformaciones sobre los datos (borrado de \emph{outliers}, \emph{PCA} y estandarización), con lo que realmente buscamos aprender una función objetivo de la forma $f: \hat{\mathbb{X}} \rightarrow \mathbb{Y}$ donde $\hat{\mathbb{X}} = \phi(\mathbb{X})$ es el espacio transformado del original.
+
+Al tener una variable de salida $\mathbb{Y}$ discreta, es claro que estamos ante un problema de clasificación.
+
+\subsubsection{Descripción de las características}
+
+Ya hemos comentado el proceso de extracción de las características, a partir del proceso \emph{EMD}. Con ello se calcula, por cada característica resultante, se calculan las estadísticas: media empírica, desviación estándar, oblicuidad y excedente. Al tener 4 estadísticas por \emph{feature}, y al tener 47 características finales, pensamos que tenemos 11 variables originales, de las que calculamos 4 estadísticas, y otras 3 variables adicionales que suman hasta llegar a las 47 características con las que trabajamos. Esto es similar a lo que ocurría en el problema de regresión, donde la variable \emph{number of elements} era la adicional que no iba expandida en distintas estadísticas.
+
+\subsubsection{Exploración del dataset}
+
+Antes de empezar a explorar los datos del problema, separamos el conjunto de training y de test. No queremos saber nada sobre el test dataset durante esta exploración de los datos, para evitar caer en el \emph{data snooping}. Usamos la misma función que en regresión para llevar a cabo la separación de los datos. Sin embargo, en este caso, al tener que mantener las clases balanceadas, usamos la opción: \lstinline{stratify = df\_Y}. Podríamos pensar que con esto estamos haciendo algo de \emph{data snooping}, pues estamos tomando información de ejemplos que acabarán en el conjunto de \emph{test}. Sin embargo, como no vamos a hacer uso de esta información, compensa esta pequeña incorrección pues el beneficio es que nos aseguramos de no tener clases infrarrepresentadas o bien en el \emph{test} o bien en el \emph{training}. Lo correcto sería confiar en que, con la gran cantidad de datos que manejamos, con tomar elementos aleatorios sea suficiente.
+
+Disponemos de un \emph{dataset} de 58509 ejemplos. Tras la separación acabamos con 46807 para entrenamiento y 11702 para test. Como hacíamos en regresión, mostramos las estadísticas de las variables con la función \lstinline{explore\_dataset}, obteniendo la tabla \emph{Tabla \ref{variables_clasificacion}. \nameref{variables_clasificacion}}:
+
+\begin{table}[H]
+\centering
+\resizebox{0.8\columnwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Columna} &       \textbf{mean} &        \textbf{median} &           \textbf{var} &       \textbf{std} &        \textbf{min} &          \textbf{max} &       \textbf{p25} &       \textbf{p75} \\
+\hline
+0   & -3.39e-6 & -2.66e-6  & 6.39e-9   & 0.00  & -0.01&      0.00& -0.00&   0.00 \\
+1   &  1.54e-6 &  8.95e-7  & 3.34e-9   & 0.00  & -0.00&      0.00& -0.00&   0.00 \\
+2   &  1.44e-6 &  5.02e-7  & 5.65e-8   & 0.00  & -0.01&      0.00& -0.00&   0.00 \\
+3   & -1.38e-6 & -1.06e-6  & 4.86e-9   & 0.00  & -0.01&      0.00& -0.00&   0.00 \\
+4   &  1.48e-6 &  8.07e-7  & 3.32e-9   & 0.00  & -0.00&      0.00& -0.00&   0.00 \\
+5   & -9.27e-7 & -3.05e-7  & 5.20e-8   & 0.00  & -0.00&      0.00& -0.00&   0.00 \\
+6   &  1.92e-3 &  1.32e-2  & 1.32e-3   & 0.03  & -0.13&      0.06& -0.01&   0.02 \\
+7   &  1.92e-3 &  1.32e-2  & 1.32e-3   & 0.03  & -0.13&      0.06& -0.01&   0.02 \\
+8   &  1.91e-3 &  1.32e-2  & 1.32e-3   & 0.03  & -0.13&      0.06& -0.01&   0.02 \\
+9   & -1.18e-2 & -1.55e-2  & 4.42e-3   & 0.06  & -0.21&      0.35& -0.03&   0.02 \\
+10  & -1.18e-2 & -1.55e-2  & 4.42e-3   & 0.06  & -0.21&      0.35& -0.03&   0.02 \\
+11  & -1.18e-2 & -1.55e-2  & 4.42e-3   & 0.06  & -0.21&      0.35& -0.03&   0.02 \\
+12  &  1.88e-3 &  2.19e-3  & 1.13e-6   & 0.00  &  0.00&      0.13&  0.00&   0.00 \\
+13  &  1.08e-3 &  1.18e-3  & 4.60e-7   & 0.00  &  0.00&      0.05&  0.00&   0.00 \\
+14  &  3.09e-3 &  2.98e-3  & 4.94e-6   & 0.00  &  0.00&      0.10&  0.00&   0.00 \\
+15  &  1.87e-3 &  2.18e-3  & 9.81e-7   & 0.00  &  0.00&      0.10&  0.00&   0.00 \\
+16  &  1.08e-3 &  1.18e-3  & 4.46e-7   & 0.00  &  0.00&      0.06&  0.00&   0.00 \\
+17  &  3.08e-3 &  2.90e-3  & 4.56e-6   & 0.00  &  0.00&      0.07&  0.00&   0.00 \\
+18  &  1.61e+0 &  1.57e+0  & 1.59e-1   & 0.39  &  0.79&      2.37&  1.32&   1.88 \\
+19  &  1.61e+0 &  1.57e+0  & 1.59e-1   & 0.39  &  0.79&      2.37&  1.32&   1.88 \\
+20  &  1.61e+0 &  1.57e+0  & 1.59e-1   & 0.39  &  0.79&      2.37&  1.32&   1.88 \\
+21  &  1.61e+0 &  1.57e+0  & 1.58e-1   & 0.39  &  0.79&      2.37&  1.32&   1.88 \\
+22  &  1.61e+0 &  1.57e+0  & 1.58e-1   & 0.39  &  0.79&      2.37&  1.32&   1.88 \\
+23  &  1.61e+0 &  1.57e+0  & 1.58e-1   & 0.39  &  0.79&      2.37&  1.32&   1.88 \\
+24  &  1.49e-3 &  3.01e-3  & 2.76e-2   & 0.16 -& 15.79&     20.32& -0.00&   0.01 \\
+25  &  9.68e-3 &  7.39e-3  & 6.02e-1   & 0.77 -& 12.35&      9.81& -0.20&   0.22 \\
+26  & -2.80e-3 &  2.26e-3  & 7.64e-1   & 0.87  & -7.95&      9.58& -0.45&   0.44 \\
+27  & -1.18e-4 &  1.41e-4  & 2.74e-2   & 0.16 -& 11.90&     17.22& -0.00&   0.00 \\
+28  &  1.28e-2 &  8.76e-3  & 5.75e-1   & 0.75 -& 12.50&     10.97& -0.20&   0.22 \\
+29  & -8.83e-3 & -4.43e-3  & 7.27e-1   & 0.85  & -9.97&      8.76& -0.44&   0.43 \\
+30  &  1.70e-5 &  4.40e-4  & 6.09e-5   & 0.00  & -0.05&      0.08& -0.00&   0.00 \\
+31  &  1.49e-5 &  4.38e-4  & 6.08e-5   & 0.00  & -0.05&      0.08& -0.00&   0.00 \\
+32  &  2.14e-5 &  4.49e-4  & 6.08e-5   & 0.00  & -0.05&      0.08& -0.00&   0.00 \\
+33  & -1.73e-5 & -2.68e-4  & 9.87e-5   & 0.00  & -0.33&      0.19& -0.00&   0.00 \\
+34  & -2.03e-5 & -2.63e-4  & 9.85e-5   & 0.00  & -0.33&      0.19& -0.00&   0.00 \\
+35  & -1.46e-5 & -2.65e-4  & 9.83e-5   & 0.00  & -0.33&      0.18& -0.00&   0.00 \\
+36  & -4.62e-1 & -6.63e-1  & 4.38e+2  2& 0.93  & -0.90&   4015.40& -0.71&  -0.58 \\
+37  &  7.44e+0 &  3.30e+0  & 1.49e+2  1& 2.21  & -0.61&    238.79&  1.47&   8.38 \\
+38  &  8.38e+0 &  6.54e+0  & 4.67e+1   & 6.83  &  0.52&    125.49&  4.44&   9.93 \\
+39  & -4.10e-1 & -6.61e-1  & 5.72e+2  2& 3.92  & -0.90&   3670.80& -0.71&  -0.57 \\
+40  &  7.26e+0 &  3.30e+0  & 1.55e+2  1& 2.45  & -0.59&    889.93&  1.45&   8.28 \\
+41  &  8.25e+0 &  6.47e+0  & 4.26e+1   & 6.52  &  0.56&    153.15&  4.44&   9.85 \\
+42  & -1.50e+0 & -1.50e+0  & 1.34e-5   & 0.00  & -1.52&     -1.45& -1.50&  -1.49 \\
+43  & -1.50e+0 & -1.50e+0  & 1.34e-5   & 0.00  & -1.52&     -1.45& -1.50&  -1.49 \\
+44  & -1.50e+0 & -1.50e+0  & 1.32e-5   & 0.00  & -1.52&     -1.45& -1.50&  -1.49 \\
+45  & -1.49e+0 & -1.49e+0  & 1.01e-5   & 0.00  & -1.52&     -1.33& -1.49&  -1.49 \\
+46  & -1.49e+0 & -1.49e+0  & 1.01e-5   & 0.00  & -1.52&     -1.33& -1.49&  -1.49 \\
+47  & -1.49e+0 & -1.49e+0  & 1.02e-5   & 0.00  & -1.52&     -1.33& -1.49&  -1.49 \\
+48  &  6.00e+0 &  6.00e+0  & 1.00e+1   & 3.16  &  1.00&     11.00&  3.00&   9.00 \\
+\hline
+\end{tabular}}
+    \caption{Exploración estadística de los atributos del conjunto de entrenamiento}
+    \label{variables_clasificacion}
+\end{table}
+
+Todas las variables son de tipo \emph{float64}, salvo la variable de salida, que lógicamente es de tipo entero. No tenemos \emph{missing values} así que no tenemos que preocuparnos de emplear técnicas para tratar este problema.
+
+Todas las variables de entrada son contiunas, así que tampoco es necesario emplear técnicas como \emph{one hot encoding} para codificar las variables categóricas.
+
+Es destacable que tenemos distintas variables contiguas en las que las estadísticas mostradas son prácticamente la misma. Por ejemplo, las de las columnas 7 y 8, o las columnas 9, 10 y 11. Pensamos que esto es debido a que estamos usando estadísticas de una misma variable que pueden ser muy parecidas. Con ello, pensamos que aplicar la técnica \emph{PCA} va a ser útil a la hora de reducir la dimensionalidad de nuestro problema.
+
+De nuevo, queda clara la necesidad de una técnica como estandarización. Por ejemplo, la columna 40 tiene una desviación típica de 2.45, mientras que la columna 8 tiene una desviación típica de 0.03. O por ejemplo, la columna 36 está en un rango $[-0.9, 4015.40]$, mientras que la columna 0 está en un rango $[-0.01, 0]$.
+
+Es notable que muchas columnas tienen desviación típica muy cercana a cero (algunas tienen 0.00 pero solo estamos mostrando dos posiciones decimales). Por tanto muchas de ellas estarán aportando poca información, y esperamos que \emph{PCA} reduzca efectivamente la dimensión de nuestro espacio.
+
+Las clases están balanceadas, como muestra la siguiente gráfica:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{balanced_classes}
+    \caption{Gráfico de barras con el balanceo de las clases en el conjunto de entrenamiento}
+\end{figure}
 
 \pagebreak
-\subsection{Exploración de los datos}
+\subsection{Preprocesado de los datos}
 
-==> Hay 11 clases
-==> Clases balanceadas como mostramos en la grafica de barras
-==> Mostrar la tabla con todas las variables
-    ==> Muchas variables contiguas que tienen rangos muy similares, lo que nos hacen sospechar
+A diferencia de lo que hacíamos en regresión, en esta sección solo vamos a mostrar los resultados del preprocesado de los datos. El eliminado de \emph{outliers}, estandarización, uso de \emph{PCA} y de nuevo, estandarización, ya ha sido explicado. Tanto los fundamentos teóricos, como los motivos que justifican el uso de estas técnicas, que como ya hemos visto, también son aplicables a este problema.
 
-\subsubsection{Eliminado de outliers}
-
-=> Quitamos el 6\% de los datos
-
-\subsubsection{Estandarización}
+Tras el borrado de outliers (valores alejados de la media más de 4 veces las desviación típica), eliminamos 3039 ejemplos, quedándonos con 43768 ejemplos en el conjunto de entrenamiento. Lo que supone que hemos borrado aproximadamente $6.5\%$ de los datos. Un porcentaje muy parecido al borrado en regresión, así que la mejora de la calidad de los datos (estamos borrando con \emph{z-score} 4 y no 3, que es lo usual, siendo todavía más permisivos) justifica esta pérdida de datos.
 
 En \cite{paper_clasificacion_1:paper}, en la figura 4, se indica el accuracy obtenido en distintos modelos según se use normalización o estandarización. Para los modelos que nosotros vamos a emplear más adelante, parece claro que la mejor opción es estandarizar y no normalizar.
 
-De nuevo, el proceso será estandarizar los datos previa aplicación de la técnica \emph{PCA}. Una vez que se haya aplicado \emph{PCA}, se volverá a estandarizar el \emph{dataset}.
+Así que escogemos estandarizar el \emph{dataset} sin \emph{outliers}. De nuevo, remarcamos que es esencial eliminar los \emph{outliers} antes de estandarizar, pues este proceso es muy sensible a los \emph{outliers}. Y del mismo modo, es esencial estandarizar antes de aplicar \emph{PCA}, pues una variables con desviaciones típicas muy desbalanceadas puede provocar que unas pocas variables copen todo el protagonismo en el cambio de los vectores que forman la base del nuevo espacio.
 
+Aplicamos la técnica \emph{PCA}. Buscamos tener una varianza explicada por encima del 99\%. Terminamos con un espacio de dimensión 26, así que nos hemos quedado con aproximadamente el 55\% de las dimensiones iniciales. Hemos reducido la dimensionalidad del problema a casi la mitad. Esto era lo esperado por lo que ya hemos comentado: muchas variables en el mismo rango, lo que nos hacía pensar en que estaban áltamente correladas, variables sin apenas varianza, \ldots
+
+Como en regresión, y por los mismos motivos, aplicamos estandarización al conjunto que queda tras \emph{PCA}. Este conjunto viene resumido en la siguiente tabla de estadísticas descriptivas:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Columna} &       \textbf{mean} &        \textbf{median} &           \textbf{var} &       \textbf{std} &        \textbf{min} &          \textbf{max} &       \textbf{p25} &       \textbf{p75} \\
+\hline
+0               &-6.25e-18 &-0.01  &1.00  &1.00 & -2.25 &  2.51 &-0.63  &0.61 \\
+1               & 1.59e-17 &-0.08  &1.00  &1.00 & -2.57 &  3.49 &-0.55  &0.35 \\
+2               &-6.49e-19 & 0.00  &1.00  &1.00 & -3.35 &  3.55 &-0.71  &0.72 \\
+3               &-1.70e-17 & 0.17  &1.00  &1.00 & -3.31 &  4.30 &-0.80  &0.68 \\
+4               &-3.81e-18 &-0.14  &1.00  &1.00 & -3.99 &  4.44 &-0.68  &0.57 \\
+5               &-4.95e-18 &-0.05  &1.00  &1.00 & -4.42 &  9.54 &-0.66  &0.59 \\
+6               & 1.86e-18 & 0.06  &1.00  &1.00 & -3.21 & 12.39 &-0.68  &0.73 \\
+7               &-1.29e-18 &-0.00  &1.00  &1.00 & -4.59 &  4.91 &-0.57  &0.57 \\
+8               &-5.68e-18 & 0.00  &1.00  &1.00 & -4.83 &  5.00 &-0.58  &0.58 \\
+9               &-7.30e-18 &-0.00  &1.00  &1.00 & -5.79 &  6.26 &-0.57  &0.56 \\
+10              & 7.14e-18 &-0.00  &1.00  &1.00 & -5.98 &  6.14 &-0.57  &0.56 \\
+11              & 2.40e-17 &-0.13  &1.00  &1.00 & -3.71 & 12.98 &-0.73  &0.68 \\
+12              &-5.51e-18 & 0.00  &1.00  &1.00 & -6.43 &  8.37 &-0.62  &0.64 \\
+13              &-3.24e-18 &-0.01  &1.00  &1.00 & -4.73 &  5.22 &-0.52  &0.51 \\
+14              &-3.24e-18 &-0.08  &1.00  &1.00 & -3.32 &  9.62 &-0.69  &0.60 \\
+15              & 2.43e-17 & 0.03  &1.00  &1.00 & -4.78 & 11.44 &-0.63  &0.66 \\
+16              &-1.16e-17 & 0.01  &1.00  &1.00 & -5.66 &  5.90 &-0.35  &0.36 \\
+17              &-7.79e-18 &-0.08  &1.00  &1.00 & -3.62 &  7.30 &-0.49  &0.38 \\
+18              &-1.78e-17 &-0.02  &1.00  &1.00 &-10.19 & 19.39 &-0.57  &0.54 \\
+19              &-5.11e-18 &-0.00  &1.00  &1.00 & -5.09 &  7.30 &-0.71  &0.74 \\
+20              &-1.42e-18 &-0.00  &1.00  &1.00 & -4.89 & 13.27 &-0.58  &0.57 \\
+21              & 1.62e-18 & 0.00  &1.00  &1.00 & -4.71 &  5.08 &-0.57  &0.57 \\
+22              &-2.01e-17 & 0.00  &1.00  &1.00 &-15.97 & 29.62 &-0.58  &0.58 \\
+23              &-5.03e-18 & 0.00  &1.00  &1.00 & -6.33 &  6.68 &-0.56  &0.56 \\
+24              & 1.28e-17 &-0.00  &1.00  &1.00 &-20.74 & 33.88 &-0.57  &0.56 \\
+25              &-2.54e-17 &-0.00  &1.00  &1.00 & -5.83 &  7.40 &-0.48  &0.46 \\
+\hline
+\end{tabular}
+    \caption{Estadísticas descriptivas del conjunto de entrenamiento tras \emph{PCA} y estandarización}
+\end{table}
+
+\pagebreak
 \subsection{Selección del modelo}
 \subsubsection{Cross Validation}
+
+Como era de esperar, salvo errores de precisión de punto flotante, acabamos con 26 \emph{features} de media cero y desviación típica cero, que explican algo más del 99\% de la varianza de la muestra original. Con esto, ya estamos preparados para realizar la selección del modelo empleando la técnica de \emph{Cross Validation}
+
+
 
 
 => Logistic Regression le cuesta mucho calcular
@@ -745,6 +886,18 @@ De nuevo, el proceso será estandarizar los datos previa aplicación de la técn
     SVC & Kernel Lineal orden 1 & 1.20 & 0.929 & 0.923 & 0.937 \\
     SVC & Kernel Lineal orden 2 & 0.9 & 0.929 & 0.923 & 0.934 \\
     SVC & Kernel Lineal orden 2 & 0.95 & 0.929 & 0.927 & 0.932 \\
+    SVC & Kernel Lineal orden 2 & 1.0 & 0.929 & 0.922 & 0.933 \\
+    SVC & Kernel Lineal orden 2 & 1.05 & 0.929 & 0.924 & 0.934 \\
+    SVC & Kernel Lineal orden 2 & 1.1 & 0.929 & 0.925 & 0.937 \\
+    SVC & Kernel Lineal orden 2 & 1.15 & 0.929 & 0.925 & 0.932 \\
+    SVC & Kernel Lineal orden 2 & 1.2 & 0.929 & 0.922 & 0.934 \\
+    SVC & Kernel Lineal orden 3 & 0.9 & 0.929 & 0.926 & 0.932 \\
+    SVC & Kernel Lineal orden 3 & 0.95 & 0.929 & 0.924 & 0.934 \\
+    SVC & Kernel Lineal orden 3 & 1.0 & 0.929 & 0.925 & 0.936 \\
+    SVC & Kernel Lineal orden 3 & 1.05 & 0.929 & 0.918 & 0.934 \\
+    SVC & Kernel Lineal orden 3 & 1.1 & 0.929 & 0.925 & 0.932 \\
+    SVC & Kernel Lineal orden 3 & 1.15 & 0.929 & 0.923 & 0.935 \\
+    SVC & Kernel Lineal orden 3 & 1.20 & 0.929 & 0.924 & 0.936 \\
     \hline
 \end{tabular}
     \caption{Resultados del baseline usando la media}

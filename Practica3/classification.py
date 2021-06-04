@@ -328,6 +328,7 @@ def show_cross_validation(df_train_X, df_train_Y):
     # Hacemos cross validation sobre los datos
     # Support Vector machines no haran caso a las transformaciones de los datos, esto lo conseguiremos
     # usando distintos kernels
+    # TODO -- descomentar
     #  for model in models:
     #      for order in transforms:
     #          for C in C_values:
@@ -355,23 +356,24 @@ def show_cross_validation(df_train_X, df_train_Y):
     transforms = [1, 2, 3]
 
     # Primero kernel lineal, que es el que acepta degree como parametro
-    for order in transforms:
-        for C in C_values:
-            # ovr: one versus rest -> Estrategia para clasificacion multiclase
-            model = SVC(C=C, kernel = 'linear', degree = order, decision_function_shape="ovr")
-            scores = cross_val_score(model, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
-            print(f"Model {model} Linear, pol_order: {order}, C: {C}:")
-            print(f"\tMedia: {np.mean(scores)}")
-            print(f"\tMinimo: {np.min(scores)}")
-            print(f"\tMaximo: {np.max(scores)}")
+    # TODO -- descomentar
+    #  for order in transforms:
+    #      for C in C_values:
+    #          # ovr: one versus rest -> Estrategia para clasificacion multiclase
+    #          model = SVC(C=C, kernel = 'linear', degree = order, decision_function_shape="ovr")
+    #          scores = cross_val_score(model, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
+    #          print(f"Model {model} Linear, pol_order: {order}, C: {C}:")
+    #          print(f"\tMedia: {np.mean(scores)}")
+    #          print(f"\tMinimo: {np.min(scores)}")
+    #          print(f"\tMaximo: {np.max(scores)}")
 
     # Iteramos sobre el resto de kernels
     for kernel in kernels:
         for C in C_values:
             # ovr: one versus rest -> Estrategia para clasificacion multiclase
-            model = SVC(C=C, kernel=kernel, degree = order, decision_function_shape="ovr")
+            model = SVC(C=C, kernel=kernel, decision_function_shape="ovr")
             scores = cross_val_score(model, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
-            print(f"Model {model} {kernel}, pol_order: {order}, C: {C}:")
+            print(f"Model {model} {kernel}, C: {C}:")
             print(f"\tMedia: {np.mean(scores)}")
             print(f"\tMinimo: {np.min(scores)}")
             print(f"\tMaximo: {np.max(scores)}")
