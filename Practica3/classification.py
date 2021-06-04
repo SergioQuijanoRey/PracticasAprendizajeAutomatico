@@ -20,7 +20,7 @@ from sklearn.model_selection import KFold
 from sklearn.dummy import DummyRegressor
 from sklearn import manifold
 from sklearn.linear_model import LogisticRegression
-from sklearn import svm
+from sklearn.svm import SVC
 
 # TODO -- borrar esto
 from core import *
@@ -328,37 +328,53 @@ def show_cross_validation(df_train_X, df_train_Y):
     # Hacemos cross validation sobre los datos
     # Support Vector machines no haran caso a las transformaciones de los datos, esto lo conseguiremos
     # usando distintos kernels
-    for model in models:
-        for order in transforms:
-            for C in C_values:
-                # Seleccionamos el modelo a emplear
-                mdl = None
-                if model == "LogReg":
-                    mdl = LogisticRegression(penalty='l2', C=C, multi_class="multinomial")
+    #  for model in models:
+    #      for order in transforms:
+    #          for C in C_values:
+    #              # Seleccionamos el modelo a emplear
+    #              mdl = None
+    #              if model == "LogReg":
+    #                  mdl = LogisticRegression(penalty='l2', C=C, multi_class="multinomial")
 
-                # Transformamos los datos de entrada con polinomios
-                # Notar que por defecto intruduce la columna del bias
-                poly = PolynomialFeatures(order)
-                df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
+    #              # Transformamos los datos de entrada con polinomios
+    #              # Notar que por defecto intruduce la columna del bias
+    #              poly = PolynomialFeatures(order)
+    #              df_modified_X = pd.DataFrame(poly.fit_transform(df_train_X))
 
-                scores = cross_val_score(mdl, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
-                print(f"Model {model}, pol_order: {order}, C: {C}:")
-                print(f"\tMedia: {np.mean(scores)}")
-                print(f"\tMinimo: {np.min(scores)}")
-                print(f"\tMaximo: {np.max(scores)}")
+    #              scores = cross_val_score(mdl, df_modified_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
+    #              print(f"Model {model}, pol_order: {order}, C: {C}:")
+    #              print(f"\tMedia: {np.mean(scores)}")
+    #              print(f"\tMinimo: {np.min(scores)}")
+    #              print(f"\tMaximo: {np.max(scores)}")
 
     # Iteramos sobre SVMS. Las transformaciones seran segun los kernels especificados
-    kernels = ['linear', 'poly', 'rbf']
+    # El kernel lineal lo ponemos aparte porque acepta un parametro adicional: degree
+    kernels = ['poly', 'rbf']
 
+    # Con SVM podemos emplear ordenes mayores gracias al kernel trick
+    transforms = [1, 2, 3]
+
+    # Primero kernel lineal, que es el que acepta degree como parametro
+    for order in transforms:
+        for C in C_values:
+            # ovr: one versus rest -> Estrategia para clasificacion multiclase
+            model = SVC(C=C, kernel = 'linear', degree = order, decision_function_shape="ovr")
+            scores = cross_val_score(model, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
+            print(f"Model {model} Linear, pol_order: {order}, C: {C}:")
+            print(f"\tMedia: {np.mean(scores)}")
+            print(f"\tMinimo: {np.min(scores)}")
+            print(f"\tMaximo: {np.max(scores)}")
+
+    # Iteramos sobre el resto de kernels
     for kernel in kernels:
-        for order in transforms:
-            for C in C_values:
-                model = SVC(C=C, kernel = kernel, degree = order)
-                scores = cross_val_score(model, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
-                print(f"Model {model}, pol_order: {order}, C: {C}:")
-                print(f"\tMedia: {np.mean(scores)}")
-                print(f"\tMinimo: {np.min(scores)}")
-                print(f"\tMaximo: {np.max(scores)}")
+        for C in C_values:
+            # ovr: one versus rest -> Estrategia para clasificacion multiclase
+            model = SVC(C=C, kernel=kernel, degree = order, decision_function_shape="ovr")
+            scores = cross_val_score(model, df_train_X.to_numpy(), df_train_Y.to_numpy(), scoring='accuracy', cv=cv, n_jobs=-1)
+            print(f"Model {model} {kernel}, pol_order: {order}, C: {C}:")
+            print(f"\tMedia: {np.mean(scores)}")
+            print(f"\tMinimo: {np.min(scores)}")
+            print(f"\tMaximo: {np.max(scores)}")
 
     # Paramos la ejecucion hasta que el usuario pulse una tecla
     print_bar(car = "-")

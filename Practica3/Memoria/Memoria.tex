@@ -669,6 +669,26 @@ Por tanto, la principal mejora al trabajo presentado sería considerar modelos m
 \pagebreak
 \section{Problema de clasificación}
 
+Buscamos obtener información sobre distintos motores eléctricos sin necesidad de introducir más sensores. Dicha introducción de sensores provocaría un aumento de los costes, directamente por el coste de los propios sensores, e indirectamente por el coste de almacenar información que pudiera ser redundante. Por tanto, se busca clasificar motores en distintas categorías empleando información ya disponible en los motores electromecánicos, como más tarde se explicará.
+
+Los motores se dividirán en 11 clases según los defectos que puedan presentar viendo la corriente que generan. Así que tenemos una clase para indicar estado correcto, y 10 clases para indicar distintos defectos \cite{paper_clasificacion_1:paper}.
+
+\subsection{Exploración del problema}
+
+\subsubsection{Descripción del problema}
+
+
+\subsubsection{Descripción de las características}
+
+Información extraída a partir de datos otorgados por la corriente eléctrica del motor. En concreto, información extraida de las fases de la corriente eléctrica generada por el motor \cite{paper_clasificacion_1:paper}. Estos datos pueden ser recogidos durante la conducción.
+
+Además, los datos con los que trabajamos han sido recogidos durante distintas condiciones, para cada uno de los tipos de motores.
+
+Las \emph{features} se extraen usando la descomposición \emph{Empirical Model Decomposition}, que forma parte de la \emph{Hilbert Huang Transformation}. Estos datos se vuelven a descomponer usando \emph{Intrinsic Modal Functions}, a partir de las cuales se calculan estadísticas como media empírica, desviación estándar, oblicuidad y excente \cite{paper_clasificacion_1:paper}.
+
+Este proceso genera las 48 \emph{features} que usaremos para la clasificación
+
+\pagebreak
 \subsection{Exploración de los datos}
 
 ==> Hay 11 clases
@@ -680,45 +700,57 @@ Por tanto, la principal mejora al trabajo presentado sería considerar modelos m
 
 => Quitamos el 6\% de los datos
 
+\subsubsection{Estandarización}
+
+En \cite{paper_clasificacion_1:paper}, en la figura 4, se indica el accuracy obtenido en distintos modelos según se use normalización o estandarización. Para los modelos que nosotros vamos a emplear más adelante, parece claro que la mejor opción es estandarizar y no normalizar.
+
+De nuevo, el proceso será estandarizar los datos previa aplicación de la técnica \emph{PCA}. Una vez que se haya aplicado \emph{PCA}, se volverá a estandarizar el \emph{dataset}.
+
+\subsection{Selección del modelo}
 \subsubsection{Cross Validation}
 
 
 => Logistic Regression le cuesta mucho calcular
 => SVC and NuSVC implement the “one-versus-one” approach for multi-class classification => https://scikit-learn.org/stable/modules/svm.html
+=> SVC le pasamos el order, que es ignorado a no ser que tengamos kernel="poly"
+=> SVC tarda muchisimo en entrenar
+=> Resultados en la tabla:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+    \textbf{Modelo} & \textbf{Transformación} & \textbf{C} & \textbf{Media} & \textbf{Mínimo} & \textbf{Máximo} \\
+    \hline
+    LogReg & Polinomio orden 1 & 0.9 & 0.918 & 0.915 & 0.923 \\
+    LogReg & Polinomio orden 1 & 0.95 & 0.918 & 0.912 & 0.925 \\
+    LogReg & Polinomio orden 1 & 1.0 & 0.918 & 0.911 & 0.922 \\
+    LogReg & Polinomio orden 1 & 1.05 & 0.919 & 0.912 & 0.923 \\
+    LogReg & Polinomio orden 1 & 1.1 & 0.918 & 0.913 & 0.923 \\
+    LogReg & Polinomio orden 1 & 1.15 & 0.919 & 0.913 & 0.925 \\
+    LogReg & Polinomio orden 1 & 1.2 & 0.918 & 0.914 & 0.926 \\
+    LogReg & Polinomio orden 2 & 0.9 & 0.964 & 0.961 & 0.970 \\
+    LogReg & Polinomio orden 2 & 0.95 & 0.964 & 0.960 & 0.968 \\
+    LogReg & Polinomio orden 2 & 1.0 & 0.964 & 0.958 & 0.967 \\
+    LogReg & Polinomio orden 2 & 1.05 & 0.965 & 0.959 & 0.968 \\
+    LogReg & Polinomio orden 2 & 1.1 & 0.964 & 0.959 & 0.968 \\
+    LogReg & Polinomio orden 2 & 1.15 & 0.964 & 0.961 & 0.971 \\
+    LogReg & Polinomio orden 2 & 1.2 & 0.965 & 0.962 & 0.967 \\
+    SVC & Kernel Lineal orden 1 & 0.9 & 0.929 & 0.927 & 0.933 \\
+    SVC & Kernel Lineal orden 1 & 0.95 & 0.929 & 0.924 & 0.935 \\
+    SVC & Kernel Lineal orden 1 & 1.0 & 0.929 & 0.925 & 0.933 \\
+    SVC & Kernel Lineal orden 1 & 1.05 & 0.930 & 0.920 & 0.935 \\
+    SVC & Kernel Lineal orden 1 & 1.1 & 0.929 & 0.924 & 0.935 \\
+    SVC & Kernel Lineal orden 1 & 1.15 & 0.929 & 0.925 & 0.933 \\
+    SVC & Kernel Lineal orden 1 & 1.20 & 0.929 & 0.923 & 0.937 \\
+    SVC & Kernel Lineal orden 2 & 0.9 & 0.929 & 0.923 & 0.934 \\
+    SVC & Kernel Lineal orden 2 & 0.95 & 0.929 & 0.927 & 0.932 \\
+    \hline
+\end{tabular}
+    \caption{Resultados del baseline usando la media}
+\end{table}
 
 
-% Model LogReg, pol_order: 1, C: 0.9:
-%         Media: 0.9183421869511518
-%         Minimo: 0.9150102810143934
-%         Maximo: 0.9239204934886909
-% Model LogReg, pol_order: 1, C: 0.95:
-%         Media: 0.9187761071564464
-%         Minimo: 0.9120201096892139
-%         Maximo: 0.9250628284212932
-% Model LogReg, pol_order: 1, C: 1.0:
-%         Media: 0.9187076088277639
-%         Minimo: 0.9111263422435458
-%         Maximo: 0.9220927575965273
-% Model LogReg, pol_order: 1, C: 1.05:
-%         Media: 0.9190506382248239
-%         Minimo: 0.912268677176148
-%         Maximo: 0.9239031078610603
-% Model LogReg, pol_order: 1, C: 1.1:
-%         Media: 0.9187760653891728
-%         Minimo: 0.9131627056672761
-%         Maximo: 0.9232350925291295
-% Model LogReg, pol_order: 1, C: 1.15:
-%         Media: 0.9190731873316519
-%         Minimo: 0.9136394790952708
-%         Maximo: 0.9259766963673749
-% Model LogReg, pol_order: 1, C: 1.2:
-%         Media: 0.9187763786437246
-%         Minimo: 0.9145533470413525
-%         Maximo: 0.926416819012797
-% Model LogReg, pol_order: 2, C: 0.9:
-%         Media: 0.9649286677618045
-%         Minimo: 0.9611606122915238
-%         Maximo: 0.9702992917523418
 
 \pagebreak
 
