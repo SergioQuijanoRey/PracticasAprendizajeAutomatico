@@ -86,6 +86,9 @@
 % Mostrar la página de las referencias en el indice del documento
 \usepackage[nottoc,numbib]{tocbibind}
 
+% Para mostrar las matrices
+\usepackage{amsmath}
+
 % Metadatos del documento
 %===================================================================================================
 \title{
@@ -842,22 +845,53 @@ Como en regresión, y por los mismos motivos, aplicamos estandarización al conj
     \caption{Estadísticas descriptivas del conjunto de entrenamiento tras \emph{PCA} y estandarización}
 \end{table}
 
-\pagebreak
-\subsection{Selección del modelo}
-\subsubsection{Cross Validation}
-
 Como era de esperar, salvo errores de precisión de punto flotante, acabamos con 26 \emph{features} de media cero y desviación típica cero, que explican algo más del 99\% de la varianza de la muestra original. Con esto, ya estamos preparados para realizar la selección del modelo empleando la técnica de \emph{Cross Validation}
 
+\pagebreak
+
+\subsection{Selección del modelo}
+
+En este caso, solo vamos a usar una vez validación cruzada, a diferencia de regresión en el que hacíamos dos fases. Los modelos considerados serán Regresión Logística y \emph{Soft Support Vector Machine}.
+
+El modelo de regresión logística es muy parecido al del perceptrón, solo que cambiamos la función de activación. En el perceptrón, tomamos la señal dada por $\sum w_i x_i$ y le aplicamos la función de activación identidad. En regresión logística aplicamos la función de activación $\sigma$.
+
+Consideramos este modelo porque, como se ha desarrollado en la teoría de este curso, este modelo funciona muy bien cuando hay cierto \emph{overlapping} entre las clases con las que trabajamos. Podemos pensar que tenemos cierto \emph{overlapping} debido a que distintos defectos puedan tener \emph{"síntomas"} en la señal eléctrica muy parecidos.
+
+Consideramos también \emph{Soft Support Vector Machine}. Es un modelo muy potente gracias al uso del \emph{kernel trick}, que permite transformaciones de los datos a espacios de dimensión elevada sin mucho coste. Además, con la maximización del margen y el hecho de que la solución final solo depende de unos pocos vectores soporte, podemos usar estas altas dimensionalidades sin tanto riesgo de caer en el \emph{overfitting}.
+
+En regresión logística consideramos el conjunto sin transformar y el conjunto transformado, al igual que en regresión, con monomios de hasta orden 2. No podemos computar transformaciones con monomios de mayor grado, y por tanto no las consideramos. En \emph{SVM}, las transformaciones las especificaremos con el kernel dado por parámetro.
+
+En ambos casos moveremos el valor de $C$ que especificará la inversa del parámetro de regularización.
+
+En regresión logística consideramos los siguientes parámetros:
+
+\begin{itemize}
+    \item Usamos regularización $L2$, la que usábamos en el modelo lineal \emph{Ridge}. No tenemos ningún motivo fuerte para emplear \emph{Lasso} pues no nos interesa realizar selección de características. Tenemos pocas características y solo estamos considerando transformaciones polinómicas de hasta grado 2
+    \item Regresión logística es un modelo para clasificación binaria. Por tanto debemos usar alguna técnica para adaptarlo a clasificación multiclase. La técnica escogida es multinomial. Con ello, se busca minimizar la función de pérdida multinomial sobre toda la distribución de las variables \cite{sklearn_lgr:online}
+    \item Usamos el valor por defecto para el máximo de iteraciones: 100. Usando este valor tenemos buenos resultados, como se mostrará más adelante, en unos tiempos razonables
+\end{itemize}
+
+En \emph{SVM} consideraremos los siguientes parámetros:
+
+\begin{itemize}
+    \item kernel: probaremos con kernel lineal, polinómico (en cuyo caso variaremos el grado de la transformación) y  \emph{radial basis function}.
+    \item La regularización será obligadamente por \lstinline{sklearn} \emph{l2}.
+    \item No consideraremos número máximo de iteraciones. Consideraremos una tolerancia umbral entre dos iteraciones de $10^{-3}$, valor correspondiente al parámetro por defecto
+    \item De nuevo, \emph{SVM} es un clasificador binario. Con el parámetro \lstinline{decision_function_shape="ovr"} especificamos que queremos usar la técnica \emph{one versus rest}.
+\end{itemize}
+
+En ambos casos, estamos aplicando \emph{k-fold cross validation} con un valor $k = 10$. Y en ambos casos, como métrica estamos usando el \emph{accuracy} pues es muy fácil de interpretar a la hora de quedarnos con el modelo que mayor valor de esta métrica presente.
+
+\subsubsection{Cross Validation}
+
+De nuevo, el código que implementa todo lo que ya hemos comentado se encuentra en la función \lstinline{show_cross_validation}.
+
+Esta función consume muchísimo tiempo. Por ello, no hemos sido capaces de terminar de probar con todos los modelos que se habían propuesto inicialmente. Paro la ejecución tras seis horas de cómputo en mi máquina \footnote{En \emph{\ref{consideraciones}. \nameref{consideraciones}} mostramos las carácterísticas de la máquina en la que hemos realizado la ejecución}. Por tanto, el código que llama a \lstinline{show\_cross\_validation} está comentado.
 
 
+Los resultados obtenidos se muestran en la \emph{Tabla \ref{tabla_cv_clasif}. \nameref{tabla_cv_clasif}}
 
-=> Logistic Regression le cuesta mucho calcular
-=> SVC and NuSVC implement the “one-versus-one” approach for multi-class classification => https://scikit-learn.org/stable/modules/svm.html
-=> SVC le pasamos el order, que es ignorado a no ser que tengamos kernel="poly"
-=> SVC tarda muchisimo en entrenar
-=> Resultados en la tabla:
-
-\begin{table}[H]
+\begin{table}
 \centering
 \begin{tabular}{|c|c|c|c|c|c|}
     \hline
@@ -900,16 +934,135 @@ Como era de esperar, salvo errores de precisión de punto flotante, acabamos con
     SVC & Kernel Lineal orden 3 & 1.20 & 0.929 & 0.924 & 0.936 \\
     \hline
 \end{tabular}
-    \caption{Resultados del baseline usando la media}
+    \caption{Resultados del proceso de \emph{Cross Validation}}
+    \label{tabla_cv_clasif}
 \end{table}
 
+Es claro que los dos modelos que mejor media de \emph{acuraccy} son Regresión Logística, con una trasnformación cuadrática, y valor de $C$ 1.05 y 1.20. Elegimos $C = 1.20$ pues el rango $[min, max]$ tiene una longitud de 0.05, mientras que en el otro caso tenemos una longitud de 0.09, y así el valor $C=1.20$ pare ser más estable.
 
+Los resultados para los parámetros que nos ha dado tiempo a ejecutar en \emph{Support Vector Machine} son muy buenos, pero no han logrado el nivel de regresión logística.
+
+\pagebreak
+
+\section{Entrenamiento sobre todo el \emph{training\_dataset} para seleccionar el modelo final}
+
+En este punto está justificado que usemos el conjunto original de datos, al que hemos eliminado \emph{outliers} y estandarizado. Tras esto, aplicamos \emph{PCA} obteniendo 26 variables, y estandarizando de nuevo. Además, usamos como parámetros:
+
+\begin{itemize}
+    \item Regularización \emph{l2}
+    \item Clasificación multiclase usando LGR multinomial
+    \item Máximo de iteraciones: 100
+    \item Valor de la inversa del regularizador: $C = 1.20$
+\end{itemize}
+
+Mostramos los resultados en la siguiente tabla:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Muestra} & \textbf{Accuracy} & \textbf{Precisión} & \textbf{F1} \\
+    \hline
+    Entrenamiento & 0.983 & 0.983 & 0.983 \\
+    Test & 0.947 & 0.947 & 0.947 \\
+    \hline
+
+\end{tabular}
+    \caption{Resultados del entrenamiento}
+\end{table}
+
+\begin{table}[H]
+\centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+3990 &    1 &    0 &    0 &    0 &   10 &    0 &    0 &     0 &    0 &    0 \\
+   0& 3740&    0&    0&    0&    0&    0&    0&    0&  212&    1 \\
+   0&    1& 3988&    0&    8&    0&    0&    1&    0&    0&    0 \\
+   0&    0&    1& 3982&    2&    0&    0&    0&    0&    0&    0 \\
+   0&    0&    9&    1& 3892&    2&    0&  129&    1&    0&    0 \\
+  18&    1&    0&    0&    0& 3921&    0&    2&   12&    0&    0 \\
+   0&    0&    0&    0&    0&    0& 4018&    0&    0&    0&    0 \\
+   0&    0&    0&    0&  127&    3&    0& 3847&    0&    0&    0 \\
+   0&    1&    0&    0&    1&   21&    0&    0& 3943&    0&    0 \\
+   0&  164&    1&    0&    0&    0&    0&    0&    1& 3763&    0 \\
+   0&    0&    0&    0&    0&    0&    0&    0&    0&    0& 3953 \\
+   \hline
+\end{tabular}
+\caption{Matriz de confusión en la muestra de entrenamiento}
+\end{table}
+
+\begin{table}[H]
+\centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+1041&    2&    3&    1&    1&   25&    1&    2&    0&    5&     0 \\
+   0&  965&    1&    0&    5&    3&    1&    1&    5&   88&    29 \\
+   1&   10& 1028&   10&   16&    9&    3&    3&    3&    2&     0 \\
+   0&    0&    1& 1028&   10&    0&    5&    4&    1&    0&     0 \\
+   0&    1&   19&   21&  966&    2&    2&   43&    6&    2&     0 \\
+  21&    1&    0&    0&    0&  994&    0&    2&   11&    0&     0 \\
+   0&    0&    0&    1&    0&    0& 1052&    0&    0&    0&     2 \\
+   0&    0&    0&    1&   64&    7&    0&  996&    2&    0&     1 \\
+   1&   10&    8&    1&    2&   24&    0&   13& 1035&    2&    11 \\
+   0&   74&    4&    1&    0&    0&    0&    0&    1&  965&     0 \\
+   0&    0&    0&    0&    0&    0&    0&    0&    0&    0&  1020 \\
+   \hline
+\end{tabular}
+\caption{Matriz de confusión en la muestra de test}
+\end{table}
+
+\subsubsection{Análisis de los resultados}
+
+El estadístico \emph{Accuracy} se calcula como el porcentaje de valores bien predecidos entre todos los valores sobre los que realizamos el cálculo. La \emph{precisión} es el porcentaje de verdaderos positivos entre verdaderos y falsos positivios. Como estamos trabajando con clasificación multiclase, calculamos este estadístico clase a clase y calculamos la media entre todas las clases. Esto usando la opción de \lstinline{sklearn} \lstinline{average = 'macro'}. \emph{F1} es la media armónica entre precisión y \emph{recall}, donde \emph{recall} es el porcentaje de verdaderos positivos que clasificamos correctamente. De nuevo, debemos usar la técnica \lstinline{average = 'macro'} \cite{towards_scores:online}.
+
+Lo primero es observar que estamos obteniendo unos resultados muy bienos en el test, con las tres estadísticas entorno al $94.7\%$ (cuando mostramos más de 3 decimales, vemos que no son exactamente el mismo valor). Son estadísticas que no se alejan demasiado (en torno a un 4\%) de las estadísticas logradas en el conjunto de entrenamiento. Por tanto, no hemos tenido problemas de \emph{overfitting}.
+
+En segundo lugar, la matriz de confusión en la muestra de test muestra también buenos resultados. En esta matriz, la fila $i$ indica el valor verdadero de la clase, y la fila $j$ muestra el valor en el que hemos clasificado. Por tanto, lo que queremos es que la mayor parte de valores estén en la diagonal principal, como es nuestro caso. Vemos que en algunas clases estamos clasificando mal, por ejemplo, confundimos la clase 2 con la clase 10 en 88 ejemplos de la muestra. Sin embargo, teniendo en cuenta que estamos trabajando con una muestra de test con 11702 ejemplos, estos valores qeu quedan fuera de la diagonal principal no parecen relevantes. Ninguno de estos valores fuera de la diagonal llega a los 100 ejemplos, y por tanto, en una muestra de 11700 ejemplos no parecen relevantes.
+
+Es decir, hemos aprendido efectivamente una función que aproxima $f$ de forma no trivial (por ejemplo, una función que siempre clasifique en la misma etiqueta, o que clasifique aleatoriamente). Además, parece más complejo aprender una función trivial en clasificación multietiqueta que alcance un \emph{performance tan bueno}.
+
+El principal problema con el que nos hemos encontrado ha sido el tiempo de cómputo necesario en \emph{Cross Validation} con \emph{SVM}. Por tanto, la principal mejora que podemos considerar es intentar solucionar esto. Una forma que pensamos que puede ser efectiva es aplicar \emph{PCA} para acabar con menos de 26 dimensiones, a pesar de perder algo de varianza explicada, con la esperanza de acelerar el proceso de aprendizaje para \emph{SVM} manteniendo buenos resultados. O bien usar algún servicio en la nube como \emph{Google Collab} para intentar realizar un entrenamiento con servidores más potentes. A pesar de esto, hemos obtenido unos resultados muy buenos empleando un modelo lineal como es \emph{Regresión Logística}.
+
+En \cite{paper_clasificacion_1:paper}, figura 7, se muestra el \emph{performance} de los clasificadores entrenados. Con \emph{SVM} logran un \emph{accuracy} del 99\%, por lo tanto, las mejoras que proponemos anteriormente tienen una motivación clara en base a estos resultados. Sospechamos que, con un equipo más potente, podemos conseguir resultados mucho más buenos aplicando el \emph{kernel} adecuado.
+
+Sin embargo, en \cite{paper_clasificacion_1:paper} muestran como usando una transformación \emph{RFE}, se logran resultados mucho mejores que empleando \emph{PCA}. Por tanto, tampoco tenemos una confianza total en que usando \emph{SVM} sobre una máquina más potente obtengamos resultados similares a los presentados en \cite{paper_clasificacion_1:paper}. Durante esta práctica hemos comprobado empíricamente le gran impacto que tiene un buen preprocesado de los datos. Por tanto, los buenos resultados obtenidos en \cite{paper_clasificacion_1:paper} seguramente se fundamenten en gran medida en un buen preprocesado de los datos, que con \emph{PCA} justifican que no se logra.
 
 \pagebreak
 
 \section{Consideraciones adicionales} \label{consideraciones}
 
 Estamos usando la librería \lstinline{scipy} para el borrado de los outliers. En concreto, para hacer una \emph{query} a \lstinline{pandas} en la que calculamos el \emph{z-score}. Esto se ve en la función \lstinline{remove_outliers}
+
+Por otro lado, las características de la máquina en la que ejecutamos el código se muestra con la traza del comando \lstinline{lscpu}
+
+\begin{lstlisting}
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   39 bits physical, 48 bits virtual
+CPU(s):                          4
+On-line CPU(s) list:             0-3
+Thread(s) per core:              2
+Core(s) per socket:              2
+Socket(s):                       1
+NUMA node(s):                    1
+Vendor ID:                       GenuineIntel
+CPU family:                      6
+Model:                           142
+Model name:                      Intel(R) Core(TM) i7-7500U CPU @ 2.70GHz
+Stepping:                        9
+CPU MHz:                         2432.428
+CPU max MHz:                     3500,0000
+CPU min MHz:                     400,0000
+BogoMIPS:                        5802.42
+Virtualization:                  VT-x
+L1d cache:                       64 KiB
+L1i cache:                       64 KiB
+L2 cache:                        512 KiB
+L3 cache:                        4 MiB
+\end{lstlisting}
+
+Además, la máquina tiene 8GB de memoria RAM.
 
 
 \pagebreak
